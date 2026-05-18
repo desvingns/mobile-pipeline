@@ -1,0 +1,23 @@
+---
+name: screen-content-extraction
+description: "Every <Name>Screen in Android Compose projects must expose a public stateless <Name>Content(state, onXxx) composable — required for compose-ui tests."
+metadata:
+  node_type: memory
+  type: feedback
+---
+
+Every Compose screen in {{PROJECT_NAME}} must be split into **two composables**:
+
+1. `<Name>Screen(...)` — thin Hilt wrapper with `hiltViewModel()`. Receives navigation callbacks. Not tested directly.
+2. `<Name>Content(state: <Name>UiState, onXxx: () -> Unit, ...)` — public, stateless. **This** is what compose-ui tests target.
+
+**Why:** `hiltViewModel()` inside a composable creates a DI-graph dependency. Compose test rule (Robolectric) doesn't set up Hilt → tests fail at that line. Solution: extract a stateless body. Document the choice in `DOCUMENTATION.md` → Architecture Decisions Log when this pattern is introduced.
+
+**How to apply:**
+
+- New screen → implement both parts. `Screen` is short: gets ViewModel, passes `state` and callbacks into `Content`.
+- Existing screen without `Content` → reviewer (`{{PREFIX}}-reviewer-android`, Check 4) will flag it. Don't leave a Screen without a `Content` function even if SPEC doesn't mention tests.
+- `Content` — `internal` or `public`? Use **public**. Reason: a Compose UI test from a different Gradle source set can fail to resolve `internal` symbols. Make it explicit `public`. (This was a real fix in past iterations — a `Content` that worked for previews failed when first reached from a test in another module.)
+- Callback signatures: `() -> Unit` for click, `(T) -> Unit` for parameterised. Never pass `viewModel` into `Content`.
+
+Related: [[testing-fakes-only]] (for unit ViewModel tests) and the `{{PREFIX}}-tester-android` agent's "Test Type: compose-ui" section.

@@ -1,0 +1,27 @@
+---
+name: room-upsert-by-pk-not-unique
+description: "Room @Upsert resolves conflicts by PRIMARY KEY, not by UNIQUE index. Test upsert-update flows by capturing id from the first insert."
+metadata:
+  node_type: memory
+  type: feedback
+---
+
+The `@Upsert` annotation in Room resolves conflicts **by PRIMARY KEY**, not by `@Index(unique = true)`. This is counter-intuitive — easy to get a false-positive in tests.
+
+**Why:** When an entity has a UNIQUE index on a business field (e.g. `WeightEntry` UNIQUE on `dateEpochDay`), it seems like `@Upsert` should update the existing row with the same date. In reality Room only looks at `id`: if you pass `id = 0` twice, you get either two rows (auto-generated ids differ) or a SQLite UNIQUE constraint exception (depending on index config). For `@Upsert` to update an existing row, you must pass the **same `id`** the first insert assigned.
+
+This Room behaviour is documented in `androidx.room.Upsert` but rarely noticed until a DAO test passes green and a production duplicate shows up.
+
+**How to apply:**
+
+- In DAO upsert tests: capture the `id` from the first insert and reuse it for the update:
+  ```kotlin
+  val id = dao.upsertEntry(entity.copy(id = 0))   // insert — id auto-assigned
+  dao.upsertEntry(entity.copy(id = id, weightKg = 80f))  // update — same row
+  ```
+- If SPEC says "update existing record by date" — that's **not** how `@Upsert` works directly. You need either:
+  - Explicit `SELECT by date → INSERT or UPDATE` in the repository, or
+  - A separate `@Query("UPDATE ... WHERE date = :date")`
+- This rule is in `{{PREFIX}}-tester-android` (Test Type: dao section).
+
+Related: [[testing-fakes-only]] (DAO tests are the one place we use a real in-memory DB instead of a fake).

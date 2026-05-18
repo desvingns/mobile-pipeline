@@ -1,0 +1,45 @@
+---
+name: cross-platform-bash-jbr
+description: "Android-specific: JDK 17+ detection via Android Studio JBR — cross-platform loop (Linux, macOS, Windows Git Bash). Pipeline must never assume the system JDK is right."
+metadata:
+  node_type: memory
+  type: feedback
+---
+
+For Android work, the Android Gradle Plugin requires **JDK 17+**. The reliable way to get one across all developer machines is the **JBR (JetBrains Runtime)** that Android Studio bundles. System JDK can be wrong version or absent; JBR is always exactly what Android Studio uses.
+
+**Why:** Gradle builds fail with confusing errors on JDK 11 or JDK 21. Hard-coding `JAVA_HOME` to a specific path breaks on the other developer machine. The detection loop below covers all known JBR locations across Linux (Ubuntu / snap / manual install), macOS (Android Studio.app bundle), and Windows (default + per-user installs as seen through Git Bash).
+
+**How to apply:**
+
+This loop is included in the `{{PREFIX}}-runner-android` agent, in `CLAUDE.md`, and as a standalone snippet at `templates/android/snippets/jbr-detect.sh` for reuse:
+
+```bash
+for candidate in \
+    "$HOME"/.jbr/jbr_jcef-17* \
+    /snap/android-studio/current/jbr \
+    /opt/android-studio/jbr \
+    /Applications/Android\ Studio.app/Contents/jbr/Contents/Home \
+    "/c/Program Files/Android/Android Studio/jbr" \
+    "$LOCALAPPDATA/Programs/Android Studio/jbr"; do
+    if [ -x "$candidate/bin/java" ] || [ -x "$candidate/bin/java.exe" ]; then
+        export JAVA_HOME="$candidate"
+        export PATH="$JAVA_HOME/bin:$PATH"
+        break
+    fi
+done
+```
+
+**Persist for your shell:**
+
+- Linux (bash): append to `~/.bashrc`
+- macOS (zsh, default since Catalina): append to `~/.zshrc`
+- macOS (bash): append to `~/.bash_profile`
+- Windows (Git Bash): append to `~/.bash_profile`
+
+**Trap to remember:**
+
+- `[ -x ... ]` with a glob (`jbr_jcef-17*`) only works if the glob expands to a single match. If you have multiple JBR versions installed, this picks the lexically-first — usually OK, but verify with `echo $JAVA_HOME` after sourcing.
+- If no JBR is found and the loop falls through, `JAVA_HOME` keeps its previous value. Don't accidentally rely on system JDK; check before each Gradle session if the build behaves oddly.
+
+Related: [[cross-platform-bash]] (common Bash-only / never-PowerShell rule).

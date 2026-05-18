@@ -1,0 +1,24 @@
+---
+name: dao-test-config-trap
+description: "Room DAO tests under Robolectric must use @Config(application = android.app.Application::class) — without it, the project's Application onCreate() runs custom code (seeders, etc.) that breaks the in-memory DB."
+metadata:
+  node_type: memory
+  type: feedback
+---
+
+In every Room DAO test (under Robolectric), add `@Config(sdk = [34], application = android.app.Application::class)` annotation **explicitly**.
+
+**Why:** Without the override, Robolectric instantiates your project's custom `<YourApplication>` class from the manifest. Its `onCreate()` typically runs initialisation work — `DatabaseSeeder`, analytics setup, etc. — sometimes on background coroutines. When your test simultaneously opens its own in-memory DB via `Room.inMemoryDatabaseBuilder`, two threads write to SQLite concurrently and you get `IllegalStateException: Illegal connection pointer`. Substituting `android.app.Application::class` (the base class, with no seeder) sidesteps this.
+
+**How to apply:**
+
+- Any test class like `<Name>DaoTest` → annotate:
+  ```kotlin
+  @RunWith(RobolectricTestRunner::class)
+  @Config(sdk = [34], application = android.app.Application::class)
+  class <Name>DaoTest { ... }
+  ```
+- This rule is in `{{PREFIX}}-tester-android` agent's instructions — watch it doesn't fall out during future agent refactors.
+- If a new Room test fails with `Illegal connection pointer` → first hypothesis: missing or forgotten `application = android.app.Application::class`.
+
+Document the choice in your project's `DOCUMENTATION.md` → Architecture Decisions Log under whichever iteration introduces Room DAO tests.
