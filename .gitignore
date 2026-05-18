@@ -1,0 +1,27 @@
+# cmp repo .gitignore
+# This is the template repo — actual generated projects have their own .gitignore.
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor / IDE local config
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Local notes / scratch
+SCRATCH.md
+NOTES.local.md
+
+# Bootstrap test artifacts
+test-output/
+smoke-test/
+
+# If a contributor accidentally generates a project inside this repo
+# while testing bootstrap, ignore the result so it doesn't pollute git.
+.claude/sandbox/
+.claude/.cmp-version
