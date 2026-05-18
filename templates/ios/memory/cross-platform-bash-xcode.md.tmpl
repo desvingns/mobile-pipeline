@@ -1,0 +1,38 @@
+---
+name: cross-platform-bash-xcode
+description: "iOS-specific: Xcode developer dir detection via xcode-select. Required on macOS for xcodebuild commands. Cross-platform check protects against running iOS runner on Linux/Windows."
+metadata:
+  node_type: memory
+  type: feedback
+---
+
+For iOS work, the build toolchain is **Xcode** (macOS only). Set `DEVELOPER_DIR` from `xcode-select -p` so `xcodebuild`, `simctl`, and friends find the right SDK.
+
+**Why:** `DEVELOPER_DIR` overrides the default Xcode location. Without it, `xcodebuild` uses whatever `xcode-select` points to — which is usually fine, but multiple Xcode installs (beta + stable) can cause subtle issues. Explicit `DEVELOPER_DIR` makes the toolchain deterministic.
+
+**Also why:** If you're running `{{PREFIX}}-runner-ios` from a Linux or Windows machine (e.g. via SSH or remote dev), `xcode-select` won't exist — the runner should fail loudly, not silently use a wrong toolchain.
+
+**How to apply:**
+
+The detection block is in `{{PREFIX}}-runner-ios` agent and as a standalone snippet at `templates/ios/snippets/xcode-detect.sh`:
+
+```bash
+if command -v xcode-select >/dev/null 2>&1; then
+    if dir=$(xcode-select -p 2>/dev/null) && [ -n "$dir" ]; then
+        export DEVELOPER_DIR="$dir"
+    fi
+fi
+```
+
+**Persist for your shell:**
+
+- macOS (zsh, default): append to `~/.zshrc`
+- macOS (bash): append to `~/.bash_profile`
+
+**Trap to remember:**
+
+- After upgrading Xcode (e.g. Xcode 15 → 16), run `sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer` to point at the new install.
+- If `xcodebuild` reports "tool ... can't be located", check `xcode-select -p` — it might still point at Command Line Tools (`/Library/Developer/CommandLineTools`) instead of full Xcode.
+- For multiple Xcode versions, use `xcversion` (rbenv-style switcher) or symlink swapping.
+
+Related: [[cross-platform-bash]] (common Bash-only / never-PowerShell rule).

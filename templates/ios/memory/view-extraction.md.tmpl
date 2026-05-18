@@ -1,0 +1,64 @@
+---
+name: view-extraction
+description: "Every <Name>Screen in iOS SwiftUI projects must expose a <Name>Content View — required for view tests via ViewInspector and for SwiftUI Previews without DI dependencies."
+metadata:
+  node_type: memory
+  type: feedback
+---
+
+Every SwiftUI screen in {{PROJECT_NAME}} should be split into **two View structs**:
+
+1. `<Name>Screen` — thin wrapper that owns the view model (`@StateObject`, `@ObservedObject`, or `@Bindable` for Observation). Receives navigation callbacks from parent.
+2. `<Name>Content` — stateless View accepting concrete state and callbacks. **This** is what view tests (ViewInspector) target. Also makes SwiftUI Previews trivial.
+
+**Why:** A View that internally constructs its own view model (e.g. via DI container resolution) cannot be:
+- Tested with ViewInspector without setting up the full DI graph
+- Previewed in Xcode without a working production-equivalent backend
+- Embedded in other contexts (e.g. another module's preview) without leaking DI dependencies
+
+Extracting a stateless `<Name>Content` fixes all three. Mirrors the Compose Screen/Content pattern (see `screen-content-extraction` in the Android counterpart project).
+
+**How to apply:**
+
+```swift
+// Thin wrapper — gets the view model
+struct ProfileScreen: View {
+    @StateObject private var viewModel: ProfileViewModel = .resolve()
+
+    var body: some View {
+        ProfileContent(
+            state: viewModel.state,
+            onSave: viewModel.save,
+            onCancel: viewModel.cancel
+        )
+    }
+}
+
+// Stateless body — testable, previewable
+struct ProfileContent: View {
+    let state: ProfileState
+    let onSave: () -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        // ...
+    }
+}
+
+#Preview {
+    ProfileContent(
+        state: .preview,
+        onSave: {},
+        onCancel: {}
+    )
+}
+```
+
+**Naming conventions:**
+- `<Name>Screen` — outer, DI-aware
+- `<Name>Content` — inner, stateless
+- `<Name>State` (or `<Name>ViewState`) — the state struct passed in
+
+**Reviewer check:** `{{PREFIX}}-reviewer-ios` Check 4 flags any new `*Screen.swift` without a corresponding `*Content` struct.
+
+Related: [[testing-fakes-only]] (for unit ViewModel tests) and the `{{PREFIX}}-tester-ios` agent's "Test Type: view" section.
