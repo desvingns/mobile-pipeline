@@ -115,43 +115,27 @@ Generate 3–5 short steps for the user to run on a real device or emulator. Wri
 
 ---
 
-## Return
+## Return — strict JSON contract
 
-Output exactly this JSON (no extra text):
+Your **final message** must be exactly one JSON object and nothing else:
+- No prose before the JSON.
+- No prose after the JSON.
+- No markdown fences (no ```json, no ```).
+- No comments inside the JSON.
 
-**All clear:**
-```json
-{
-  "pass": true,
-  "static_checks": {
-    "nav_wired": "ok",
-    "hilt_graph": "ok",
-    "room_schema": "n/a",
-    "{{UI_LANGUAGE}}_strings": "ok"
-  },
-  "manual_checklist": [
-    "Step 1 in {{UI_LANGUAGE}}.",
-    "Step 2 in {{UI_LANGUAGE}}.",
-    "Step 3 in {{UI_LANGUAGE}}."
-  ]
-}
+**All clear** shape (single line, expanded here for readability):
+```
+{"pass": true, "static_checks": {"nav_wired": "ok", "hilt_graph": "ok", "room_schema": "n/a", "{{UI_LANGUAGE}}_strings": "ok"}, "manual_checklist": ["Step 1 in {{UI_LANGUAGE}}.", "Step 2 in {{UI_LANGUAGE}}.", "..."]}
 ```
 
-**Failure:**
-```json
-{
-  "pass": false,
-  "static_checks": {
-    "nav_wired": "failed: StatsScreen not referenced in AppNavHost.kt",
-    "hilt_graph": "ok",
-    "room_schema": "n/a",
-    "{{UI_LANGUAGE}}_strings": "failed: 2 latin literals: StatsScreen.kt:42, StatsScreen.kt:58"
-  },
-  "manual_checklist": []
-}
+**Failure** shape:
+```
+{"pass": false, "static_checks": {"nav_wired": "failed: StatsScreen not referenced in AppNavHost.kt", "hilt_graph": "ok", "room_schema": "n/a", "{{UI_LANGUAGE}}_strings": "failed: 2 latin literals: StatsScreen.kt:42, StatsScreen.kt:58"}, "manual_checklist": []}
 ```
 
 When `pass=false`, leave `manual_checklist` empty — there's nothing to verify on a device until the wiring is fixed.
+
+If the orchestrator prefixes your prompt with `Previous response was not valid JSON…`, you previously violated this contract — return ONLY the raw JSON object this time.
 
 ---
 

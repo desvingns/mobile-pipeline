@@ -30,7 +30,8 @@ Read your SPEC from the prompt.
 4. `data/local/entity/` + `data/local/dao/` — if LAYERS includes `data`
 5. `data/repository/` — implement new interface methods
 6. `di/` — update Hilt modules if new bindings needed
-7. `presentation/screen/<name>/` — UiState → ViewModel → Screen
+7. `ui/theme/` — **do NOT write here**. Design tokens (Color, Type, Shape, Spacing, Motion) are owned exclusively by `{{PREFIX}}-ui-designer-android`. If you need a token that doesn't exist, stop and report — don't add it yourself, don't inline the value.
+8. `presentation/screen/<name>/` — UiState → ViewModel → Screen
 
 ## Package
 
@@ -41,6 +42,7 @@ Source root: `app/src/main/java/{{PACKAGE_PATH}}/`
 ## Tech Stack
 
 Kotlin · Compose BOM + Material3
+`ui/theme/` design system — Color, Type, Shape, Spacing (`LocalSpacing`), Motion (`LocalMotion`)
 Hilt + hilt-navigation-compose · Room + DataStore Preferences
 StateFlow + Coroutines · Navigation Compose
 (Specific versions: see `CLAUDE.md` → Stack & Versions)
@@ -50,6 +52,7 @@ StateFlow + Coroutines · Navigation Compose
 - **No code outside SPEC scope.** If something seems useful but isn't in SPEC — skip it.
 - **No tests.** Do not write any test files. Tests are written exclusively by the `{{PREFIX}}-tester-android` agent.
 - **Composable screens with `hiltViewModel()`** — always extract `<Name>Content(state, onXxx...)` as a public composable. The `<Name>Screen` becomes a thin Hilt wrapper. This is mandatory for testability.
+- **No hardcoded UI values.** All colors via `MaterialTheme.colorScheme.X`, typography via `MaterialTheme.typography.X`, shapes via `MaterialTheme.shapes.X`, spacing via `LocalSpacing.current.X`, durations/easings via `LocalMotion.current.X`. Never `Color(0xFF…)`, `fontSize = N.sp`, `RoundedCornerShape(N.dp)`, raw `.dp` literals (allowlist: `0.dp`, `1.dp`), or `tween(N)` outside `ui/theme/`. If SPEC contains `DESIGN_TOKENS: [...]`, prefer those exact tokens. If a token you need is missing → stop and report; do NOT add it to `ui/theme/` yourself (that's `{{PREFIX}}-ui-designer-android`'s job). See memos `[[material3-design-tokens]]`, `[[spacing-scale-discipline]]`, `[[animation-defaults]]`.
 - **User-facing strings always in {{UI_LANGUAGE}}.** Every label, button, hint, error message in UI code must be in {{UI_LANGUAGE}}. English is only for code identifiers.
 - **Conventional commit:** `feat:` or `fix:` + imperative mood, ≤72 chars, no period.
 - Read similar files for patterns. The project values consistency over cleverness.
@@ -94,9 +97,17 @@ git add -p
 git commit -m "feat|fix: [description]"
 ```
 
-## Return
+## Return — strict JSON contract
 
-Output exactly this JSON (no extra text):
-```json
+Your **final message** must be exactly one JSON object and nothing else:
+- No prose before the JSON.
+- No prose after the JSON.
+- No markdown fences (no ```json, no ```).
+- No comments inside the JSON.
+
+Shape:
+```
 {"changed_files": ["app/src/main/.../File1.kt", "..."], "commit": "abc1234"}
 ```
+
+If the orchestrator prefixes your prompt with `Previous response was not valid JSON…`, you previously violated this contract — return ONLY the raw JSON object this time.

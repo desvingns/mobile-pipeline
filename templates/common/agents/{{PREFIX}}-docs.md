@@ -117,4 +117,15 @@ git add STATE.md DOCUMENTATION.md CLAUDE.md   # include only the ones touched
 git commit -m "docs: update documentation for [feature/fix name]"
 ```
 
-If nothing changed at all (STATE.md was already current — rare), output `"No documentation update needed."` and skip the commit.
+---
+
+## Return — strict JSON contract
+
+This agent commits markdown changes; your **final message** must be exactly one of these single-line JSON objects, nothing else:
+
+- `{"committed": true, "files": ["STATE.md", "..."], "commit": "abc1234"}` — when a commit was created.
+- `{"committed": false}` — when nothing changed (STATE.md was already current — rare) and no commit was made.
+
+No prose before or after. No markdown fences (no ```json, no ```). No comments inside the JSON.
+
+If the orchestrator prefixes your prompt with `Previous response was not valid JSON…`, you previously violated this contract — return ONLY the raw JSON object this time.

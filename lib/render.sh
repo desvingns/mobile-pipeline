@@ -54,6 +54,12 @@ strip_platform_markers() {
 # strip_if_block <file> <condition>
 # Removes `<!-- if CONDITION -->...<!-- /if -->` blocks. Condition is a literal
 # string match (e.g. "UI_LANGUAGE != en").
+#
+# IMPORTANT — markers MUST be on their own lines. This uses `sed` range addressing
+# (/A/,/B/d), which after matching A starts scanning for B on the NEXT line. An
+# inline `<!-- if X --> ... <!-- /if -->` therefore swallows everything down to
+# the next `<!-- /if -->` elsewhere in the file. Same restriction applies to
+# strip_platform_block. If you need inline conditionals, switch to awk/perl.
 strip_if_block() {
     local file="$1" condition="$2"
     local tmp="${file}.tmp.$$"

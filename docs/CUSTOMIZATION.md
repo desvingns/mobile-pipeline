@@ -56,6 +56,12 @@ ViewModel registration uses Koin module: `viewModel { FooViewModel(get()) }`...
 <!-- /if -->
 ```
 
+The `<!-- if ... -->` and `<!-- /if -->` markers **must each sit on their own
+line**. Inline form (`text <!-- if X --> more <!-- /if --> tail`) silently eats
+everything down to the next `<!-- /if -->` in the file — the underlying `sed`
+range addressing has no way to stop at the same line. Same rule for
+`<!-- platform:X -->` blocks.
+
 Then add `--di=hilt|koin` flag to `bootstrap.sh`. `lib/render.sh` already has
 `strip_if_block` — wire a new placeholder.
 

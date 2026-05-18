@@ -1,0 +1,36 @@
+---
+name: spacing-scale-discipline
+description: "Spacing in {{PROJECT_NAME}} only uses the 4dp-multiple scale (LocalSpacing.current.xxs..xxl). Arbitrary values like 13.dp / 17.dp / 22.dp are the biggest tell of an amateurish UI."
+metadata:
+  node_type: memory
+  type: feedback
+---
+
+All spacing (padding, margin, `Arrangement.spacedBy`, `Spacer` height/width) in {{PROJECT_NAME}} comes from `LocalSpacing.current`:
+
+| Token | Value |
+|-------|-------|
+| `xxs` | 2.dp |
+| `xs`  | 4.dp |
+| `s`   | 8.dp |
+| `m`   | 16.dp |
+| `l`   | 24.dp |
+| `xl`  | 32.dp |
+| `xxl` | 48.dp |
+
+**Why:** Arbitrary per-screen values (13.dp / 17.dp / 22.dp) are the single biggest "this app looks amateurish" tell. A finite, geometric scale (4dp multiples) creates visual rhythm — eyes pick up on the consistency even when users can't articulate why. The 4dp grid is the de-facto Android standard since Material Design 1.
+
+A second reason: tablet / foldable layouts. When you switch to a wider window-size class you typically want to bump spacing one step (`m` → `l`); that's a one-line `if (compactWidth) m else l` switch when you use tokens. With hardcoded `16.dp` everywhere it's a screen-by-screen refactor.
+
+**How to apply:**
+
+- Screen code → never write `padding(13.dp)` or `Arrangement.spacedBy(17.dp)`. Pick the nearest scale value; if the visual doesn't work, the right answer is almost always to **change the layout structure**, not invent a new spacing.
+- Truly need a new step (e.g. 6.dp for a tight chip pair) → ask `{{PREFIX}}-ui-designer-android` to add it to `Spacing.kt` as `xs2` or similar. Keep it in the system.
+- Allowlist for raw `.dp` literals: `0.dp` (explicit zero) and `1.dp` (divider hairline). The reviewer's hardcode check (Check 5) tolerates these.
+- Reviewer grep pattern (Check 5):
+  ```bash
+  grep -rnE "\b[2-9]+\.dp\b|\b[0-9]{2,}\.dp\b" app/src/main/java/{{PACKAGE_PATH}}/presentation/
+  ```
+  Any match outside `ui/theme/` is a violation.
+
+Related: [[material3-design-tokens]] (the broader rule), [[animation-defaults]] (motion equivalent), and `.claude/snippets/m3-spacing-typography.md` (full scale reference + typography guide).

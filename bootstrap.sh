@@ -119,6 +119,7 @@ if [ "$DRY_RUN" -eq 1 ]; then
     echo "DRY RUN — would create:"
     echo "  .claude/agents/$PREFIX-{architect,docs,reviewer-<plat>,developer-<plat>,tester-<plat>,verifier-<plat>,runner-<plat>}.md"
     echo "  .claude/commands/$PREFIX.md"
+    echo "  .claude/scripts/$PREFIX-{runner-<plat>,reviewer-<plat>}.sh"
     echo "  .claude/specs/README.md"
     echo "  .claude/.cmp-version"
     echo "  ./CLAUDE.md ./STATE.md ./ROADMAP.md ./DOCUMENTATION.md"
@@ -147,7 +148,7 @@ CMP_VERSION=$CMP_VERSION
 EOF
 
 # ----- copy_phase --------------------------------------------------------
-mkdir -p .claude/agents .claude/commands .claude/specs
+mkdir -p .claude/agents .claude/commands .claude/specs .claude/scripts
 
 # 1. Common agents (architect, docs — direct copy; reviewer-base handled per-platform)
 for src in "$TEMPLATES_ROOT"/templates/common/agents/*.md; do
@@ -188,6 +189,17 @@ for plat in $PLATFORMS_LIST; do
     done
 done
 
+# 4b. Platform scripts (.sh) — runner/reviewer deterministic helpers.
+for plat in $PLATFORMS_LIST; do
+    [ -d "$TEMPLATES_ROOT/templates/$plat/scripts" ] || continue
+    for src in "$TEMPLATES_ROOT"/templates/"$plat"/scripts/*.sh; do
+        [ -f "$src" ] || continue
+        base=$(basename "$src")
+        cp "$src" ".claude/scripts/$base"
+        chmod +x ".claude/scripts/$base"
+    done
+done
+
 # 5. Root templates (.tmpl → strip extension)
 for src in "$TEMPLATES_ROOT"/templates/common/root/*.md.tmpl; do
     base=$(basename "$src" .tmpl)
@@ -196,7 +208,7 @@ done
 
 # ----- render_phase: placeholders ---------------------------------------
 ROOT_FILES="./CLAUDE.md ./STATE.md ./ROADMAP.md ./DOCUMENTATION.md"
-for f in .claude/agents/*.md .claude/commands/*.md .claude/specs/*.md $ROOT_FILES; do
+for f in .claude/agents/*.md .claude/commands/*.md .claude/specs/*.md .claude/scripts/*.sh $ROOT_FILES; do
     [ -f "$f" ] || continue
     render_file "$f" "$VARS_FILE"
 done
@@ -233,7 +245,7 @@ done
 
 # ----- rename files: {{PREFIX}} in basename -----------------------------
 # Must happen after content rendering so file contents already have PREFIX substituted.
-for f in .claude/agents/*.md .claude/commands/*.md; do
+for f in .claude/agents/*.md .claude/commands/*.md .claude/scripts/*.sh; do
     [ -f "$f" ] || continue
     base=$(basename "$f")
     if [[ "$base" == *'{{PREFIX}}'* ]]; then

@@ -1,0 +1,26 @@
+---
+name: material3-design-tokens
+description: "All colors, typography, shapes, spacing, and motion in {{PROJECT_NAME}} are referenced through MaterialTheme / LocalSpacing / LocalMotion — never hardcoded in presentation files."
+metadata:
+  node_type: memory
+  type: feedback
+---
+
+Every Compose screen in {{PROJECT_NAME}} pulls visual values from the design system, never inline:
+
+- **Color** → `MaterialTheme.colorScheme.X` (never `Color(0xFF…)` outside `ui/theme/Color.kt`)
+- **Typography** → `MaterialTheme.typography.X` (never `fontSize = N.sp` outside `ui/theme/Type.kt`)
+- **Shape** → `MaterialTheme.shapes.X` (never `RoundedCornerShape(N.dp)` outside `ui/theme/Shape.kt`)
+- **Spacing** → `LocalSpacing.current.X` (never raw `.dp` integers in screens; allowlist: `0.dp`, `1.dp`)
+- **Motion** → `LocalMotion.current.X` (never raw `tween(N)` outside `ui/theme/Motion.kt`)
+
+**Why:** A consistent design system is what visually separates a "polished" app from a "student" app. Hardcoded values drift across screens (FooScreen uses `13.dp`, BarScreen uses `14.dp`, both look wrong on a tablet) and break dark mode (`Color(0xFFFFFFFF)` doesn't invert). Tokens centralised in `ui/theme/` enforce coherence and let dynamic-color / dark-mode / accessibility features work automatically.
+
+**How to apply:**
+
+- New screen → start by listing the tokens you need (colors, spacing, type roles, durations). If any are missing, request `{{PREFIX}}-ui-designer-android` to add them to `ui/theme/` **before** writing the screen.
+- Existing screen with hardcoded values → reviewer (`{{PREFIX}}-reviewer-android`, Check 5) will flag them. Fix at first opportunity; don't paper over with more hardcodes.
+- Need a brand-new color? Don't invent it inline. Generate the full palette via [m3.material.io/theme-builder](https://m3.material.io/theme-builder) and have `{{PREFIX}}-ui-designer-android` write it into `Color.kt`. See `.claude/snippets/material-theme-builder.md` for the workflow.
+- Allowlist that's OK inline: `0.dp` (no padding), `1.dp` (hairline divider). Anything else → use a token.
+
+Related: [[spacing-scale-discipline]] (the 4dp grid rationale), [[animation-defaults]] (motion token usage), and the `{{PREFIX}}-ui-designer-android` agent (owns the system).

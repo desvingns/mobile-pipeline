@@ -1,0 +1,41 @@
+---
+name: animation-defaults
+description: "Compose animations in {{PROJECT_NAME}} use LocalMotion tokens for durations and easings. UI transitions never exceed 500ms — sluggish animations hurt perceived performance."
+metadata:
+  node_type: memory
+  type: feedback
+---
+
+Every Compose animation in {{PROJECT_NAME}} reads its duration and easing from `LocalMotion.current`:
+
+| Token | Default | Use for |
+|-------|---------|---------|
+| `durationShort`  | 200ms | Micro-interactions (toggle, ripple, badge update) |
+| `durationMedium` | 300ms | Standard enter/exit, content swap |
+| `durationLong`   | 500ms | Emphasized transition (cross-fade, hero) |
+| `easeStandard`   | `FastOutSlowInEasing` | Default — almost every transition |
+| `easeEmphasized` | M3 emphasized curve | "Look at me" moments (FAB transform, shared element) |
+
+**Why:** Two failure modes the project has hit before — both fixed by tokenizing motion:
+
+1. **Sluggish UI.** Hand-picked `tween(800)` durations feel laggy on second use. The user perceives the app as "slow" even on flagship hardware. Capping at 500ms and centralising fixes this everywhere at once.
+2. **Inconsistent feel.** Five screens using `tween(250)`, `tween(300)`, `tween(400)` for similar transitions read as "unpolished" subconsciously. The 200/300/500 ladder mirrors Material 3 motion tokens and feels intentional.
+
+**How to apply:**
+
+- Screen code → `tween(motion.durationMedium, easing = motion.easeStandard)`, never `tween(300)` literal.
+- Picking a duration:
+  - Visual change is local (chip, toggle) → `durationShort` (200ms)
+  - Element enters or exits the layout → `durationMedium` (300ms)
+  - Hero transition, cross-fade, shared element → `durationLong` (500ms)
+- Picking an easing: `easeStandard` is the right answer ~95% of the time. Reserve `easeEmphasized` for transitions that should grab attention (FAB morphs, sheet expansion).
+- Need a new token (e.g. an extra-fast 100ms for keystroke feedback) → ask `{{PREFIX}}-ui-designer-android` to add it to `Motion.kt`, don't hardcode.
+- Common API pairings:
+  - Show/hide → `AnimatedVisibility` with `fadeIn/Out` + `expand/shrinkVertically`
+  - Content swap → `Crossfade` (simple) or `AnimatedContent` (direction-aware)
+  - Single value → `animateColorAsState` / `animateDpAsState` / `animateFloatAsState`
+  - Resize container → `Modifier.animateContentSize()` (lazy way; almost always the right one)
+
+See `.claude/snippets/compose-animations.md` for the full pattern catalog with code.
+
+Related: [[material3-design-tokens]] (the broader rule), [[spacing-scale-discipline]] (spacing equivalent), and the `{{PREFIX}}-ui-designer-android` agent (owns `Motion.kt`).

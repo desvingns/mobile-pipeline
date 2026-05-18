@@ -6,6 +6,42 @@ never PowerShell. All spawned agents already declare `tools: Bash` in their fron
 for the same reason. Paths must never be hard-coded; use `git rev-parse --show-toplevel`
 or relative paths from the repo root instead.
 
+## Deterministic steps via .claude/scripts/
+
+Two pipeline steps that used to spawn agents are now plain Bash scripts. They emit exactly
+one JSON line to stdout (gradle/grep logs go to temp files) so the orchestrator's context
+stays the same size as before, but skips the LLM round-trip entirely:
+
+- `.claude/scripts/{{PREFIX}}-runner-<platform>.sh [screenshot_record_needed]` — replaces
+  `{{PREFIX}}-runner-<platform>` agent
+- `.claude/scripts/{{PREFIX}}-reviewer-<platform>.sh <file1> <file2> ...` — replaces
+  `{{PREFIX}}-reviewer-<platform>` agent
+
+The runner/reviewer agent files are kept as a **fallback** only: invoke them via `Agent`
+when a script fails (non-zero exit, unparseable JSON, missing dependency).
+
+## Strict output contracts for LLM agents
+
+Every LLM agent in the chain must return exactly one structured payload as its final
+message — no prose before or after, no markdown fences. The shape depends on the agent:
+
+| Agent          | Payload         |
+|----------------|-----------------|
+| `{{PREFIX}}-architect`            | One BRAINSTORM block (framed by `=== BRAINSTORM ===` markers) |
+| `{{PREFIX}}-developer-<platform>` | JSON `{"changed_files":[...], "commit":"hash"}` |
+| `{{PREFIX}}-tester-<platform>`    | JSON `{"test_files":[...], "screenshot_record_needed": bool, ...}` |
+| `{{PREFIX}}-verifier-<platform>`  | JSON `{"pass": bool, "static_checks":{...}, "manual_checklist":[...]}` |
+| `{{PREFIX}}-docs`                 | JSON `{"committed": bool, "files":[...], "commit":"hash"}` (files/commit only when committed=true) |
+
+After every LLM agent call:
+
+1. Extract the JSON (or BRAINSTORM block) from the agent's response.
+2. Parse it. If parsing fails or required keys are missing → spawn the same agent ONE more
+   time, prefixing the original prompt with:
+   `Previous response was not valid JSON. Return ONLY the JSON object specified, no prose.`
+   (For `{{PREFIX}}-architect`, replace "JSON" with "BRAINSTORM block".)
+3. If the retry still fails → stop the pipeline and show both responses to the user.
+
 Usage:
   /{{PREFIX}} --feature <description>         — new functionality (default: developer-first order)
   /{{PREFIX}} --feature --tdd <description>   — new functionality, TDD red-green order (tester writes failing tests first)
@@ -89,7 +125,10 @@ Before exploring the codebase, evaluate the user's feature description. Trigger 
 
 - Description longer than ~150 characters, OR
 - Touches ≥2 architectural layers (e.g. "new screen + new entity" → presentation + domain + data), OR
-- User signals uncertainty ("thinking about", "not sure", "what's better", "options for", "how do I")<!-- if UI_LANGUAGE != en --> or the equivalent phrases in {{UI_LANGUAGE}}<!-- /if -->
+- User signals uncertainty ("thinking about", "not sure", "what's better", "options for", "how do I")
+<!-- if UI_LANGUAGE != en -->
+  (or equivalent phrases in {{UI_LANGUAGE}})
+<!-- /if -->
 
 If any trigger fires → ask:
 "This looks like a large feature. Run brainstorm before SPEC? (y/N)"
@@ -131,6 +170,30 @@ CONSTRAINTS: [specific rules or "none"]
 
 Spawn agents in sequence. Pass SPEC to each. Use `<platform>` resolution as described in the "Platform resolution" section above.
 
+**Step 0 — UI Designer (pre-flight, Android only, presentation features only)**
+
+This step runs **before Developer** in both default and TDD modes, but only when both conditions hold:
+- Resolved platform is `android`
+- `SPEC.LAYERS` contains `presentation`
+
+Otherwise → skip to Step 1.
+
+Spawn agent `{{PREFIX}}-ui-designer-android` with prompt:
+```
+Prepare Material 3 design tokens for the feature below. Bootstrap ui/theme/ if missing; otherwise add only what's needed for SPEC.WHAT. Do NOT write any screens or business logic.
+Return JSON: {"changed_files":[...], "commit":"hash", "tokens_added":[...], "conflicts":[...]}
+
+SPEC:
+[paste SPEC block]
+```
+
+Parse JSON. Then:
+- If `conflicts` is non-empty → stop, surface the conflicts to the user, ask whether to overwrite (re-spawn with the conflicting tokens explicitly approved) or proceed without changing them.
+- If `tokens_added` is non-empty → append a `DESIGN_TOKENS: <comma-separated list>` line to the SPEC block before passing it to Developer. The Developer's Critical Rules require tokens to be referenced by these exact names.
+- If `tokens_added` is empty (no new tokens needed) → proceed to Step 1 with the original SPEC.
+
+The ui-designer's commit (if any) lands on the same branch before Developer runs. Reviewer's Check 5 will later guard against any backsliding by Developer.
+
 **Step 1 — Developer** (implement feature):
 Spawn agent `{{PREFIX}}-developer-<platform>` with prompt:
 ```
@@ -140,17 +203,17 @@ SPEC:
 [paste SPEC block]
 ```
 
-**Step 1.5 — Reviewer** (check layer boundaries):
-Spawn agent `{{PREFIX}}-reviewer-<platform>` with prompt:
-```
-Check Clean Architecture boundaries for the files below.
-Return JSON: {"pass": bool, "violations": [...]}
-
-CHANGED_FILES:
-[output from developer agent]
+**Step 1.5 — Reviewer** (check layer boundaries) — **deterministic script**:
+```bash
+bash .claude/scripts/{{PREFIX}}-reviewer-<platform>.sh [each changed_file from developer JSON, space-separated]
 ```
 
-If Reviewer returns `pass=false` → stop immediately, show violations to user. Do NOT proceed to Tester.
+The script emits exactly one JSON line: `{"pass": bool, "violations": [...]}`. Parse it.
+
+Fallback: if the script's exit code is non-zero or its output is not valid JSON, spawn the
+`{{PREFIX}}-reviewer-<platform>` agent with the same CHANGED_FILES list and use its output instead.
+
+If `pass=false` → stop immediately, show violations to user. Do NOT proceed to Tester.
 
 **Step 2 — Tester** (write comprehensive tests):
 Spawn agent `{{PREFIX}}-tester-<platform>` with prompt:
@@ -165,12 +228,15 @@ CHANGED_FILES:
 [output from developer agent]
 ```
 
-**Step 3 — Runner** (verify everything passes):
-Spawn agent `{{PREFIX}}-runner-<platform>` with prompt:
+**Step 3 — Runner** (verify everything passes) — **deterministic script**:
+```bash
+bash .claude/scripts/{{PREFIX}}-runner-<platform>.sh [true|false from tester.screenshot_record_needed]
 ```
-Run verification. screenshot_record_needed=[bool from tester]
-Return JSON: {"pass": bool, "tests":"N passed/M failed", "detekt|lint":"ok|N violations", "screenshots":"ok|skipped|N failures"}
-```
+
+The script emits exactly one JSON line with shape `{"pass": bool, "tests":..., "detekt|lint":..., "screenshots":..., "errors":[...]}`. Parse it.
+
+Fallback: if the script's exit code is non-zero or its output is not valid JSON, spawn the
+`{{PREFIX}}-runner-<platform>` agent with `screenshot_record_needed=<bool>` and use its output instead.
 
 **Step 4** — If Runner returns `pass=false`, attempt ONE automatic fix:
 
@@ -188,7 +254,7 @@ lint:   [lint/detekt value from Runner]
 errors: [errors array from Runner]
 ```
 
-Then spawn `{{PREFIX}}-runner-<platform>` again with the same prompt as Step 3.
+Then re-run `.claude/scripts/{{PREFIX}}-runner-<platform>.sh` (same arguments as Step 3) and parse its JSON.
 If the second run still returns `pass=false` → stop, show both failure reports to user and ask for guidance.
 
 **Step 4.5 — Verifier** (static wiring checks + manual checklist gate before push):
@@ -247,11 +313,13 @@ If the user passed `--tdd`, replace the default Step 1..Step 6 above with the re
     SPEC:
     [paste SPEC block]
 
-**Step 2 — Runner (expect red).** Spawn `{{PREFIX}}-runner-<platform>` with the default Step 3 prompt. **Interpret the result yourself:**
+**Step 2 — Runner (expect red).** Run `bash .claude/scripts/{{PREFIX}}-runner-<platform>.sh false` (no screenshots in RED phase) and parse the JSON output. **Interpret the result yourself:**
 
 - If `tests` reports failures AND `lint/detekt` is `ok` AND the failures plausibly match `expected_failures` from Step 1 → red is correct, proceed to Step 3.
 - If `tests` reports `0 failed` → tester didn't actually pin a contract. Stop and ask user.
 - If failures look like compile errors on the **test code itself** (not on referenced-but-not-yet-existing production classes) → tester broke syntax. Stop and ask user.
+
+**Step 2.5 — UI Designer (pre-flight, Android only, presentation features only).** Same conditions and protocol as default-mode Step 0 (above): only fires when platform is `android` AND `SPEC.LAYERS` contains `presentation`. Spawn `{{PREFIX}}-ui-designer-android`, parse JSON, append `DESIGN_TOKENS:` to SPEC if `tokens_added` is non-empty, then proceed to Step 3.
 
 **Step 3 — Developer (GREEN phase).** Spawn `{{PREFIX}}-developer-<platform>` with this prompt:
 
@@ -316,15 +384,18 @@ TEST_TYPES: unit
 CONSTRAINTS: regression test required, conventional commit fix:
 ```
 
-**Step 1.5 — Reviewer** (if fix touches `presentation/` or `domain/`):
-Spawn agent `{{PREFIX}}-reviewer-<platform>` with the changed files from Step 1.
+**Step 1.5 — Reviewer** (if fix touches `presentation/` or `domain/`) — **deterministic script**:
+```bash
+bash .claude/scripts/{{PREFIX}}-reviewer-<platform>.sh [each changed_file from developer JSON, space-separated]
+```
+Parse JSON. Fallback to spawning `{{PREFIX}}-reviewer-<platform>` agent on script error.
 If `pass=false` → stop, show violations.
 
-**Step 2 — Runner**:
-Spawn agent `{{PREFIX}}-runner-<platform>` with prompt:
+**Step 2 — Runner** — **deterministic script**:
+```bash
+bash .claude/scripts/{{PREFIX}}-runner-<platform>.sh false
 ```
-Run verification. screenshot_record_needed=false
-```
+Parse JSON. Fallback to spawning `{{PREFIX}}-runner-<platform>` agent on script error.
 
 **Step 3** — If `pass=false`, attempt ONE automatic fix:
 
@@ -337,7 +408,7 @@ ORIGINAL SPEC: [bugfix SPEC block]
 FAILED CHECKS: [errors from Runner]
 ```
 
-Then spawn `{{PREFIX}}-runner-<platform>` again. If still `pass=false` → stop, show failures to user.
+Then re-run `.claude/scripts/{{PREFIX}}-runner-<platform>.sh false`. If still `pass=false` → stop, show failures to user.
 
 **Step 4** — Push to remote (via the `Bash` tool):
 ```bash
@@ -368,8 +439,9 @@ fix: [description]
 - Orchestrator NEVER modifies application source files directly. (Writing markdown artifacts to `.claude/specs/` during `--discuss` is allowed — these are planning documents, not code.)
 - All code changes happen inside spawned agents.
 - If a spawned agent fails — stop the chain and report immediately.
+- LLM agent output is validated as JSON (or BRAINSTORM block for architect). On parse failure, retry the same agent ONCE with an explicit "JSON only, no prose" preface. Second failure → stop.
 - Maximum 3 clarifying questions before generating SPEC.
-- `{{PREFIX}}-reviewer-<platform>` runs after every Developer pass, before Tester. A reviewer violation blocks the chain.
-- Runner gets at most 2 runs per task (1 main + 1 retry after auto-fix). Never loop more than once.
+- Reviewer step runs after every Developer pass, before Tester (deterministic script `.claude/scripts/{{PREFIX}}-reviewer-<platform>.sh`; agent fallback on script error). A violation blocks the chain.
+- Runner step is the deterministic script `.claude/scripts/{{PREFIX}}-runner-<platform>.sh` (agent fallback on script error). Runner gets at most 2 runs per task (1 main + 1 retry after auto-fix). Never loop more than once.
 - `{{PREFIX}}-verifier-<platform>` runs after Runner pass on `--feature` only. A static_checks failure blocks the chain; on pass, push waits for explicit user `y` after the manual checklist is shown. (`--bugfix` skips Verifier — bugfixes rarely touch wiring.)
 - `--tdd` flag (only on `--feature`) reorders Phase 2: Tester writes failing unit tests first (`red_phase=true`), Runner verifies the red, then Developer implements until green (`green_phase=true`). Opt-in only; default order remains developer-first. `--bugfix` is unchanged — regression tests are written inline by the developer there.

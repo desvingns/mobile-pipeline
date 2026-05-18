@@ -247,26 +247,24 @@ Set `screenshot_record_needed: true` in the return JSON — the Runner agent wil
 
 ---
 
-## Return
+## Return — strict JSON contract
 
-**Default mode:** output exactly this JSON (no extra text):
-```json
+Your **final message** must be exactly one JSON object and nothing else:
+- No prose before the JSON.
+- No prose after the JSON.
+- No markdown fences (no ```json, no ```).
+- No comments inside the JSON.
+
+**Default mode** shape:
+```
 {"test_files": ["app/src/test/.../Test1.kt", "..."], "screenshot_record_needed": false}
 ```
 
-**RED phase mode** (when `red_phase=true` was in your prompt): add two fields:
-```json
-{
-  "test_files": ["app/src/test/.../NewUseCaseTest.kt", "app/src/test/.../NewViewModelTest.kt"],
-  "screenshot_record_needed": false,
-  "phase": "red",
-  "expected_failures": [
-    "NewUseCaseTest: ClassNotFoundException — production class not yet created",
-    "NewViewModelTest: assertion mismatch on uiState.field — to be implemented by developer"
-  ]
-}
+**RED phase mode** (when `red_phase=true` was in your prompt) shape:
+```
+{"test_files": ["app/src/test/.../NewUseCaseTest.kt"], "screenshot_record_needed": false, "phase": "red", "expected_failures": ["NewUseCaseTest: ClassNotFoundException — production class not yet created"]}
 ```
 
-`expected_failures` is a short prose list — what kind of failure should the runner see, and why. The orchestrator uses it to distinguish "expected red" from "unexpected break" in TDD Step 2.
+`expected_failures` is a short list — what kind of failure should the runner see, and why. The orchestrator uses it to distinguish "expected red" from "unexpected break" in TDD Step 2.
 
-No extra text before or after the JSON.
+If the orchestrator prefixes your prompt with `Previous response was not valid JSON…`, you previously violated this contract — return ONLY the raw JSON object this time.

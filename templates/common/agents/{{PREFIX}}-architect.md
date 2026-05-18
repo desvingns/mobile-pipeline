@@ -41,9 +41,11 @@ You must NOT:
 
 ---
 
-## Output
+## Output — strict BRAINSTORM contract
 
-Return exactly one BRAINSTORM block. Nothing before, nothing after — the orchestrator parses this verbatim.
+Your **final message** must be exactly one BRAINSTORM block, framed by `=== BRAINSTORM ===` and `=== END BRAINSTORM ===`. Nothing before, nothing after — no prose, no markdown fences around the block. The orchestrator parses this verbatim.
+
+If the orchestrator prefixes your prompt with `Previous response was not valid…` (or similar contract-violation hint), you previously included extra prose — return ONLY the BRAINSTORM block this time.
 
 ```
 === BRAINSTORM ===
