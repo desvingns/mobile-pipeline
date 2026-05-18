@@ -1,0 +1,29 @@
+---
+name: iteration-progression
+description: "{{PROJECT_NAME}} iteration history — what's been shipped, what's in flight, scale calibration for estimating new SPECs."
+metadata:
+  node_type: memory
+  type: project
+---
+
+`{{PROJECT_NAME}}` — 0 iterations completed (just bootstrapped on {{TODAY}}).
+
+**Why this is worth remembering:** When estimating a new SPEC, this memo helps understand "how big is this step relative to what came before." After Iteration 1+ ships, populate the table below — comparing new SPEC scope against past iterations gives a quick reality check.
+
+**How to apply:**
+
+- Before estimating "this is a small feature" — compare against the iterations table below.
+- If a SPEC touches domain + data + presentation + DI + DB migration simultaneously → it's a "large" iteration. Expect similar effort to past Large iterations.
+- When planning Iteration N+1 — usually add one cohesive theme per iteration, not a grab bag.
+
+### Completed iterations (brief — see `DOCUMENTATION.md` → Feature Changelog for details)
+
+| # | Theme | Key learning |
+|---|---|---|
+| — | (none yet) | — |
+
+**Current work:** Iteration 1 — see `STATE.md` for what's mid-flight.
+
+**Where to look for current state:** `STATE.md` (live, refreshed by `{{PREFIX}}-docs` after each `/{{PREFIX}}` run) and `ROADMAP.md` (planned work). This memo is for durable learnings — not current in-flight status.
+
+Related: [[testing-fakes-only]], [[architecture-clean-rationale]] (carry forward from project setup).

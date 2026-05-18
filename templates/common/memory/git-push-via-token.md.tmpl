@@ -1,0 +1,30 @@
+---
+name: git-push-via-token
+description: "/{{PREFIX}} pipeline pushes via GITHUB_TOKEN env var (configured in ~/.claude/settings.json), using a rewritten origin URL — works cross-platform without remote-URL hardcoding."
+metadata:
+  node_type: memory
+  type: reference
+---
+
+`/{{PREFIX}}` pipeline pushes commits to remote via the **`GITHUB_TOKEN`** environment variable.
+
+**Where it's configured:** `~/.claude/settings.json` (user-global settings). Env var is available on all platforms (Linux, macOS, Windows under Git Bash) — picked up by every Bash invocation in the pipeline.
+
+**Where it's used:** the `/{{PREFIX}}` orchestrator, Step 5 (`--feature`) and Step 4 (`--bugfix`). Script:
+
+```bash
+remote_path=$(git remote get-url origin | sed -e 's#^https://[^/]*@#https://#' -e 's#^https://##')
+git push "https://x-access-token:${GITHUB_TOKEN}@${remote_path}" HEAD
+```
+
+The sed filter strips any existing `https://user@` prefix and the `https://` scheme, leaving `github.com/owner/repo`. Then the URL is reassembled with `x-access-token`. This lets the pipeline reuse whatever `origin` is configured, without hardcoding the URL per project.
+
+**If push doesn't work:**
+
+- Check `echo $GITHUB_TOKEN` via Bash — empty means the env var isn't being set
+- Check the token's scope on GitHub: need `repo` (for private) or `public_repo` (for public)
+- On Windows, verify `settings.json` uses the right key (`env` / `environmentVariables` — depends on Claude Code version)
+
+The script continues the pipeline without blocking if push fails — this is by design (see `/{{PREFIX}}.md`: "If push fails → show error to user and continue without blocking").
+
+Related: [[cross-platform-bash]] (push is Bash-only).

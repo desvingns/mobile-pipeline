@@ -1,0 +1,29 @@
+---
+name: user-coding-style
+description: "User context for {{PROJECT_NAME}} — coding style, UI language, what counts as 'simplification' to avoid."
+metadata:
+  node_type: memory
+  type: user
+---
+
+`{{PROJECT_NAME}}` — {{PROJECT_DESCRIPTION}}
+
+<!-- if learning -->
+**Learning project context:** The goal is practising canonical Clean Architecture patterns, not minimal code. Verbosity (7 layers, one UseCase per action, separate entity↔domain mappers) is intentional and didactic.
+
+- CLAUDE.md explicitly says: "Do not simplify or collapse architecture — verbosity is intentional for educational purposes."
+- When you see an opportunity to "simplify" — don't. If you want to merge two UseCases, inline a mapper, or pass Repository straight into ViewModel — stop. It breaks the learning goal.
+- See also: [[architecture-clean-rationale]] for what counts as "simplification" vs legitimate refactoring.
+<!-- /if -->
+
+**Code style rules:**
+
+- All user-facing strings (Text composables / SwiftUI Text / button labels / hints / error messages / dialogs / banners) — in **{{UI_LANGUAGE}}**. This rule is enforced in the developer agent and in CLAUDE.md.
+- All code identifiers — in English: class names, methods, variables, route strings, log messages.
+- Conventional commits in English: `feat: add ...`, `fix: handle ...`. No emoji. ≤72 chars subject.
+
+**How to interact:**
+
+- Discussions and explanations: use the user's preferred conversation language (not necessarily the UI language).
+- When choosing between "simple code" and "canonical Clean Architecture" — pick the second (see learning-project block above if applicable).
+- If a simplification proposal looks attractive — ask first, don't do it silently.

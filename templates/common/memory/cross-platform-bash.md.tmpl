@@ -1,0 +1,24 @@
+---
+name: cross-platform-bash
+description: "All shell commands in /{{PREFIX}} pipeline and all {{PREFIX}}-* agents must go through the Bash tool (Git Bash on Windows), never PowerShell. Relative paths only — never hardcode Windows-specific drive letters."
+metadata:
+  node_type: memory
+  type: feedback
+---
+
+All shell commands in the `/{{PREFIX}}` pipeline and all `{{PREFIX}}-*` agents must go through the **Bash** tool (which maps to Git Bash on Windows), **never PowerShell**. All paths relative to `$(git rev-parse --show-toplevel)`.
+
+**Why:** Mobile development happens on different OSes — Linux at home, Windows at work, macOS for iOS work. If any agent uses PowerShell syntax or hardcoded paths like `C:\Pet\...`, the pipeline breaks on the other platform. CLAUDE.md explicitly fixes: "All spawned agents already declare `tools: Bash` in their frontmatter for the same reason." Critical invariant.
+
+**How to apply:**
+
+- When editing any `{{PREFIX}}-*.md` agent → check frontmatter: `tools: Bash, Read, Write, Edit, Glob, Grep` (Bash present, PowerShell absent).
+- All scripts inside the pipeline → POSIX-compatible: `[ ... ]` not `if (...)`; `$VAR` not `$env:VAR`; `2>/dev/null` not `2>$null`.
+- If a command fails on one platform but works on another — first hypothesis: PowerShell-only syntax or an absolute path leaked in somewhere.
+
+**Platform-specific toolchain detection** is split into separate memos because each platform has its own setup:
+
+- Android: [[cross-platform-bash-jbr]] — JBR detection for JDK 17+ on Linux / macOS / Windows
+- iOS: [[cross-platform-bash-xcode]] — Xcode developer dir, `xcode-select -p`, DEVELOPER_DIR
+
+Push to remote works via `git push https://x-access-token:${GITHUB_TOKEN}@<remote_path>` (see [[git-push-via-token]]) — Bash-only.

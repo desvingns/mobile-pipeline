@@ -1,0 +1,175 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+# {{PROJECT_NAME}}
+
+{{PROJECT_DESCRIPTION}}
+
+## Project State Files
+
+Three project-root markdown files track state and history (all committed):
+
+- `STATE.md` — **live state**, refreshed by `{{PREFIX}}-docs` after every `/{{PREFIX}}` run. Current iteration, last completed work, recent commits, up-next.
+- `ROADMAP.md` — **planned work**, ordered by iteration. Edit manually.
+- `DOCUMENTATION.md` — **history**: product features, user flows, architecture decisions log.
+
+Cross-session memory lives in `{{MEMORY_PATH}}`; `MEMORY.md` is its index and is auto-loaded into every session.
+
+## Package
+
+`{{PACKAGE}}`
+
+## User-facing language
+
+All UI strings (labels, buttons, hints, error messages) must be in **{{UI_LANGUAGE}}**. Code identifiers stay in English.
+
+<!-- platform:android -->
+## Stack & Versions (Android)
+
+- Kotlin (latest stable) · AGP (current) · KSP (matching Kotlin)
+- Compose BOM + Material3
+- Hilt + hilt-navigation-compose
+- Room + DataStore Preferences
+- Coroutines + Lifecycle
+- minSdk (project-specific) · targetSdk (current) · JVM 17
+
+## Architecture (Clean Architecture — Android)
+
+```
+domain/
+  model/          — pure Kotlin data classes
+  repository/     — interfaces
+  usecase/        — one class per use case
+data/
+  local/
+    entity/       — Room entities
+    dao/          — DAOs
+    converter/    — Room TypeConverters
+  mapper/         — entity ↔ domain mappers
+  repository/     — *Impl classes
+di/               — Hilt modules
+presentation/
+  navigation/     — Routes, BottomNavItem, AppNavHost
+  screen/         — UiState → ViewModel → Screen + Content
+  components/     — shared composables
+  theme/          — Color, Type, Theme
+  util/           — formatters / helpers
+```
+
+## Build (Android)
+
+```bash
+# KSP code generation (after changing Room/Hilt annotations)
+./gradlew :app:kspDebugKotlin
+
+# Full debug build
+./gradlew :app:assembleDebug
+
+# Unit tests
+./gradlew :app:testDebugUnitTest
+
+# Static analysis
+./gradlew :app:detekt
+
+# Screenshot tests (Roborazzi, if used)
+./gradlew :app:recordRoborazziDebug
+./gradlew :app:verifyRoborazziDebug
+```
+
+**JAVA_HOME** must point to a JDK 17+ runtime. Outside Android Studio, prefer its bundled JBR.
+Cross-platform JBR detection (Linux, macOS, Windows under Git Bash):
+
+```bash
+for c in \
+    "$HOME"/.jbr/jbr_jcef-17* \
+    /snap/android-studio/current/jbr \
+    /opt/android-studio/jbr \
+    /Applications/Android\ Studio.app/Contents/jbr/Contents/Home \
+    "/c/Program Files/Android/Android Studio/jbr" \
+    "$LOCALAPPDATA/Programs/Android Studio/jbr"; do
+  if [ -x "$c/bin/java" ] || [ -x "$c/bin/java.exe" ]; then
+    export JAVA_HOME="$c"
+    export PATH="$JAVA_HOME/bin:$PATH"
+    break
+  fi
+done
+```
+
+Add to `~/.bashrc` (Linux), `~/.bash_profile` (Git Bash on Windows), or `~/.zshrc` (macOS).
+The `/{{PREFIX}}` pipeline runs all shell commands through the `Bash` tool, so no PowerShell-specific setup is required.
+
+## Testing Stack (Android)
+
+- JUnit 4 · Turbine · kotlinx-coroutines-test
+- Robolectric (DAO + Compose UI tests on JVM)
+- Roborazzi (screenshot regression, optional)
+- **Fakes only — no mocking framework.** See `app/src/test/.../data/Fake*.kt`
+
+<!-- /platform:android -->
+
+<!-- platform:ios -->
+## Stack & Versions (iOS)
+
+- Swift (latest stable) · SwiftUI · Combine
+- DI: (TBD — Resolver / Factory / Swinject / hand-rolled)
+- Persistence: (TBD — Core Data / GRDB / SwiftData)
+- iOS deployment target: (project-specific)
+
+## Architecture (Clean Architecture — iOS)
+
+```
+Domain/
+  Model/          — pure Swift structs/enums
+  Repository/     — protocols
+  UseCase/        — one type per use case
+Data/
+  Local/
+    Entity/       — persistence types
+  Repository/     — concrete impls
+Presentation/
+  Navigation/     — NavigationStack routes
+  Screen/         — ViewState → ViewModel → Screen + Content
+  Components/     — shared SwiftUI views
+```
+
+## Build (iOS)
+
+```bash
+# Build for simulator
+xcodebuild -scheme {{PROJECT_NAME}} -destination 'platform=iOS Simulator,name=iPhone 15' build
+
+# Run tests
+xcodebuild -scheme {{PROJECT_NAME}} -destination 'platform=iOS Simulator,name=iPhone 15' test
+```
+
+Xcode developer dir detection (Git Bash on macOS):
+
+```bash
+if command -v xcode-select >/dev/null 2>&1; then
+    export DEVELOPER_DIR=$(xcode-select -p)
+fi
+```
+
+## Testing Stack (iOS)
+
+- XCTest (built-in)
+- ViewInspector (SwiftUI introspection for unit tests)
+- snapshot-testing-swift (Pointfree) — screenshot regression
+- **Fakes only — no Mockito/Cuckoo/etc.** See `Tests/.../Fake*.swift`
+
+<!-- /platform:ios -->
+
+## Screens & Navigation
+
+(populated as screens are added — see `DOCUMENTATION.md` → Screens for behavioural detail)
+
+| Route | Screen |
+|-------|--------|
+| (none yet) | |
+
+## Key Technical Decisions
+
+(populated as architecture decisions accumulate — see `DOCUMENTATION.md` → Architecture Decisions Log for the full story)
+
+- (none yet)

@@ -1,0 +1,23 @@
+---
+name: testing-fakes-only
+description: "Rule for {{PROJECT_NAME}} tests — Fakes only, never MockK / Mockito / Cuckoo / etc. Use existing Fake* repos with seed() or write new ones with MutableStateFlow / PassthroughSubject."
+metadata:
+  node_type: memory
+  type: feedback
+---
+
+In `{{PROJECT_NAME}}` tests use **only Fakes**, never mocking frameworks.
+
+**Why:** This decision is fixed early in the project as an architectural decision (see `DOCUMENTATION.md` → Architecture Decisions Log). Rationale: "Forces realistic test doubles; catches real bugs that mocks would have hidden." It's also a learning discipline — write rigorous test doubles instead of magic mocks that hide bugs.
+
+**How to apply:**
+
+- Pre-made `Fake*` repositories live under the project's test source root (Android: `app/src/test/.../data/`; iOS: `Tests/.../Doubles/`). Use them.
+- New repository without a Fake → create `Fake<Name>Repository` next to it. Pattern:
+  - Android: `MutableStateFlow<List<T>>` + `fun seed(items: List<T>)`
+  - iOS: `CurrentValueSubject<[T], Never>` or simple stored property + `func seed(_ items: [T])`
+- Single-use data sources in repository tests → declare a private nested fake inside the test class (Android: `private inner class FakeXxxDao : XxxDao`; iOS: `private final class FakeXxxStorage: XxxStorage`).
+- Never import `io.mockk.*`, `org.mockito.*`, `Cuckoo`, or similar in this project's tests.
+- If it seems impossible to test without a mock — stop, re-read SPEC. Usually the test should verify the **contract** via Fake, not specific call counts.
+
+Related: [[architecture-clean-rationale]] (verbose architecture rationale).

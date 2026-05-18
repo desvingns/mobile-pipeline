@@ -1,0 +1,35 @@
+---
+name: architecture-clean-rationale
+description: "{{PROJECT_NAME}} uses verbose Clean Architecture intentionally — do not propose simplifications. What counts as 'simplification' vs legitimate refactoring."
+metadata:
+  node_type: memory
+  type: feedback
+---
+
+In `{{PROJECT_NAME}}` **do not propose** architecture simplifications. The verbose Clean Architecture layering (domain/model → domain/repo → domain/usecase → data/entity → data/dao → data/repo → di → presentation, or equivalent per platform) is maintained intentionally.
+
+**Why:** Explicitly fixed in CLAUDE.md. The goal is practising canonical patterns, not minimal code. Removing UseCase wrappers, merging mappers, or giving ViewModel direct Repository access loses the architectural value.
+
+**How to apply:**
+
+- Do not propose merging two similar UseCases into one — even if they're called together.
+- Do not propose "inline the mapper" — separate mappers stay separate.
+- Do not propose "remove Repository interface, keep only Impl" — interface stays, DI module binds them.
+- Do not propose "ViewModel calls DAO directly" — this is a hard violation, `{{PREFIX}}-reviewer-<platform>` (Check 3) blocks it.
+- If it seems like "this layer is obviously redundant" — that's a feature, not a bug. You can discuss with the user, but don't do it silently.
+
+**What counts as "simplification" (not allowed):**
+
+- Reducing layer count
+- Removing abstractions (interfaces, mappers, separate UseCases)
+- ViewModel → Repository directly (skipping UseCase)
+- Mapping inside DAO or ViewModel (instead of a separate mapper)
+
+**What is NOT simplification (allowed):**
+
+- Removing dead code (unused imports, unreferenced functions)
+- Consolidating two copies of identical code into a utility
+- Refactoring for readability within one layer
+- Extracting `<Name>Content` from `<Name>Screen` (this is **adding complexity** for testability — desirable, see [[screen-content-extraction]] for Android / [[view-extraction]] for iOS)
+
+Related: [[user-coding-style]] (overall style), [[iteration-progression]] (where we are).
