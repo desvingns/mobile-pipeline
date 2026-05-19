@@ -33,21 +33,36 @@ replace_in_filename() {
 }
 
 # strip_platform_block <file> <platform>
-# Deletes lines from `<!-- platform:X -->` to `<!-- /platform:X -->` inclusive.
+# Deletes `<!-- platform:X --> ... <!-- /platform:X -->` blocks (inclusive of markers).
+#
+# Handles both inline (open+close on one line) and multi-line forms in two passes:
+#   1. `s|...|...|g`         — collapses inline blocks on a single line.
+#   2. `/A/,/B/d`            — deletes multi-line ranges after the inline pass
+#                              has removed all single-line cases.
+#
+# This avoids the GNU/BSD sed range pitfall where `/A/,/B/` starts scanning for B
+# on the line AFTER A matches — so an inline open+close swallows everything down
+# to the next close. Note: greedy `.*` on the inline pass means two inline blocks
+# on the same line will be merged into one match; that's an accepted limitation,
+# author the templates with at most one inline block per line.
 strip_platform_block() {
     local file="$1" platform="$2"
     local tmp="${file}.tmp.$$"
-    sed -e "/<!-- platform:${platform} -->/,/<!-- \/platform:${platform} -->/d" \
+    sed -e "s|<!-- platform:${platform} -->.*<!-- /platform:${platform} -->||g" \
+        -e "/<!-- platform:${platform} -->/,/<!-- \/platform:${platform} -->/d" \
         "$file" > "$tmp" && mv "$tmp" "$file"
 }
 
 # strip_platform_markers <file> <platform>
-# Removes only the marker lines (keeps content) — for selected platforms.
+# Removes the marker text (keeps wrapped content) — for selected platforms.
+# Handles inline markers correctly: replaces the marker substring with nothing
+# instead of deleting the whole line, so content on the same line survives.
+# Lines that contained ONLY the marker collapse to empty lines (intentional).
 strip_platform_markers() {
     local file="$1" platform="$2"
     local tmp="${file}.tmp.$$"
-    sed -e "/<!-- platform:${platform} -->/d" \
-        -e "/<!-- \/platform:${platform} -->/d" \
+    sed -e "s|<!-- platform:${platform} -->||g" \
+        -e "s|<!-- /platform:${platform} -->||g" \
         "$file" > "$tmp" && mv "$tmp" "$file"
 }
 
@@ -55,25 +70,27 @@ strip_platform_markers() {
 # Removes `<!-- if CONDITION -->...<!-- /if -->` blocks. Condition is a literal
 # string match (e.g. "UI_LANGUAGE != en").
 #
-# IMPORTANT — markers MUST be on their own lines. This uses `sed` range addressing
-# (/A/,/B/d), which after matching A starts scanning for B on the NEXT line. An
-# inline `<!-- if X --> ... <!-- /if -->` therefore swallows everything down to
-# the next `<!-- /if -->` elsewhere in the file. Same restriction applies to
-# strip_platform_block. If you need inline conditionals, switch to awk/perl.
+# Two-pass strategy — see strip_platform_block for the rationale. The inline
+# pass uses greedy `.*`; at most one inline `<!-- if -->...<!-- /if -->` block
+# per line is supported.
 strip_if_block() {
     local file="$1" condition="$2"
     local tmp="${file}.tmp.$$"
-    sed -e "/<!-- if ${condition} -->/,/<!-- \/if -->/d" \
+    sed -e "s|<!-- if ${condition} -->.*<!-- /if -->||g" \
+        -e "/<!-- if ${condition} -->/,/<!-- \/if -->/d" \
         "$file" > "$tmp" && mv "$tmp" "$file"
 }
 
 # strip_if_markers <file>
-# Removes ALL `<!-- if ... -->` and `<!-- /if -->` markers. Call after
+# Removes ALL `<!-- if ... -->` and `<!-- /if -->` marker text. Call after
 # strip_if_block has removed false branches — leftover markers wrap kept branches.
+# Replaces the marker substring with nothing rather than deleting whole lines,
+# so inline kept-branch content survives.
 strip_if_markers() {
     local file="$1"
     local tmp="${file}.tmp.$$"
-    sed -e '/<!-- if .* -->/d' -e '/<!-- \/if -->/d' "$file" > "$tmp" && mv "$tmp" "$file"
+    sed -E -e 's|<!-- if [^>]* -->||g' -e 's|<!-- /if -->||g' \
+        "$file" > "$tmp" && mv "$tmp" "$file"
 }
 
 # render_file <file> <vars_file>
