@@ -153,6 +153,74 @@ for f in "${EXISTING[@]:-}"; do
   done < <(grep -nE "fontSize[[:space:]]*=[[:space:]]*[0-9]+\.sp" "$f" || true)
 done
 
+# ----- Check 6: Test hygiene (only test files in CHANGED_FILES) -------
+# 6a — @Ignore without a TODO/#issue reference on the same or previous line.
+# 6b — @Test with empty body (no assertion calls).
+# 6c — Trivially-true assertions.
+# 6d — Thread.sleep inside tests.
+# 6e — runBlocking inside tests (must be runTest).
+for f in "${EXISTING[@]:-}"; do
+  case "$f" in
+    app/src/test/*.kt|app/src/androidTest/*.kt) ;;
+    *) continue ;;
+  esac
+
+  # 6a — @Ignore without TODO/issue ref on same or previous line
+  while IFS=: read -r line _; do
+    [ -z "$line" ] && continue
+    same=$(sed -n "${line}p" "$f")
+    prev_no=$((line - 1))
+    prev=""
+    [ "$prev_no" -ge 1 ] && prev=$(sed -n "${prev_no}p" "$f")
+    if ! printf '%s\n%s' "$same" "$prev" | grep -qE "TODO|#[0-9]+"; then
+      offending=$(printf '%s' "$same" | sed 's/^[[:space:]]*//')
+      add_v "$f:$line — @Ignore without TODO(#issue) reference: $offending"
+    fi
+  done < <(grep -nE "^[[:space:]]*@Ignore([[:space:]]|\()" "$f" || true)
+
+  # 6b — @Test with empty body (look 20 lines ahead for any assertion-ish call)
+  while IFS=: read -r line _; do
+    [ -z "$line" ] && continue
+    end=$((line + 20))
+    body=$(sed -n "${line},${end}p" "$f")
+    if ! printf '%s' "$body" | grep -qE "assert|expect|verify|should|Truth\."; then
+      offending=$(sed -n "${line}p" "$f" | sed 's/^[[:space:]]*//')
+      add_v "$f:$line — @Test with no assertions in body: $offending"
+    fi
+  done < <(grep -nE "^[[:space:]]*@Test[[:space:]]*$" "$f" || true)
+
+  # 6c — Trivially-true assertions
+  while IFS=: read -r line content; do
+    [ -z "$line" ] && continue
+    case "$content" in
+      *//*) continue ;;
+    esac
+    offending=$(printf '%s' "$content" | sed 's/^[[:space:]]*//')
+    add_v "$f:$line — trivially-true assertion: $offending"
+  done < <(grep -nE "assertTrue\([[:space:]]*true[[:space:]]*\)|assertFalse\([[:space:]]*false[[:space:]]*\)" "$f" || true)
+
+  # 6d — Thread.sleep
+  while IFS=: read -r line content; do
+    [ -z "$line" ] && continue
+    case "$content" in
+      *//*) continue ;;
+    esac
+    offending=$(printf '%s' "$content" | sed 's/^[[:space:]]*//')
+    add_v "$f:$line — Thread.sleep in test (use runTest + advanceTimeBy): $offending"
+  done < <(grep -nE "\bThread\.sleep\b" "$f" || true)
+
+  # 6e — runBlocking
+  while IFS=: read -r line content; do
+    [ -z "$line" ] && continue
+    case "$content" in
+      *//*) continue ;;
+      *import*runBlocking*) continue ;;
+    esac
+    offending=$(printf '%s' "$content" | sed 's/^[[:space:]]*//')
+    add_v "$f:$line — runBlocking in test (use runTest from kotlinx-coroutines-test): $offending"
+  done < <(grep -nE "\brunBlocking[[:space:]]*[\({]" "$f" || true)
+done
+
 # ----- Emit JSON --------------------------------------------------------
 if [ "${#VIOLATIONS[@]}" -eq 0 ]; then
   printf '{"pass":true,"violations":[]}\n'

@@ -2,6 +2,7 @@
 name: {{PREFIX}}-verifier-android
 description: Verifies a /{{PREFIX}} --feature run is actually wired into the user-facing app before push. Runs four static checks (nav, Hilt graph, Room schema, {{UI_LANGUAGE}} UI strings) over CHANGED_FILES and generates a 3–5 step manual verification checklist in {{UI_LANGUAGE}}. Read-only on source. Returns JSON pass/fail.
 tools: Read, Glob, Grep, Bash
+model: claude-haiku-4-5-20251001
 ---
 
 # Verifier Agent — {{PROJECT_NAME}} (Android)
@@ -86,12 +87,46 @@ Report violations as `failed: N latin literals: <file>:<line>, <file>:<line>` (l
 **Check:** Project UI is English — skip this check, always return `ok` or `n/a`.
 <!-- /if -->
 
+### Check 5 — `tests_exist`
+
+**Trigger:** CHANGED_FILES contains any new production file that matches one of the Mandatory Coverage rules (see `{{PREFIX}}-tester-android` → "Mandatory Coverage Rules").
+
+**Otherwise:** `n/a`.
+
+**For each new production file** in CHANGED_FILES (under `app/src/main/`), check the corresponding test file exists under `app/src/test/` with the matching name:
+
+| Prod path | Expected test path |
+|---|---|
+| `app/src/main/.../domain/usecase/**/<Name>UseCase.kt` | `app/src/test/.../domain/usecase/**/<Name>UseCaseTest.kt` |
+| `app/src/main/.../data/mapper/<Name>Mapper.kt` | `app/src/test/.../data/mapper/<Name>MapperTest.kt` |
+| `app/src/main/.../data/local/dao/<Name>Dao.kt` | `app/src/test/.../data/local/dao/<Name>DaoTest.kt` |
+| `app/src/main/.../data/local/converter/<Name>.kt` | `app/src/test/.../data/local/converter/<Name>Test.kt` |
+| `app/src/main/.../data/repository/<Name>RepositoryImpl.kt` | `app/src/test/.../data/repository/<Name>RepositoryImplTest.kt` |
+| `app/src/main/.../presentation/screen/**/<Name>ViewModel.kt` | `app/src/test/.../presentation/screen/**/<Name>ViewModelTest.kt` |
+| `app/src/main/.../presentation/screen/**/<Name>Screen.kt` | `app/src/test/.../presentation/screen/**/<Name>ScreenContentTest.kt` |
+| `app/src/main/.../presentation/components/<Name>.kt` | `app/src/test/.../presentation/components/<Name>Test.kt` |
+| `app/src/main/.../presentation/navigation/AppNavHost.kt` (any change) | `app/src/test/.../presentation/navigation/AppNavHostTest.kt` |
+
+Use a simple file-existence check:
+```bash
+test -f "$(echo "$prod_path" | sed -e 's@/main/@/test/@' -e 's@\.kt$@Test.kt@')"
+```
+
+For `*Screen.kt` files, the expected test is `<Name>ScreenContentTest.kt`, not `<Name>ScreenTest.kt`:
+```bash
+test -f "$(echo "$prod_path" | sed -e 's@/main/@/test/@' -e 's@Screen\.kt$@ScreenContentTest.kt@')"
+```
+
+**Exceptions are allowed but must be explicit.** The tester returns `coverage_exceptions: [...]` in its JSON. The orchestrator passes that list to the verifier; any prod file whose path appears there is treated as `n/a` instead of `failed:`. Without an exception entry, missing test = failure.
+
+Report as `failed: missing tests: <path>, <path>` (list up to 5; if more, say `… and M more`).
+
 ---
 
 ## Pass Logic
 
 ```
-pass = true  if all four static_checks are "ok" or "n/a"
+pass = true  if all five static_checks are "ok" or "n/a"
 pass = false if any static_check starts with "failed:"
 ```
 
@@ -125,12 +160,12 @@ Your **final message** must be exactly one JSON object and nothing else:
 
 **All clear** shape (single line, expanded here for readability):
 ```
-{"pass": true, "static_checks": {"nav_wired": "ok", "hilt_graph": "ok", "room_schema": "n/a", "{{UI_LANGUAGE}}_strings": "ok"}, "manual_checklist": ["Step 1 in {{UI_LANGUAGE}}.", "Step 2 in {{UI_LANGUAGE}}.", "..."]}
+{"pass": true, "static_checks": {"nav_wired": "ok", "hilt_graph": "ok", "room_schema": "n/a", "{{UI_LANGUAGE}}_strings": "ok", "tests_exist": "ok"}, "manual_checklist": ["Step 1 in {{UI_LANGUAGE}}.", "Step 2 in {{UI_LANGUAGE}}.", "..."]}
 ```
 
 **Failure** shape:
 ```
-{"pass": false, "static_checks": {"nav_wired": "failed: StatsScreen not referenced in AppNavHost.kt", "hilt_graph": "ok", "room_schema": "n/a", "{{UI_LANGUAGE}}_strings": "failed: 2 latin literals: StatsScreen.kt:42, StatsScreen.kt:58"}, "manual_checklist": []}
+{"pass": false, "static_checks": {"nav_wired": "failed: StatsScreen not referenced in AppNavHost.kt", "hilt_graph": "ok", "room_schema": "n/a", "{{UI_LANGUAGE}}_strings": "failed: 2 latin literals: StatsScreen.kt:42, StatsScreen.kt:58", "tests_exist": "failed: missing tests: presentation/screen/stats/StatsViewModel.kt"}, "manual_checklist": []}
 ```
 
 When `pass=false`, leave `manual_checklist` empty — there's nothing to verify on a device until the wiring is fixed.

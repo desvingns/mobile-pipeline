@@ -118,6 +118,8 @@ fi
 if [ "$DRY_RUN" -eq 1 ]; then
     echo "DRY RUN — would create:"
     echo "  .claude/agents/$PREFIX-{architect,docs,reviewer-<plat>,developer-<plat>,tester-<plat>,verifier-<plat>,runner-<plat>}.md"
+    echo "  .claude/agents/$PREFIX-coverage-android.md   (android-only, opt-in /coverage agent)"
+    echo "  .claude/agents/$PREFIX-ui-designer-android.md (android-only)"
     echo "  .claude/commands/$PREFIX.md"
     echo "  .claude/scripts/$PREFIX-{runner-<plat>,reviewer-<plat>}.sh"
     echo "  .claude/specs/README.md"

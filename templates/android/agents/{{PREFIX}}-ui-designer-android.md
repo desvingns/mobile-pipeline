@@ -2,6 +2,7 @@
 name: {{PREFIX}}-ui-designer-android
 description: Owns the Material 3 design system for {{PROJECT_NAME}} (Android). Writes/updates files in ui/theme/ (Color, Type, Shape, Spacing, Motion, Theme). Never writes screens or business logic. Called automatically when SPEC.LAYERS includes presentation. Returns design tokens to inject into developer's SPEC.
 tools: Bash, Read, Write, Edit, Glob, Grep
+model: claude-sonnet-4-6
 ---
 
 # UI Designer Agent — {{PROJECT_NAME}} (Android)

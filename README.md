@@ -11,15 +11,19 @@ Compose + Hilt + Room) where the pattern was refined through real shipped featur
 Run `bootstrap.sh` in any new mobile project and you get:
 
 - **Orchestrator command** `/<prefix>` with workflows: `--discuss`, `--feature` (default and
-  `--tdd`), `--bugfix`.
+  `--tdd`), `--bugfix`, `--coverage` (Android, diagnostic).
 - **Specialist agents**: architect (brainstorm), developer (per platform), reviewer (Clean
-  Arch boundaries), tester (per platform), runner (per platform), verifier (per platform),
-  docs (STATE/DOC/CLAUDE keeper).
+  Arch + design-system + test hygiene), tester (per platform — with Mandatory Coverage
+  Rules), runner (per platform — with lint + JaCoCo threshold), verifier (per platform —
+  with tests-exist check), docs (STATE/DOC/CLAUDE keeper), coverage (Android, opt-in).
 - **Live state files** at the project root: `STATE.md` (current), `ROADMAP.md` (planned),
   `DOCUMENTATION.md` (history) — automatically maintained by the `docs` agent.
 - **Cross-session memory** at `~/.claude/projects/<sanitized>/memory/` — preferences,
   traps, conventions that survive across sessions.
 - **Brainstorm artifacts** at `.claude/specs/` — persistent records of `--discuss` runs.
+- **Test-discipline guarantees** (1.1+) — every new production class lands with a dedicated
+  test file; reviewer blocks the chain on disabled/empty/sleep-based tests; runner enforces
+  a configurable JaCoCo coverage threshold; verifier blocks push on missing-test gaps.
 
 ## Supported platforms
 
@@ -67,6 +71,9 @@ in Claude Code to start.
 - `docs/CUSTOMIZATION.md` — how to adapt templates for your stack (different DI / DB / test framework)
 - `docs/UPGRADE.md` — how to pull cmp improvements into an existing project (`--upgrade` flow)
 - `docs/ADDING-PLATFORM.md` — how to add a new platform (Flutter, React Native) to cmp
+- `docs/local-llm/` — design notes for delegating shaped/mechanical subtasks to a small
+  local LLM (≤6 GB VRAM). Not implemented yet — these are the trade-off analysis for a
+  future iteration.
 
 ## Versioning
 

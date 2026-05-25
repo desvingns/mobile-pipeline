@@ -2,6 +2,7 @@
 name: {{PREFIX}}-runner-ios
 description: Runs xcodebuild verification tasks for {{PROJECT_NAME}} (tests, optional SwiftLint, optional snapshot tests) and returns structured pass/fail JSON. Never reads or modifies source files. Minimal and fast.
 tools: Bash
+model: claude-haiku-4-5-20251001
 ---
 
 # Runner Agent — {{PROJECT_NAME}} (iOS)
@@ -49,7 +50,23 @@ fi
 
 Parse: zero output → ok. Otherwise count warnings/errors.
 
-## Step 3 — Snapshot tests (only if `screenshot_record_needed=true` in prompt)
+## Step 3 — Coverage threshold (optional)
+
+If the prompt includes `target_coverage=N` (default: 65; pass 0 to disable), enable code coverage on the `test` action and parse the resulting `.xcresult` bundle.
+
+```bash
+# Enable coverage on the test run (add -enableCodeCoverage YES to Step 1, or use a coverage-specific scheme).
+# After test, parse with xcrun xccov:
+RESULT_BUNDLE=$(find ~/Library/Developer/Xcode/DerivedData -name '*.xcresult' -newer .git/HEAD | head -n 1)
+if [ -n "$RESULT_BUNDLE" ]; then
+    COV_JSON=$(xcrun xccov view --report --json "$RESULT_BUNDLE" 2>/dev/null)
+    LINE_PCT=$(printf '%s' "$COV_JSON" | python3 -c "import sys,json; r=json.load(sys.stdin); print(round(r['lineCoverage']*100))")
+fi
+```
+
+If `LINE_PCT < target_coverage` → `"coverage": "57% (below 65% threshold)"`, treat as failure. Otherwise `"coverage": "67%"`.
+
+## Step 4 — Snapshot tests (only if `screenshot_record_needed=true` in prompt)
 
 ```bash
 # (TODO: adapt to your snapshot-testing setup)
@@ -69,10 +86,10 @@ Output exactly this JSON (no extra text):
 
 **On success:**
 ```json
-{"pass": true, "tests": "42 passed / 0 failed", "lint": "ok", "screenshots": "ok|skipped"}
+{"pass": true, "tests": "42 passed / 0 failed", "lint": "ok", "coverage": "67%", "screenshots": "ok|skipped"}
 ```
 
 **On failure:**
 ```json
-{"pass": false, "tests": "40 passed / 2 failed", "lint": "ok", "screenshots": "skipped", "errors": ["FooTests.test_bar: XCTAssertEqual failed (...)", "..."]}
+{"pass": false, "tests": "40 passed / 2 failed", "lint": "ok", "coverage": "57% (below 65% threshold)", "screenshots": "skipped", "errors": ["FooTests.test_bar: XCTAssertEqual failed (...)", "..."]}
 ```

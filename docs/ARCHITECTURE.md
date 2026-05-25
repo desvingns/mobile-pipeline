@@ -15,17 +15,20 @@ layer exists. For a high-level overview, see `README.md`. For per-flag behaviour
                 │  (orchestrator)       │
                 └───────────┬───────────┘
                             │
-       ┌──────┬──────┬──────┼──────┬──────┬──────┐
-       ▼      ▼      ▼      ▼      ▼      ▼      ▼
-   architect docs reviewer tester runner developer verifier
-       │      │      │      │      │      │      │
-    Read/   Bash/  Bash/  Read/  Bash   Bash/  Read/
-    Glob/   Read/  Read/  Write/        Read/  Glob/
-    Grep    Edit   Glob/  Edit/         Write/ Grep/
-                   Grep   Glob/         Edit/  Bash
-                          Grep          Glob/
-                                        Grep
+   ┌──────┬──────┬──────┬───┴──┬──────┬──────┬──────┬──────────┐
+   ▼      ▼      ▼      ▼      ▼      ▼      ▼      ▼          ▼
+architect docs reviewer tester runner developer verifier  coverage
+   │      │      │      │      │      │      │      │
+  Read/  Bash/  Bash/  Read/  Bash   Bash/  Read/  Bash/
+  Glob/  Read/  Read/  Write/        Read/  Glob/  Read/
+  Grep   Edit   Glob/  Edit/         Write/ Grep/  Glob/
+                Grep   Glob/         Edit/  Bash   Grep
+                       Grep          Glob/
+                                     Grep
 ```
+
+`coverage` is opt-in (only invoked from `--coverage`); the others run as part of
+`--feature` / `--bugfix` chains.
 
 Each agent is a Markdown file in `.claude/agents/` with a `frontmatter`:
 ```yaml
@@ -98,11 +101,12 @@ Step 5+: same as default Step 3+
 |---|---|---|
 | `architect` | Surfacing 2-3 options before SPEC | Read-only, no write tools → forces it to investigate, not invent |
 | `developer` | Writes production code | Has Write/Edit/Bash → can break things → isolated scope per SPEC |
-| `reviewer` | Clean Arch boundary checks | Read-only → can't fix anything → forces it to **stop the chain**, not patch |
-| `tester` | Writes tests, never runs them | Separation prevents test-after fragility |
-| `runner` | Runs gradle / xcodebuild | Bash-only → mechanically reports, doesn't interpret |
-| `verifier` | Static checks + manual checklist | Catches the gap between "tests pass" and "feature visible to user" |
+| `reviewer` | Clean Arch + design-system + test-hygiene checks | Read-only → can't fix anything → forces it to **stop the chain**, not patch |
+| `tester` | Writes tests, never runs them. Enforces Mandatory Coverage Rules (one file per class, no use-case grouping) | Separation prevents test-after fragility |
+| `runner` | Runs gradle / xcodebuild, parses results, enforces lint + coverage threshold | Bash-only → mechanically reports, doesn't interpret |
+| `verifier` | Static checks (nav, DI, schema, UI strings, tests-exist) + manual checklist | Catches the gap between "tests pass" and "feature visible to user" |
 | `docs` | Refreshes STATE/DOC/CLAUDE | Three different files with different cadence — single agent enforces consistency |
+| `coverage` (Android only, opt-in) | Reports JaCoCo coverage per package, suggests "test next" candidates | Diagnostic — not part of `--feature` chain; user invokes via `--coverage` |
 
 **Single Responsibility Principle for agents.** If one agent did everything, it would
 need too many tools (Write + Bash + everything), too long a prompt, and would
@@ -157,6 +161,30 @@ file. Three files keeps each commit small and focused:
 
 If you merge them, every run produces a "tinkering with STATE section" diff that mixes
 with rare CLAUDE-section updates, making git history noisy.
+
+## Test coverage as a first-class concern (added in 1.1)
+
+Three layered defences ensure every new prod class ships with a dedicated test:
+
+1. **Tester — Mandatory Coverage Rules.** A table inside the `tester` agent maps prod-file
+   patterns to required test-file paths. If a new `*UseCase.kt` lands in CHANGED_FILES, the
+   tester emits a matching `*UseCaseTest.kt` even when SPEC.TEST_TYPES didn't list it. New
+   use cases get their own file — no appending to legacy `*UseCasesTest.kt` group files.
+
+2. **Reviewer — Test Hygiene (Check 6).** After the tester writes, the reviewer scans the
+   new test files for `@Ignore` without issue ref, empty `@Test`, trivially-true assertions,
+   `Thread.sleep`, and `runBlocking`. Violations block the chain.
+
+3. **Verifier — `tests_exist` (Check 5).** Before push, the verifier cross-checks each new
+   prod file against the expected test path. A missing test (without an explicit
+   `coverage_exceptions` entry from the tester) blocks the push.
+
+Plus a quantitative gate inside the runner: **JaCoCo coverage threshold** (default 65%
+line coverage, configurable). Below the threshold → fail-close.
+
+The combined effect: a feature can't ship with a silent test-coverage regression. The
+existing reviewer/runner/verifier chain already enforces architectural correctness; the
+1.1 additions extend the same chain to enforce test discipline.
 
 ## Workflow alternatives
 

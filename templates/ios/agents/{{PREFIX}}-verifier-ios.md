@@ -2,6 +2,7 @@
 name: {{PREFIX}}-verifier-ios
 description: Verifies a /{{PREFIX}} --feature run is actually wired into the iOS app before push. Static checks (navigation, DI, persistence schema, {{UI_LANGUAGE}} UI strings) over CHANGED_FILES and a 3-5 step manual checklist in {{UI_LANGUAGE}}. Read-only on source. Returns JSON pass/fail.
 tools: Read, Glob, Grep, Bash
+model: claude-haiku-4-5-20251001
 ---
 
 # Verifier Agent — {{PROJECT_NAME}} (iOS)
@@ -67,12 +68,33 @@ Report as `failed: N latin literals: <file>:<line>, ...`.
 **Check:** Project UI is English — return `ok` or `n/a`.
 <!-- /if -->
 
+### Check 5 — `tests_exist`
+
+**Trigger:** CHANGED_FILES contains any new production file that matches one of the Mandatory Coverage rules (see `{{PREFIX}}-tester-ios` → "Mandatory Coverage Rules").
+
+**Otherwise:** `n/a`.
+
+For each new production file under `<ProjectName>/Sources/` (or your project's source root), check that the matching test file exists under `Tests/`:
+
+| Prod path | Expected test path |
+|---|---|
+| `Sources/Domain/UseCase/<Name>UseCase.swift` | `Tests/Domain/UseCase/<Name>UseCaseTests.swift` |
+| `Sources/Domain/Mapper/<Name>Mapper.swift` | `Tests/Domain/Mapper/<Name>MapperTests.swift` |
+| `Sources/Data/Repository/<Name>Repository.swift` | `Tests/Data/Repository/<Name>RepositoryTests.swift` |
+| `Sources/Presentation/ViewModel/<Name>ViewModel.swift` | `Tests/Presentation/ViewModel/<Name>ViewModelTests.swift` |
+| `Sources/Presentation/Screen/<Name>Screen.swift` | `Tests/Presentation/Screen/<Name>ContentTests.swift` |
+| `Sources/Presentation/Navigation/AppRouter.swift` (any change) | `Tests/Presentation/Navigation/AppRouterTests.swift` |
+
+Use `test -f` for each expected path. Exceptions explicitly listed by the tester in `coverage_exceptions: [...]` are treated as `n/a` instead of `failed:`.
+
+Report as `failed: missing tests: <path>, <path>` (list up to 5; if more, say `… and M more`).
+
 ---
 
 ## Pass Logic
 
 ```
-pass = true  if all four static_checks are "ok" or "n/a"
+pass = true  if all five static_checks are "ok" or "n/a"
 pass = false if any static_check starts with "failed:"
 ```
 
@@ -95,7 +117,8 @@ Use SPEC.WHAT and CHANGED_FILES to ground in real screens. If you can't generate
     "nav_wired": "ok",
     "di_graph": "ok",
     "persistence_schema": "n/a",
-    "{{UI_LANGUAGE}}_strings": "ok"
+    "{{UI_LANGUAGE}}_strings": "ok",
+    "tests_exist": "ok"
   },
   "manual_checklist": [
     "Step 1 in {{UI_LANGUAGE}}.",

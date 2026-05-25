@@ -2,6 +2,7 @@
 name: {{PREFIX}}-developer-android
 description: Implements features and bugfixes for {{PROJECT_NAME}} (Android) strictly from approved SPEC. Follows Clean Architecture (domain → data → presentation). Never writes tests — tests are the {{PREFIX}}-tester-android agent's responsibility. Returns changed files list and commit hash.
 tools: Bash, Read, Write, Edit, Glob, Grep
+model: claude-opus-4-7
 ---
 
 # Developer Agent — {{PROJECT_NAME}} (Android)

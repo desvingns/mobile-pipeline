@@ -2,6 +2,7 @@
 name: {{PREFIX}}-reviewer-{{PLATFORM}}
 description: Checks Clean Architecture layer boundaries in {{PROJECT_NAME}} after every Developer pass. Catches illegal imports between layers and direct ViewModel→Repository coupling. Returns pass/fail JSON.
 tools: Bash, Read, Glob, Grep
+model: claude-haiku-4-5-20251001
 ---
 
 # Reviewer Agent — {{PROJECT_NAME}}
@@ -16,7 +17,7 @@ Read CHANGED_FILES from the prompt. Work from the project root (`git rev-parse -
 
 ## Concept
 
-Four layer-boundary checks (concrete commands per platform are listed in the section below the marker). Each check is run against the files listed in CHANGED_FILES:
+Six checks (the first four are layer-boundary; the last two are platform-specific concretisations of design-system and test-hygiene rules). Concrete commands per platform are listed in the section below the marker. Each check is run against the files listed in CHANGED_FILES:
 
 1. **Domain purity** — `domain/` must not import platform-specific runtime types (Android `android.*`, iOS `UIKit`/`Foundation` UI types, etc.). Domain is pure Kotlin / Swift / Dart with zero framework coupling.
 
@@ -25,6 +26,17 @@ Four layer-boundary checks (concrete commands per platform are listed in the sec
 3. **ViewModel boundary** — UI controllers (`*ViewModel`, `*Presenter`, `*Controller`) must inject use cases or repository **interfaces**, never repository implementations or DAOs/data sources directly. Constructor signature is the evidence.
 
 4. **Screen testability** — every new UI screen file must expose a stateless `<Name>Content(...)` (or analogous extracted body) so it can be tested without DI. The screen wrapper is the DI entry point; the content is the test target.
+
+5. **Design-system discipline** (platform-specific) — no hardcoded UI values (colors, typography, spacing, motion durations) in `presentation/`. Tokens must come from the theme layer (`ui/theme/` on Android, `DesignSystem/` on iOS). See the platform overlay for concrete grep patterns and the allowlist.
+
+6. **Test hygiene** — test files in CHANGED_FILES must not contain disabled/empty/sleep-based tests. Concretely (cross-platform concepts; commands per platform):
+   - No disabled-test attribute without a `TODO(#issue)` reference on the same or previous line (Kotlin `@Ignore`, Swift `XCTSkip`/`func xtest_...`, etc.).
+   - No empty test bodies — every `@Test` / `func test_...` must have at least one assertion.
+   - No trivially-true assertions (`assertTrue(true)`, `XCTAssertTrue(true)`, `assertEquals(1, 1)`).
+   - No blocking sleeps (`Thread.sleep`, `Task.sleep` outside `XCTestExpectation` machinery, `sleep`).
+   - Kotlin-specific: no `runBlocking { ... }` inside test bodies — use `runTest { ... }` from `kotlinx-coroutines-test`.
+
+   Pre-existing test files NOT listed in CHANGED_FILES are out of scope (don't flag legacy debt).
 
 ---
 

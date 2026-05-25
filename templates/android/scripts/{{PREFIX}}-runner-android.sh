@@ -2,17 +2,20 @@
 # {{PREFIX}}-runner-android.sh — Gradle verification for {{PROJECT_NAME}}.
 # Emits exactly one JSON line on stdout. All gradle/grep noise goes to temp files.
 #
-# Usage: {{PREFIX}}-runner-android.sh [screenshot_record_needed]
+# Usage: {{PREFIX}}-runner-android.sh [screenshot_record_needed] [target_coverage_pct]
 #   screenshot_record_needed: "true" | "false" (default: "false")
+#   target_coverage_pct:      integer 0-100, line-coverage minimum (default: 65)
+#                             pass 0 to disable the coverage gate entirely
 #
 # Output (success):
-#   {"pass":true,"tests":"42 passed / 0 failed","detekt":"ok","screenshots":"ok|skipped"}
+#   {"pass":true,"tests":"42 passed / 0 failed","detekt":"ok","lint":"ok","coverage":"67%","screenshots":"ok|skipped"}
 # Output (failure):
-#   {"pass":false,"tests":"40 passed / 2 failed","detekt":"3 violations","screenshots":"skipped","errors":["..."]}
+#   {"pass":false,"tests":"40 passed / 2 failed","detekt":"3 violations","lint":"ok","coverage":"57% (below 65% threshold)","screenshots":"skipped","errors":["..."]}
 
 set -uo pipefail
 
 SCREENSHOT_NEEDED="${1:-false}"
+TARGET_COVERAGE="${2:-65}"
 
 # ----- JBR detection (cross-platform; first match wins) ------------------
 for candidate in \
@@ -123,7 +126,57 @@ else
   add_err "detekt exit=$DETEKT_EXIT"
 fi
 
-# ----- Step 3: screenshots (only if requested) --------------------------
+# ----- Step 3: Android Lint ---------------------------------------------
+LINT_LOG="$LOG_DIR/lint.log"
+./gradlew :app:lintDebug --no-daemon >"$LINT_LOG" 2>&1
+LINT_EXIT=$?
+
+# Lint summary line is typically "N errors, M warnings"
+LINT_SUMMARY=$(grep -oE "[0-9]+ errors?, [0-9]+ warnings?" "$LINT_LOG" | tail -n 1 || true)
+if [ -n "$LINT_SUMMARY" ]; then
+  LINT_ERRORS=$(printf '%s' "$LINT_SUMMARY" | grep -oE '^[0-9]+')
+  if [ "${LINT_ERRORS:-1}" -eq 0 ]; then
+    LINT_RESULT="ok"
+  else
+    LINT_RESULT="${LINT_ERRORS} errors"
+    while IFS= read -r line; do
+      [ -n "$line" ] && add_err "$line"
+    done < <(grep -E "^(Error|error:|src/main/.*: Error)" "$LINT_LOG" | head -n 5 || true)
+  fi
+elif [ "$LINT_EXIT" -eq 0 ]; then
+  LINT_RESULT="ok"
+else
+  LINT_RESULT="failed"
+  add_err "lint exit=$LINT_EXIT, no parseable summary"
+fi
+
+# ----- Step 4: JaCoCo coverage threshold --------------------------------
+COVERAGE_RESULT="skipped"
+if [ "$TARGET_COVERAGE" -gt 0 ]; then
+  COV_LOG="$LOG_DIR/jacoco.log"
+  ./gradlew :app:jacocoUnitTestReport --no-daemon >"$COV_LOG" 2>&1
+  COV_EXIT=$?
+
+  COV_XML="app/build/reports/jacoco/jacocoUnitTestReport/jacocoUnitTestReport.xml"
+  if [ "$COV_EXIT" -eq 0 ] && [ -f "$COV_XML" ]; then
+    # The LAST <counter type="LINE" .../> in the report is the project-wide total.
+    COV_PCT=$(grep -oE '<counter type="LINE" missed="[0-9]+" covered="[0-9]+"/>' "$COV_XML" |
+              tail -n 1 |
+              awk -F'"' '{m=$4; c=$6; t=m+c; if (t>0) printf "%.0f", c*100/t; else printf "0"}')
+    COV_PCT="${COV_PCT:-0}"
+    if [ "$COV_PCT" -lt "$TARGET_COVERAGE" ]; then
+      COVERAGE_RESULT="${COV_PCT}% (below ${TARGET_COVERAGE}% threshold)"
+      add_err "coverage ${COV_PCT}% below threshold ${TARGET_COVERAGE}%"
+    else
+      COVERAGE_RESULT="${COV_PCT}%"
+    fi
+  else
+    COVERAGE_RESULT="unknown"
+    add_err "jacoco report missing (exit=$COV_EXIT)"
+  fi
+fi
+
+# ----- Step 5: screenshots (only if requested) --------------------------
 if [ "$SCREENSHOT_NEEDED" = "true" ]; then
   REC_LOG="$LOG_DIR/record.log"
   VER_LOG="$LOG_DIR/verify.log"
@@ -148,6 +201,11 @@ fi
 PASS=true
 [ "$FAILED" -gt 0 ] && PASS=false
 [ "$DETEKT_RESULT" != "ok" ] && PASS=false
+[ "$LINT_RESULT" != "ok" ] && PASS=false
+case "$COVERAGE_RESULT" in
+  skipped|[0-9]*%) ;;
+  *) PASS=false ;;
+esac
 case "$SCREENSHOTS_RESULT" in
   ok|skipped) ;;
   *) PASS=false ;;
@@ -155,14 +213,18 @@ esac
 
 # ----- Emit JSON (only stdout output of this script) --------------------
 if [ "$PASS" = "true" ]; then
-  printf '{"pass":true,"tests":"%s","detekt":"%s","screenshots":"%s"}\n' \
+  printf '{"pass":true,"tests":"%s","detekt":"%s","lint":"%s","coverage":"%s","screenshots":"%s"}\n' \
     "$(json_escape "$TESTS_RESULT")" \
     "$(json_escape "$DETEKT_RESULT")" \
+    "$(json_escape "$LINT_RESULT")" \
+    "$(json_escape "$COVERAGE_RESULT")" \
     "$(json_escape "$SCREENSHOTS_RESULT")"
 else
-  printf '{"pass":false,"tests":"%s","detekt":"%s","screenshots":"%s","errors":%s}\n' \
+  printf '{"pass":false,"tests":"%s","detekt":"%s","lint":"%s","coverage":"%s","screenshots":"%s","errors":%s}\n' \
     "$(json_escape "$TESTS_RESULT")" \
     "$(json_escape "$DETEKT_RESULT")" \
+    "$(json_escape "$LINT_RESULT")" \
+    "$(json_escape "$COVERAGE_RESULT")" \
     "$(json_escape "$SCREENSHOTS_RESULT")" \
     "$(errors_json)"
 fi

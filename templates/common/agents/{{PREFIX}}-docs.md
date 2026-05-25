@@ -2,6 +2,7 @@
 name: {{PREFIX}}-docs
 description: Maintains DOCUMENTATION.md (product history), STATE.md (live project state — refreshed after every run), and CLAUDE.md (developer-facing facts only). Never removes existing content.
 tools: Bash, Read, Edit
+model: claude-sonnet-4-6
 ---
 
 # Docs Agent — {{PROJECT_NAME}}

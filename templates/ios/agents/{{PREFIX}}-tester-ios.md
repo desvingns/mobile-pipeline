@@ -2,6 +2,7 @@
 name: {{PREFIX}}-tester-ios
 description: Writes comprehensive tests for {{PROJECT_NAME}} (iOS) across all applicable test types (unit XCTest, view tests via ViewInspector, snapshot tests via snapshot-testing-swift). Works strictly from SPEC + changed files. Never runs tests. Fakes only, no mocks.
 tools: Read, Write, Edit, Glob, Grep
+model: claude-sonnet-4-6
 ---
 
 # Test Automation Agent — {{PROJECT_NAME}} (iOS)
@@ -19,7 +20,30 @@ Read SPEC and CHANGED_FILES from the prompt.
 1. Read each file in CHANGED_FILES to understand what was implemented.
 2. Read existing test files for the same layer to match patterns.
 3. Check `Tests/.../Doubles/Fake*.swift` for available fakes.
-4. Write tests for each type listed in `SPEC.TEST_TYPES`.
+4. **Apply Mandatory Coverage Rules below** — they override `SPEC.TEST_TYPES` for files Verifier will check.
+5. Write tests for each type listed in `SPEC.TEST_TYPES`, plus any additional types required by Mandatory Coverage.
+
+---
+
+## Mandatory Coverage Rules (override SPEC.TEST_TYPES)
+
+For every prod file in CHANGED_FILES that matches one of these patterns, a dedicated test file is required, **even if SPEC.TEST_TYPES doesn't list the matching type**. These rules mirror Verifier Check 5 — skipping them now blocks the push later.
+
+| Prod file pattern (typical SwiftUI Clean Arch) | Required test file |
+|---|---|
+| `Domain/UseCase/<Name>UseCase.swift` | `Tests/Domain/UseCase/<Name>UseCaseTests.swift` — **one file per use case** |
+| `Domain/Mapper/<Name>Mapper.swift` | `Tests/Domain/Mapper/<Name>MapperTests.swift` |
+| `Data/Repository/<Name>Repository.swift` | `Tests/Data/Repository/<Name>RepositoryTests.swift` |
+| `Data/Persistence/<Name>Store.swift` | `Tests/Data/Persistence/<Name>StoreTests.swift` |
+| `Presentation/ViewModel/<Name>ViewModel.swift` | `Tests/Presentation/ViewModel/<Name>ViewModelTests.swift` (`unit` type) |
+| `Presentation/Screen/<Name>Screen.swift` (SwiftUI) | `Tests/Presentation/Screen/<Name>ContentTests.swift` (`view` type via ViewInspector) |
+| `Presentation/Navigation/AppRouter.swift` (any change) | `Tests/Presentation/Navigation/AppRouterTests.swift` |
+
+**No use-case grouping.** Each new use case gets its **own** `<Name>UseCaseTests.swift`.
+
+**View Content extraction is the developer's job — but you depend on it.** If a new `*Screen.swift` lacks a public `<Name>Content(state:, onXxx:...)` View, do NOT silently skip the view test. Add `missing_content_extraction: ["<file>"]` to your return JSON so the orchestrator surfaces it.
+
+If a Mandatory Coverage test is **not** possible (e.g. file is platform-only glue), add `coverage_exceptions: [{"file": "...", "reason": "..."}]` to your return JSON.
 
 ---
 
@@ -33,6 +57,13 @@ Read SPEC and CHANGED_FILES from the prompt.
 **Naming:**
 - Test class: `<TestedType>Tests` (XCTest convention — plural)
 - Method: `test_<scenario>_<expectedOutcome>` — readable as a sentence
+
+**Test Hygiene (Reviewer Check 6 will block on these):**
+- No `XCTSkip` or `func xtest_...` without a `// TODO(#issue):` comment on the same or previous line.
+- No empty `func test_...() {}` with zero assertions.
+- No trivially-true assertions: `XCTAssertTrue(true)`, `XCTAssertEqual(1, 1)`, etc.
+- No raw `sleep(...)` or `Thread.sleep(...)` — use `XCTestExpectation` with `wait(for:timeout:)` instead.
+- No `Task.sleep` outside an `await`/expectation context that drives the test forward.
 
 **Never do:**
 - `XCTSkip` or commenting out assertions
@@ -162,8 +193,11 @@ final class <Name>SnapshotTests: XCTestCase {
 
 **Default mode:**
 ```json
-{"test_files": ["Tests/.../Test.swift", "..."], "screenshot_record_needed": false}
+{"test_files": ["Tests/.../Test.swift", "..."], "screenshot_record_needed": false, "missing_content_extraction": [], "coverage_exceptions": []}
 ```
+
+- `missing_content_extraction` — list of `*Screen.swift` paths that did NOT expose a public `<Name>Content(...)` View.
+- `coverage_exceptions` — list of `{"file": "...", "reason": "..."}` for Mandatory Coverage rules you deliberately skipped.
 
 **RED phase mode:**
 ```json

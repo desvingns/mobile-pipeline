@@ -2,6 +2,7 @@
 name: {{PREFIX}}-runner-android
 description: Runs Gradle verification tasks for {{PROJECT_NAME}} (tests, detekt, optional Roborazzi screenshot verify) and returns structured pass/fail JSON. Never reads or modifies source files. Minimal and fast.
 tools: Bash
+model: claude-haiku-4-5-20251001
 ---
 
 # Runner Agent — {{PROJECT_NAME}} (Android)
@@ -60,7 +61,39 @@ Parse: the Gradle summary line `N tests completed, M failed` is authoritative. I
 
 Parse: `Build successful` and zero "issues found" → "ok". Otherwise extract the violation count from `N issues found:` and collect the next 10 lines (file:line: rule).
 
-## Step 3 — Screenshots (only if `screenshot_record_needed=true` in prompt)
+## Step 3 — Android Lint (always run)
+
+Detekt catches Kotlin-style issues; Android Lint catches Android-specific issues that Detekt misses (deprecated API levels, accessibility, resource leaks, broken vector drawables, unused resources).
+
+```bash
+./gradlew :app:lintDebug --no-daemon 2>&1 |
+  grep -E "errors?,? [0-9]+ warning|BUILD (SUCCESSFUL|FAILED)|FAILED" |
+  tail -n 20
+```
+
+Parse: `BUILD SUCCESSFUL` with summary `0 errors, N warnings` → "ok". Errors > 0 → "failed: N errors". Collect up to 5 error lines from `app/build/reports/lint-results-debug.txt` if present.
+
+## Step 4 — JaCoCo coverage threshold (always run)
+
+```bash
+./gradlew :app:jacocoUnitTestReport --no-daemon 2>&1 |
+  grep -E "BUILD (SUCCESSFUL|FAILED)|FAILED" | tail -n 5
+```
+
+Then parse `app/build/reports/jacoco/jacocoUnitTestReport/jacocoUnitTestReport.xml` to extract line coverage:
+
+```bash
+COV=$(grep -oE '<counter type="LINE" missed="[0-9]+" covered="[0-9]+"/>' \
+        app/build/reports/jacoco/jacocoUnitTestReport/jacocoUnitTestReport.xml |
+      tail -n 1 |
+      awk -F'"' '{m=$4; c=$6; total=m+c; if (total>0) printf "%.0f", c*100/total}')
+```
+
+Compare against `target_coverage` from the prompt (default: 65). If `COV < target_coverage` → `"coverage": "57% (below 65% threshold)"`, treat as failure. Otherwise `"coverage": "67%"`, treat as ok.
+
+If the XML report is missing (jacoco task failed) → `"coverage": "unknown"`, treat as failure.
+
+## Step 5 — Screenshots (only if `screenshot_record_needed=true` in prompt)
 
 ```bash
 # Record new baselines first
@@ -80,10 +113,10 @@ Output exactly this JSON (no extra text):
 
 **On success:**
 ```json
-{"pass": true, "tests": "42 passed / 0 failed", "detekt": "ok", "screenshots": "ok|skipped"}
+{"pass": true, "tests": "42 passed / 0 failed", "detekt": "ok", "lint": "ok", "coverage": "67%", "screenshots": "ok|skipped"}
 ```
 
 **On failure:**
 ```json
-{"pass": false, "tests": "40 passed / 2 failed", "detekt": "3 violations", "screenshots": "skipped", "errors": ["TestClass.methodName: expected X but was Y", "..."]}
+{"pass": false, "tests": "40 passed / 2 failed", "detekt": "3 violations", "lint": "2 errors", "coverage": "57% (below 65% threshold)", "screenshots": "skipped", "errors": ["TestClass.methodName: expected X but was Y", "..."]}
 ```

@@ -47,6 +47,8 @@ Usage:
   /{{PREFIX}} --feature --tdd <description>   — new functionality, TDD red-green order (tester writes failing tests first)
   /{{PREFIX}} --bugfix  <description>         — broken behaviour to fix
   /{{PREFIX}} --discuss <topic>               — brainstorm options before committing to a SPEC (read-only, no code)
+  /{{PREFIX}} --coverage [<scope>] [--target=N] — diagnostic JaCoCo coverage report (read-only, no code, Android only)
+  /{{PREFIX}} --upgrade [<model1,model2,...>] — review model assignments; update agent files when new Claude models are released
 
 ## Platform resolution
 
@@ -114,6 +116,45 @@ Recommendation: [RECOMMENDED line from BRAINSTORM]
 Saved to: [.claude/specs/<slug>.md] | not saved
 Next: /{{PREFIX}} --feature when ready
 ```
+
+---
+
+## Workflow: --coverage  (Android only — diagnostic, read-only)
+
+Surfaces JaCoCo line coverage per package and proposes which classes to test next. Does not modify any files, does not push, does not block. Use it when planning the next iteration or after a debt-paydown sprint.
+
+Skip entirely on iOS-only projects (the agent does not exist there).
+
+### Phase 1 — Run
+
+Parse optional arguments:
+- `<scope>` (positional) — package glob to focus on (default: entire project).
+- `--target=N` — line-coverage minimum, integer 0-100 (default: 65).
+
+Spawn agent `{{PREFIX}}-coverage-android` with prompt:
+```
+Report JaCoCo unit-test coverage. Return JSON per your output spec.
+
+scope: [scope arg or "all"]
+target: [target value or 65]
+```
+
+### Phase 2 — Report
+
+Print the agent's JSON verbatim, then a short human-readable summary:
+
+```
+Coverage: [project_coverage] (target: [target])
+Weak packages:
+  - [package]: [coverage]  (untested: [count])
+Top suggestions:
+  1. [first suggestion]
+  2. [second suggestion]
+  3. [third suggestion]
+Next: feed a suggestion into /{{PREFIX}} --feature to write the missing tests
+```
+
+The coverage agent never writes tests itself. Hand the result back to `/{{PREFIX}} --feature` (or `--tdd`) when you want to act on it.
 
 ---
 
@@ -430,6 +471,25 @@ fix: [description]
    Lint:  ok
    Pushed: yes / failed: [reason]
 ```
+
+---
+
+## Workflow: --upgrade
+
+Reviews and optionally updates model assignments across all pipeline agent files.
+Run this when Anthropic releases a new Claude model family version.
+
+### Phase 1 — Invoke maintainer
+
+Parse optional argument: comma-separated model IDs after `--upgrade` (e.g. `--upgrade claude-sonnet-4-7,claude-haiku-4-6`).
+
+Spawn agent `{{PREFIX}}-maintainer` with prompt:
+```
+mode: models
+[new_models: <comma-separated list from args, omit line if no args given>]
+```
+
+The maintainer will display current assignments, ask the user about each affected tier, apply confirmed changes, and print a summary. No further orchestrator action is needed.
 
 ---
 
