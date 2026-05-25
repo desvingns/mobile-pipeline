@@ -17,6 +17,9 @@ desktop.ini
 SCRATCH.md
 NOTES.local.md
 
+# Per-machine, ephemeral cross-tool scratch (the rest of .ai/ IS tracked)
+.ai/local/
+
 # Bootstrap test artifacts
 test-output/
 smoke-test/
