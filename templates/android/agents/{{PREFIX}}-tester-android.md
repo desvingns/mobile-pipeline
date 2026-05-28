@@ -242,6 +242,26 @@ class <Name>ScreenContentTest {
 
 ---
 
+## Test Type: instrumented-compose-ui  (on a real device — `/{{PREFIX}} --device`)
+
+The compose-ui section above runs on the JVM (Robolectric). The `--device` flow instead runs ONE
+Compose-UI test **on a connected device/emulator** (`androidTest` → `connectedDebugAndroidTest`),
+driven by `{{PREFIX}}-runner-instrumented-android`.
+
+- **Write exactly ONE `@Test` per `--device` slice** (new file, or one new `@Test` in the screen's
+  existing `*ContentUiTest`). Never batch — device tests are run and recorded one at a time.
+- Instrumented (real-device) pattern, not Robolectric: `@RunWith(AndroidJUnit4::class)`,
+  `@get:Rule val composeTestRule = createComposeRule()`, render the public
+  `<Name>Content(state, onEvent)` inside the app theme, capture events into a
+  `mutableListOf<…Event>()`, and assert with `composeTestRule.runOnIdle { assertEquals(...) }`. Look
+  up strings via `InstrumentationRegistry.getInstrumentation().targetContext.getString(R.string.…)` —
+  never a literal (apps may ship multiple locales). Put the test under `app/src/androidTest/...` (or
+  the owning feature module's `androidTest`), not `src/test/`.
+- **Missing-seam policy:** if a control has no event/seam, you may only request a
+  `testTag`/`contentDescription`/`public` seam from the developer — never invent UI or events. If the
+  feature genuinely is not in production, do not write the test; report the gap. Never weaken a test
+  to get it green.
+
 ## Test Type: navigation
 
 **Trigger:** `presentation/navigation/AppNavHost.kt` changed, OR a new screen is wired into the nav graph.

@@ -6,6 +6,46 @@ This repo uses [Semantic Versioning](https://semver.org/) — see `README.md` �
 
 ## [Unreleased]
 
+## [1.2.0] — 2026-05-28
+
+On-device instrumented testing. The pipeline gains a dedicated runner for
+`connectedDebugAndroidTest` and a small `--device` workflow that writes and runs ONE Compose-UI
+test on a connected device/emulator at a time — sized so a less-capable model stays on rails.
+A connected device is now mandatory for on-device runs, with an ask-the-user-and-remember rule.
+
+### Added
+
+- **`{{PREFIX}}-runner-instrumented-android`** — new Android agent (model: haiku) that runs ONE
+  instrumented test class on a connected device/emulator and returns parsed pass/fail JSON. Trusts
+  the connected report XML, never "BUILD SUCCESSFUL". A connected device is mandatory; with none it
+  returns a "no device connected" error (it cannot prompt — the orchestrator asks). Distinct from the
+  JVM-only `{{PREFIX}}-runner-android`.
+- **Orchestrator** — new `--device <screen|scope>` workflow (Android only): mandatory device-connection
+  gate (ask the user + record to the `device-connection` memo if missing/lost), then write ONE
+  instrumented Compose-UI test for an uncovered control → run via the instrumented runner → report.
+  One control per invocation; never pushes.
+- **`device-connection` memory template** (android) — records the verified device/emulator connection
+  so it is not re-asked; the mandatory/ask/update-if-lost rule lives here.
+- **`{{PREFIX}}-tester-android`** — new "instrumented-compose-ui (on a real device)" test type:
+  one `@Test` per `--device` slice, real-device `AndroidJUnit4` + `createComposeRule` pattern, strings
+  via resources, missing-seam policy (testTag/contentDescription/public only, never invent UI).
+- **`{{PREFIX}}-developer-android`** — new "Device-test seams" section: a `--device` seam is limited to
+  testTag / contentDescription / `<Name>Content` public visibility; no new UI/events.
+- **`{{PREFIX}}-reviewer-base`** — Check 7 (Device-test seam scope): a `--device` production diff must
+  not add behaviour beyond a declared seam.
+
+### Changed
+
+- `bootstrap.sh` dry-run preview lists the new `runner-instrumented-android` agent (the copy loop
+  already globs `templates/<plat>/agents/*.md`, so it is generated automatically).
+
+### Migration notes (1.1 → 1.2)
+
+- Re-bootstrap, or copy the new files by hand: `templates/android/agents/{{PREFIX}}-runner-instrumented-android.md`
+  and `templates/android/memory/device-connection.md.tmpl`, plus the `--device` workflow + Rules in
+  `templates/common/commands/{{PREFIX}}.md` and the device sections in the tester/developer/reviewer
+  templates. No existing agent signatures changed — purely additive.
+
 ## [1.1.0] — 2026-05-19
 
 Test-coverage hardening: the pipeline now enforces "every new prod class has a dedicated

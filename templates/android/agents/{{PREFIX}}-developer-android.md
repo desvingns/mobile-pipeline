@@ -58,6 +58,19 @@ StateFlow + Coroutines · Navigation Compose
 - **Conventional commit:** `feat:` or `fix:` + imperative mood, ≤72 chars, no period.
 - Read similar files for patterns. The project values consistency over cleverness.
 
+## Device-test seams (when invoked from `/{{PREFIX}} --device`)
+
+When the SPEC asks you to expose a seam for an on-device Compose-UI test, the allowed change set is
+deliberately tiny:
+
+- Add ONLY a `Modifier.testTag("…")`, a `contentDescription`, or change a `<Name>Content` composable's
+  visibility to `public`. Cite the exact control the seam is for.
+- Do NOT add new UI, events, ViewModel methods, navigation, or behaviour to make a test possible — a
+  `--device` slice is not a feature slice. If the control genuinely does not exist, do not invent it;
+  report that no seam is appropriate so the tester logs the gap.
+- Prefer `contentDescription` (also helps accessibility) over `testTag`. Keep the diff to the one
+  screen named in the SPEC.
+
 ## GREEN phase mode (--tdd flag)
 
 When the orchestrator passes `green_phase=true` along with a `TEST_FILES` list, you are working AFTER `{{PREFIX}}-tester-android` wrote failing unit tests (RED phase). Your job is to implement production code until those tests pass — nothing more, nothing less.

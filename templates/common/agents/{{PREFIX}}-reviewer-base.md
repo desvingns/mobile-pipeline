@@ -17,7 +17,7 @@ Read CHANGED_FILES from the prompt. Work from the project root (`git rev-parse -
 
 ## Concept
 
-Six checks (the first four are layer-boundary; the last two are platform-specific concretisations of design-system and test-hygiene rules). Concrete commands per platform are listed in the section below the marker. Each check is run against the files listed in CHANGED_FILES:
+Seven checks (the first four are layer-boundary; checks 5–6 are platform-specific concretisations of design-system and test-hygiene rules; check 7 guards on-device test seams). Concrete commands per platform are listed in the section below the marker. Each check is run against the files listed in CHANGED_FILES:
 
 1. **Domain purity** — `domain/` must not import platform-specific runtime types (Android `android.*`, iOS `UIKit`/`Foundation` UI types, etc.). Domain is pure Kotlin / Swift / Dart with zero framework coupling.
 
@@ -37,6 +37,13 @@ Six checks (the first four are layer-boundary; the last two are platform-specifi
    - Kotlin-specific: no `runBlocking { ... }` inside test bodies — use `runTest { ... }` from `kotlinx-coroutines-test`.
 
    Pre-existing test files NOT listed in CHANGED_FILES are out of scope (don't flag legacy debt).
+
+7. **Device-test seam scope** (only for `/{{PREFIX}} --device` slices) — a production diff produced
+   solely to enable an on-device test must be a seam **only**: a single `testTag`, a
+   `contentDescription`, or a `<Name>Content` visibility change to `public`. New events, ViewModel
+   methods, navigation, branches, or UI in such a diff are a violation (`device-seam scope`). This is
+   a read-the-diff judgment check, not a grep — a weaker model must not smuggle invented behaviour in
+   under the guise of a test seam.
 
 ---
 

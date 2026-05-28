@@ -49,6 +49,7 @@ Usage:
   /{{PREFIX}} --discuss <topic>               — brainstorm options before committing to a SPEC (read-only, no code)
   /{{PREFIX}} --coverage [<scope>] [--target=N] — diagnostic JaCoCo coverage report (read-only, no code, Android only)
   /{{PREFIX}} --upgrade [<model1,model2,...>] — review model assignments; update agent files when new Claude models are released
+  /{{PREFIX}} --device <screen|scope>          — one on-device instrumented-test slice: ensure a device is connected, write ONE Compose-UI test for an uncovered control, run it via connectedDebugAndroidTest, report. Android only.
 
 ## Platform resolution
 
@@ -493,6 +494,71 @@ The maintainer will display current assignments, ask the user about each affecte
 
 ---
 
+## Workflow: --device  (Android only — one on-device instrumented-test slice)
+
+Writes and runs ONE instrumented Compose-UI test for a single control on a connected device/emulator,
+then stops. This enforces a "write one test → run on device → green → STOP" loop — deliberately small
+so a less-capable model stays on rails and never batches blind. Skip on iOS-only projects (the
+instrumented runner agent is Android-only).
+
+### Phase 1 — Ensure a device is connected (mandatory) + pick the target
+
+1. **A connected device is non-negotiable — never run, or claim to run, on-device tests without one.**
+   Read the connection from the `device-connection` memory memo, then confirm with `adb devices`. If
+   none is listed (offline/unauthorized/empty), the wrong device is attached, or the connection was
+   lost: **STOP and ask the user where/how the test device/emulator is connected now** (device,
+   serial, connection method); **record their answer to the `device-connection` memo** so it is not
+   asked again while it works; then re-check. Do not spawn any agent until a device is confirmed.
+2. Pick the screen/scope from the argument and ONE un-covered control on it (a control with no
+   instrumented test yet). One control per run.
+
+### Phase 2 — Add a seam only if one is needed
+
+If the control has no testable hook, spawn `{{PREFIX}}-developer-<platform>` to add **only** a
+`Modifier.testTag(...)`, a `contentDescription`, or `<Name>Content` public visibility — never new UI,
+events, or behaviour. Then run the reviewer (script, agent fallback). If `pass=false` → stop. If the
+control genuinely does not exist in production → do not invent it; report the gap and stop.
+
+### Phase 3 — Write ONE test
+
+Spawn `{{PREFIX}}-tester-<platform>`:
+```
+Write exactly ONE instrumented Compose-UI @Test for the control below: createComposeRule, render the public <Name>Content directly inside the app theme, capture events, assert after idle. New file or one new @Test in the screen's existing *ContentUiTest. No batching. Strings via resources, not literals. Return JSON: {"test_files":[...], "screenshot_record_needed": false}
+
+CONTROL: <control + expected event/state>
+TEST CLASS: <fully-qualified test class>
+```
+
+### Phase 4 — Run it on the device
+
+Spawn `{{PREFIX}}-runner-instrumented-android`:
+```
+Run this one instrumented test class on the connected device and return parsed JSON.
+TEST_CLASS: <fully-qualified test class>
+```
+
+### Phase 5 — Record or recover
+
+- **Green** (`pass=true`, `failures=0`, `skipped=0`): commit the test (`test: cover <screen>
+  <control>`); any seam from Phase 2 stays in its own `feat/fix:` commit. Note coverage in your
+  project's tracker / STATE.md if you keep one. **Do not push** (device slices accumulate; push per
+  session).
+- **Red** (`pass=false`): if it's a real defect, spawn `{{PREFIX}}-developer-<platform>` once for a
+  minimal fix, then re-run the instrumented runner once. Still red → STOP, show the report. Never
+  weaken the test.
+
+### Phase 6 — Report and stop
+
+```
+device: <screen> — <control> <green N/N | red | escalated>
+   Test: <FQN>::<method>
+   Commit: <hash> (test) [+ <hash> seam]
+   Next un-covered control: <suggestion>
+```
+Stop after one control. Do not start the next in the same run.
+
+---
+
 ## Rules
 
 - Orchestrator NEVER writes mobile production code (Kotlin/Swift/Compose/Gradle/Xcode build scripts) or tests.
@@ -505,3 +571,5 @@ The maintainer will display current assignments, ask the user about each affecte
 - Runner step is the deterministic script `.claude/scripts/{{PREFIX}}-runner-<platform>.sh` (agent fallback on script error). Runner gets at most 2 runs per task (1 main + 1 retry after auto-fix). Never loop more than once.
 - `{{PREFIX}}-verifier-<platform>` runs after Runner pass on `--feature` only. A static_checks failure blocks the chain; on pass, push waits for explicit user `y` after the manual checklist is shown. (`--bugfix` skips Verifier — bugfixes rarely touch wiring.)
 - `--tdd` flag (only on `--feature`) reorders Phase 2: Tester writes failing unit tests first (`red_phase=true`), Runner verifies the red, then Developer implements until green (`green_phase=true`). Opt-in only; default order remains developer-first. `--bugfix` is unchanged — regression tests are written inline by the developer there.
+- `{{PREFIX}}-runner-instrumented-android` runs the on-device suite (`connectedDebugAndroidTest`) for ONE test class and trusts the parsed connected report, not "BUILD SUCCESSFUL". `{{PREFIX}}-runner-android` (JVM unit tests) is unchanged and is NOT the device runner.
+- `--device` is Android-only, runs one control per invocation, and never pushes. A connected device/emulator is mandatory: if none is present the orchestrator asks the user and records the answer to the `device-connection` memo (the runner agent cannot prompt). On-device test seams are restricted to `testTag` / `contentDescription` / `<Name>Content` visibility — a `--device` diff must never add new UI, events, or behaviour.
