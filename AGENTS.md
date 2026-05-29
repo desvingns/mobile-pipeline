@@ -37,7 +37,8 @@ running application.
 ## Repository map
 
 ```
-bootstrap.sh              # entry point: parse args → copy → render → strip → rename → memory → stamp
+bootstrap.sh              # entry point (PER-PROJECT dev pipeline): parse args → copy → render → strip → rename → memory → stamp
+install-spec.sh           # GLOBAL installer for the spec tool → ~/.claude and/or ~/.codex (dual-harness; separate from bootstrap.sh)
 lib/detect.sh             # OS / git / JBR / Xcode detection, path sanitising
 lib/prompts.sh            # interactive prompt helpers
 lib/render.sh             # placeholder replacement + conditional-block trimming (the render engine)
@@ -45,6 +46,7 @@ lib/sync.sh               # (to be built) consume .ai/changes/ → regenerate pe
 templates/common/         # tool- & platform-neutral: architect, docs, reviewer-base, maintainer, the orchestrator command, memory, root docs
 templates/android/        # Android specialists, scripts (runner/reviewer .sh), memory, snippets
 templates/ios/            # iOS specialists (stubs — being fleshed out)
+templates/spec/           # GLOBAL spec-creation tool: app-spec-creator skill + 17 neutral spec agents + prompt library + codex/ adapters (installed by install-spec.sh — see docs/SPEC-PIPELINE.md)
 docs/                     # USAGE, ARCHITECTURE, UPGRADE, ADDING-PLATFORM, local-llm (design notes)
 .ai/                      # shared cross-tool workspace (memory / handoff / tasks / changes) — see .ai/README.md
 AGENTS.md / CLAUDE.md     # this file (canonical) + thin Claude import

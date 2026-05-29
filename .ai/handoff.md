@@ -1,44 +1,34 @@
 # Handoff
 
-UPDATED: 2026-05-25 by claude
-CURRENT TASK: dual-tool (Claude Code + Codex) support — brief `.ai/tasks/codex-001-dual-tool.md`
-STATUS: in-progress
-OWNER / NEXT: **codex** — execute `codex-001` (render.sh `tool:` axis → `lib/sync.sh` →
-  `bootstrap.sh --tools` → `.codex/` adapters)
+UPDATED: 2026-05-29 by claude
+CURRENT TASK: claude-002 — spec-half integration (requirements→handoff) — brief `.ai/tasks/claude-002-spec-integration.md`
+STATUS: claude-002 done (this session); codex-001 (dual-tool render/sync) still open
+OWNER / NEXT: codex-001 remains **codex's**; claude-002 follow-ups are small (see NEXT)
 
-## DONE (claude, this session)
-- `.ai/` workspace: `README.md`, `memory/` (×3 memos + `MEMORY.md`), `changes/` (`README.md`
-  spec + `agent-skill-log.md` + `sync-state.json`).
-- Canonical `AGENTS.md` (repo root) + thin `CLAUDE.md` (`@AGENTS.md` import).
-- Codex brief `.ai/tasks/codex-001-dual-tool.md` with the four shared seams pinned.
-- `.gitignore`: ignore `.ai/local/`.
-- Commits: not yet (awaiting user go-ahead). Codex CLI shares this checkout, so it can read
-  these files uncommitted.
+## DONE (claude, this session — claude-002)
+- `templates/spec/` NEW group: `skills/app-spec-creator/` (SKILL.md + prompts/), `agents/*.md` ×17 (canonical neutral specs), `codex/` (agent.toml.tmpl + openai.yaml + config-fragment.toml).
+- Prompt paths neutralized to `{{AGENT_DIR}}`; SKILL.md harness-notes block with `tool:claude|codex` branches (AskUserQuestion↔STOP gates; native-subagent dispatch + max_threads/max_depth caveats).
+- `install-spec.sh` (repo root): dual-harness GLOBAL installer; smoke-tested into a throwaway home — 17 claude `.md` + 17 codex `.md`+`.toml`, no `{{}}`/`tool:` leaks, `[agents]` merged.
+- change-log: 3 entries (spec-group, spec-codex-adapters, install-spec).
+- Commits: not yet (awaiting user go-ahead) — same posture as codex-001.
 
 ## IN PROGRESS
-- none — Claude is paused and holds no files.
+- none — claude paused, holds no files.
 
 ## DECISIONS (+ why)
-- `AGENTS.md` canonical, `CLAUDE.md` thin import — zero drift.
-- Reuse the `lib/render.sh` conditional engine for a `tool:` axis — low risk vs new tooling.
-- `{{AGENT_DIR}}` placeholder for `.claude` / `.codex` paths.
-- Change-log = append-only markdown journal + `sync-state.json` cursor — sync reads only the diff.
-- `--tools` default = `claude` (back-compat); `codex` is opt-in.
-- Defer inserting `tool:` markers into real templates until Codex ships `strip_tool_block`, so
-  a mid-flight bootstrap can't leak codex-only content.
+- Spec tool is GLOBAL (fixed names) → `install-spec.sh`, not the per-project bootstrap. (User-chosen: templates/spec/ + global-install.)
+- Codex adapters produced NOW (user-chosen) by mirroring MyMoney's `.codex/` shim pattern; coordinated here so codex-001 isn't surprised.
+- `install-spec.sh` is standalone and does NOT edit `bootstrap.sh` / `lib/render.sh` / `lib/sync.sh` (codex-001's owned seams). It reuses the agreed `{{AGENT_DIR}}` + `tool:` conventions, so codex-001 / `lib/sync.sh` can later absorb spec install.
+- Orchestrator command (`templates/common/commands/{{PREFIX}}.md`) was **NOT** edited — per the deferral rule (no `tool:` markers in real templates until codex ships `strip_tool_block`). The spec→dev handoff is documented in `docs/SPEC-PIPELINE.md` instead.
 
 ## NEXT (ordered)
-1. **[codex]** `codex-001` steps 1–6 (render axis, sync engine, bootstrap wiring, `.codex/`
-   adapters, path-neutral scripts, verification).
-2. **[claude]** add `tool:` markers + `{{AGENT_DIR}}` into the orchestrator + agent templates;
-   draft Layer-B template forms of `AGENTS.md` / `.codex`; run sync; verify no leaks +
-   back-compat; update `docs/ARCHITECTURE.md` + `README.md` + `CHANGELOG.md`; bump `VERSION`
-   (MINOR).
+1. **[codex]** `codex-001` steps 1–6 (render `tool:` axis → `lib/sync.sh` → `bootstrap.sh --tools` → `.codex/` dev adapters → path-neutral scripts → verification) — unchanged, still codex-owned.
+2. **[codex, after strip_tool_block]** optionally fold spec install into `bootstrap.sh --install-spec`, and let `lib/sync.sh` regenerate `templates/spec/codex/` shims from the canonical `.md` (today `install-spec.sh` generates them at install time).
+3. **[claude, after codex-001]** add `tool:` markers + `{{AGENT_DIR}}` into the orchestrator + dev agent templates; wire a `--from-spec` / `--plan` spec-handoff flow into the orchestrator (today documented, not wired); refresh docs; bump.
 
 ## BLOCKERS / QUESTIONS FOR THE OTHER TOOL
-- none.
+- none. The spec group is additive and back-compat: a claude-only dev bootstrap is unchanged; spec install is a separate script.
 
 ## CONTEXT LINKS
-- Plan: `~/.claude/plans/ai-flickering-stardust.md`
-- Brief: `.ai/tasks/codex-001-dual-tool.md`
-- Rules: `AGENTS.md`; change-log spec: `.ai/changes/README.md`
+- Briefs: `.ai/tasks/claude-002-spec-integration.md`, `.ai/tasks/codex-001-dual-tool.md`
+- Spec docs: `docs/SPEC-PIPELINE.md`; installer: `install-spec.sh`; rules: `AGENTS.md`; change-log spec: `.ai/changes/README.md`

@@ -1,0 +1,6 @@
+# Appended to ~/.codex/config.toml by install-spec.sh — enables the app-spec-creator fan-out.
+# If your config already has an [agents] table, merge these keys by hand instead.
+[agents]
+max_threads = 6              # >= the widest parallel phase (Phase E = 5 specialists) so they don't serialize
+max_depth = 1                # orchestrator (depth 0) spawns workers (depth 1); workers spawn nothing
+job_max_runtime_seconds = 1800

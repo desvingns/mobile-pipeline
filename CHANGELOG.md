@@ -6,6 +6,41 @@ This repo uses [Semantic Versioning](https://semver.org/) — see `README.md` �
 
 ## [Unreleased]
 
+## [1.3.0] — 2026-05-29
+
+Spec-creation half: a global `app-spec-creator` spec pipeline and its installer. Produces a
+complete, traceable `spec/` bundle from a brand-new app idea (greenfield interview) or from
+screenshots of an existing app (clone). Dual-harness: installs once into `~/.claude/` and/or
+`~/.codex/` via `install-spec.sh`.
+
+### Added
+
+- **`templates/spec/`** — new template group: 17 canonical agent specs
+  (`templates/spec/agents/*.md`), the `app-spec-creator` skill
+  (`templates/spec/skills/app-spec-creator/SKILL.md`), and an independently-versioned prompt
+  library (`prompts/`). Supersedes `app-tdd-creator` (kept as deprecation shim).
+- **`install-spec.sh`** — global installer. Flags: `--harness claude|codex|both` (default
+  `both`), `--home DIR`, `--dry-run`, `--force`. Claude form: copies skill + 17 `.md` agents
+  into `~/.claude/`. Codex form: copies skill + `.md` agents + generates `.toml` native
+  subagent shims + appends `[agents]` to `~/.codex/config.toml` (`max_threads=6`,
+  `max_depth=1`).
+- **Codex adapters** — per-agent `.toml` shims (re-read the canonical `.md`) so specialists
+  run as native Codex subagents; `config-fragment.toml` with the required `[agents]` settings.
+- **Spec→dev handoff docs** — portable handoff path (`traceability.csv` + `design.md` +
+  `acceptance/*.feature`) described; optional per-project spec-bridge pattern documented
+  (reference: MyMoney `cmp-planner-android`); generic `--from-spec` dev-pipeline flow noted
+  as a known follow-up (deferred until `lib/sync.sh` `tool:` strip lands).
+- **`docs/SPEC-PIPELINE.md`** — full guide: overview of both cmp halves, install, `spec/`
+  bundle anatomy, 17-agent table, two intake modes + two gates + evaluator loop, dual-harness
+  mechanics (Claude vs Codex, `.toml` shim idiom, config caveat), and spec→dev handoff.
+
+### Migration notes (1.2 → 1.3)
+
+- No changes to existing per-project dev-pipeline templates. `bootstrap.sh` and all `templates/
+  {common,android,ios}/` are unchanged — existing projects are unaffected.
+- Run `./install-spec.sh` once to get the spec tool globally. Existing `~/.claude/skills/
+  app-spec-creator/` (if any, from a pre-template install) must be removed or use `--force`.
+
 ## [1.2.0] — 2026-05-28
 
 On-device instrumented testing. The pipeline gains a dedicated runner for

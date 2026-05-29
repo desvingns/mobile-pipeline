@@ -4,6 +4,20 @@ This document explains the agent graph, how context flows between agents, and wh
 layer exists. For a high-level overview, see `README.md`. For per-flag behaviour, see
 `docs/USAGE.md`.
 
+## Repository shape (v1.3+)
+
+cmp now has two independent halves:
+
+- **Per-project dev pipeline** — `bootstrap.sh` + `templates/{common,android,ios}/`. Installs a
+  `/<prefix>` orchestrator + specialist agents into a project's `.claude/` / `.codex/`. This is
+  what the rest of this document covers.
+- **Global spec tool** — `install-spec.sh` + `templates/spec/`. Installs `app-spec-creator`
+  once per machine into `~/.claude/` and/or `~/.codex/`. Takes an app idea or screenshots and
+  produces a traceable `spec/` bundle for handoff to the dev pipeline. See `docs/SPEC-PIPELINE.md`.
+
+Both halves share the same golden rules (cross-platform Bash, markdown-first, `{{AGENT_DIR}}`
+placeholder, `<!-- tool:* -->` conditional blocks) and the same dual-harness model.
+
 ## Agent graph
 
 ```

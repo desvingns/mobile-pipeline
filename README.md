@@ -36,6 +36,32 @@ Run `bootstrap.sh` in any new mobile project and you get:
 Single-platform projects: pass `--platform=android` or `--platform=ios`. Cross-platform
 (shared workflow over both targets): `--platform=android,ios`.
 
+## Two halves
+
+cmp ships two independent tools that can be used together or separately:
+
+1. **Per-project dev pipeline** (`bootstrap.sh`) — the original cmp. Run once per project to
+   install a `/<prefix>` orchestrator + specialist agents (architect, developer, reviewer,
+   tester, runner, verifier) into `.claude/` / `.codex/`. See below.
+
+2. **Global spec-creation tool** (`install-spec.sh`) — added in v1.3. Run once per machine to
+   install `app-spec-creator` globally into `~/.claude/` and/or `~/.codex/`. Takes an app
+   idea or screenshots of an existing app and produces a complete, traceable `spec/` bundle
+   (EARS requirements, user stories, Gherkin acceptance criteria, platform-neutral design,
+   NFR/a11y/security/analytics/risks/estimate, traceability matrix) with two human gates and
+   an evaluator-optimizer critic. See `docs/SPEC-PIPELINE.md` for the full guide.
+
+```bash
+# Install the spec tool once (both Claude Code and Codex CLI)
+./install-spec.sh
+
+# Then from any session:
+# /app-spec-creator --greenfield   (brand-new app — interview mode)
+# /app-spec-creator ./screenshots  (clone an existing app)
+```
+
+---
+
 ## Quick start
 
 ```bash
@@ -68,6 +94,7 @@ in Claude Code to start.
 
 - `docs/USAGE.md` — full `bootstrap.sh` flags, examples for each platform
 - `docs/ARCHITECTURE.md` — agent graph, how context flows between agents, why each layer exists
+- `docs/SPEC-PIPELINE.md` — spec tool: `install-spec.sh`, the `spec/` bundle, 17 agents, intake modes, dual-harness, handoff
 - `docs/CUSTOMIZATION.md` — how to adapt templates for your stack (different DI / DB / test framework)
 - `docs/UPGRADE.md` — how to pull cmp improvements into an existing project (`--upgrade` flow)
 - `docs/ADDING-PLATFORM.md` — how to add a new platform (Flutter, React Native) to cmp

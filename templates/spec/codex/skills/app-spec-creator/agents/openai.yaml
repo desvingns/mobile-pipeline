@@ -1,0 +1,8 @@
+interface:
+  display_name: "App Spec Creator"
+  short_description: "Build a testable, traceable mobile app spec bundle (greenfield or clone) and hand it off to development."
+  default_prompt: "Run app-spec-creator: greenfield (staged interview) or clone (screenshots/APK/Play), produce the spec/ bundle, then hand off to the dev pipeline."
+policy:
+  allow_implicit_invocation: true
+# dependencies:
+#   mcp_servers: [chrome]   # only needed for clone-mode Google Play scraping; greenfield needs none
