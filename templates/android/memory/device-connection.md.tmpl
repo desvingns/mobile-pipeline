@@ -15,10 +15,10 @@ again)_
 - **Device / emulator:** _(e.g. `Pixel_5_API_34` emulator, or a physical device model + API)_
 - **How to connect / serial:** _(e.g. `adb connect <host:port>` then serial `<serial>`, or a USB
   device that appears directly in `adb devices`)_
-- **Device-run command:** the bare `./gradlew :app:connectedDebugAndroidTest
-  -Pandroid.testInstrumentationRunnerArguments.class=<FQN>` works on most hosts. If this environment
-  needs a wrapper (e.g. a Windows VM reaching a host emulator where AGP UTP rejects a `:` in the
-  serial), record the exact helper command here and in `CLAUDE.md`.
+- **Device-run command:** `./gradlew :app:connectedDebugAndroidTest
+  -Pandroid.testInstrumentationRunnerArguments.class=<FQN>` against a locally running emulator
+  (started in Android Studio) or a USB-attached device. If this environment needs a wrapper, record
+  the exact helper command here and in `CLAUDE.md`.
 - **adb path:** _(e.g. `$LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe` on Windows)_
 
 **Rule (why this memo exists):** before any device run, confirm the device with `adb devices`. If it

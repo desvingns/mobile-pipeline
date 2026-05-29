@@ -16,6 +16,14 @@ Three project-root markdown files track state and history (all committed):
 
 Cross-session memory lives in `{{MEMORY_PATH}}`; `MEMORY.md` is its index and is auto-loaded into every session.
 
+## Token-efficient Claude workflow
+
+Keep sessions cheap without lowering rigor:
+
+- **Code search → `Explore` subagent.** When a question means sweeping many files/dirs (find a symbol, trace a convention, locate call-sites), delegate to `Explore` and keep only its conclusion — don't fan raw file dumps into the main context. Use direct `Grep`/`Read` only for a known file or a single targeted lookup.
+- **Model routing.** Mechanical work (renames, small/boilerplate edits, formatting) → Sonnet/Haiku. Reserve Opus for architecture, ambiguous design, and hard debugging.
+- `/clear` between unrelated tasks; run build/test commands with plain console output and grep logs instead of dumping full output into context.
+
 ## Package
 
 `{{PACKAGE}}`
