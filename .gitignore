@@ -28,3 +28,9 @@ smoke-test/
 # while testing bootstrap, ignore the result so it doesn't pollute git.
 .claude/sandbox/
 .claude/.cmp-version
+
+# Graphify generated knowledge graph (local; rebuild: graphify update .)
+graphify-out/
+
+# Self-improvement loop: raw telemetry (retro digests + lessons.md are tracked)
+selfimprove/runs/*.jsonl

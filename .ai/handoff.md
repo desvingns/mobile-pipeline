@@ -32,3 +32,18 @@ OWNER / NEXT: codex-001 remains **codex's**; claude-002 follow-ups are small (se
 ## CONTEXT LINKS
 - Briefs: `.ai/tasks/claude-002-spec-integration.md`, `.ai/tasks/codex-001-dual-tool.md`
 - Spec docs: `docs/SPEC-PIPELINE.md`; installer: `install-spec.sh`; rules: `AGENTS.md`; change-log spec: `.ai/changes/README.md`
+
+## NOTE — 2026-05-29 (out-of-band tooling, NOT part of claude-002/codex-001)
+Graphify + Obsidian were integrated across cmp/mymoney/diet (user request). cmp's tracked files
+were touched: a `## graphify` section appended to **AGENTS.md** + **CLAUDE.md**; PreToolUse hooks
+added to `.claude/settings.json` and a new `.codex/hooks.json`; `graphify-out/` added to
+`.gitignore`; local git hooks (post-commit/post-checkout) installed under `.git/hooks/`.
+`graphify-out/` is gitignored (not committed). Graphs are AST-only (no LLM key set); semantic
+layer pending. Full details: `.ai/memory/graphify-obsidian-integration.md`. Additive and
+orthogonal to codex-001 / claude-002 — review the AGENTS.md/CLAUDE.md diff before committing.
+
+Also added (same session): the **self-improvement loop** — a `selfimprove/` kit (record-run.sh /
+reflect.sh / REFLECTION-PROMPT.md / lessons.md + `.claude/agents/selfimprove-retro.md`) wired to
+cmp's `.ai/changes` → `lib/sync` rail and replicated to MyMoney_app + diet_helper. Change-log
+entry `2026-05-29T22:00-selfimprove-loop`; memo `.ai/memory/self-improvement-loop.md`. The loop's
+raw telemetry (`selfimprove/runs/*.jsonl`) is gitignored.

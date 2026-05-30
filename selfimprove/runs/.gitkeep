@@ -1,0 +1,2 @@
+# Keeps selfimprove/runs/ tracked. The telemetry itself (*.jsonl) is gitignored — raw,
+# high-volume, machine-written. Only reflect.sh digests (retro/*.md) and lessons.md are committed.
