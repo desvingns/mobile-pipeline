@@ -1,0 +1,27 @@
+{
+  "name": "mobile-pipeline",
+  "owner": {
+    "name": "Konstantin Shavrin",
+    "email": "k.shavrin@strikerz.inc"
+  },
+  "metadata": {
+    "description": "Reusable mobile (Android/iOS) agent pipeline: spec-bundle creator (/mp-spec) and per-project dev orchestrator (/mp). One canonical source in templates/, emitted into these plugin trees by lib/build-marketplace.sh.",
+    "version": "1.4.0"
+  },
+  "plugins": [
+    {
+      "name": "mp-spec",
+      "source": "./claude-plugins/mp-spec",
+      "description": "Universal-intake spec bundle creator for mobile apps: EARS requirements, user stories, Gherkin acceptance criteria, platform-neutral design + appendix, NFR/a11y/security/analytics/i18n/risk/estimate, and a traceability matrix — validated by an evaluator-optimizer critic with two human gates. Greenfield interview or clone from screenshots + Google Play + optional APK.",
+      "category": "internal",
+      "tags": ["mobile", "android", "ios", "spec", "requirements", "ears", "gherkin", "tdd", "a11y", "nfr"]
+    },
+    {
+      "name": "mp-dev",
+      "source": "./claude-plugins/mp-dev",
+      "description": "Per-project mobile dev orchestrator (/mp) + specialist agents (architect, planner, developer, reviewer, tester, runner, verifier, docs, intake, knowledge) for Android/iOS. Generic agent bodies read project specifics from .claude/mp/config.json + CLAUDE.md + optional .claude/mp/extras/*.md.",
+      "category": "internal",
+      "tags": ["mobile", "android", "ios", "kotlin", "compose", "clean-architecture", "tdd", "orchestrator", "mvvm"]
+    }
+  ]
+}

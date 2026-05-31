@@ -3,6 +3,13 @@
 # Codex CLI. Part of claude-mobile-pipeline. The spec tool is project-agnostic (fixed names), so it
 # installs once into ~/.claude and/or ~/.codex — unlike the per-project dev pipeline (bootstrap.sh).
 #
+# NOTE (v1.4.0+): the spec tool is now also distributed as the `mp-spec` plugin in the
+# `mobile-pipeline` marketplace (see README → Marketplace + docs/MARKETPLACE.md). Prefer enabling the
+# plugin per project (one shared, updatable copy). This global installer is still useful for Codex
+# sub-agents (`~/.codex/agents/*.toml` — which Codex plugins can't carry) and as a fallback; if you
+# enable the plugin AND keep this global install, remove the older global copy to avoid duplicate
+# skill/agent names (~/.claude/skills/app-spec-creator + ~/.claude/agents/<17 spec agents>).
+#
 # Golden rules honoured: cross-platform Bash (Linux/macOS/Windows Git Bash); never `sed -i`
 # (render writes to a temp file then `mv`); markdown-first; structured payloads untouched.
 #

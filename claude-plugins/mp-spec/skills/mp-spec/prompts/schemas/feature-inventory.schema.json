@@ -1,0 +1,141 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://app-spec-creator/feature-inventory.schema.json",
+  "title": "Neutral feature inventory",
+  "description": "The platform-neutral merge format both intake modes converge on (Phase B). Clone derives it from analyzer JSON; greenfield from interview YAML. Every artifact in Phase C–F is generated against this. Contains NO UI-toolkit / DI / persistence vocabulary.",
+  "type": "object",
+  "required": ["app", "screens", "features", "roles", "entities", "integrations"],
+  "additionalProperties": false,
+  "properties": {
+    "app": {
+      "type": "object",
+      "required": ["name", "mode", "platforms"],
+      "additionalProperties": true,
+      "properties": {
+        "name": { "type": "string" },
+        "mode": { "enum": ["clone", "greenfield"] },
+        "platforms": { "type": "array", "items": { "enum": ["android", "ios"] } },
+        "one_liner": { "type": "string" }
+      }
+    },
+    "screens": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "type", "purpose", "source", "confidence"],
+        "additionalProperties": true,
+        "properties": {
+          "id": { "type": "string", "pattern": "^S[0-9]{2}[a-z]?$", "description": "Sxx, optional state-suffix e/l/r/s" },
+          "name": { "type": "string" },
+          "type": { "type": "string", "description": "controlled vocab from screenshot-business-analyzer" },
+          "purpose": { "type": "string" },
+          "states": { "type": "array", "items": { "enum": ["normal", "loading", "empty", "error", "success"] } },
+          "state_variant_of": { "type": ["string", "null"] },
+          "source": { "type": "string", "description": "screenshot:NN | apk | play | interview:stageN | derived" },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      }
+    },
+    "features": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "screen_ids", "source"],
+        "additionalProperties": true,
+        "properties": {
+          "id": { "type": "string", "pattern": "^F[0-9]+$" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "screen_ids": { "type": "array", "items": { "type": "string" } },
+          "priority": { "enum": ["mvp", "v1", "backlog"] },
+          "source": { "type": "string" }
+        }
+      }
+    },
+    "roles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name"],
+        "additionalProperties": true,
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "entities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "fields"],
+        "additionalProperties": true,
+        "properties": {
+          "name": { "type": "string" },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "type"],
+              "additionalProperties": true,
+              "properties": {
+                "name": { "type": "string" },
+                "type": { "type": "string", "description": "NEUTRAL type: String, Int, Long, Decimal, Bool, Instant, Date, UUID, List<X>, Ref<Entity> — never Kotlin/Swift-specific" },
+                "required": { "type": "boolean" },
+                "notes": { "type": "string" }
+              }
+            }
+          },
+          "relations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true,
+              "properties": {
+                "to": { "type": "string" },
+                "kind": { "enum": ["one-to-one", "one-to-many", "many-to-many"] }
+              }
+            }
+          },
+          "source": { "type": "string" }
+        }
+      }
+    },
+    "integrations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "reason", "source"],
+        "additionalProperties": true,
+        "properties": {
+          "id": { "type": "string" },
+          "kind": { "enum": ["auth", "push", "payments", "maps", "analytics", "sync", "ads", "storage", "media", "messaging", "other"] },
+          "reason": { "type": "string" },
+          "source": { "type": "string" }
+        }
+      }
+    },
+    "ambiguities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "question"],
+        "additionalProperties": true,
+        "properties": {
+          "id": { "type": "string" },
+          "ref": { "type": "string", "description": "screen_id / feature_id this is about" },
+          "question": { "type": "string" }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "sources": { "type": "array", "items": { "type": "string" } },
+        "generated_utc": { "type": "string" }
+      }
+    }
+  }
+}

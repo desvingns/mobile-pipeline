@@ -1,0 +1,20 @@
+{
+  "name": "mobile-pipeline",
+  "interface": {
+    "displayName": "Mobile Pipeline"
+  },
+  "plugins": [
+    {
+      "name": "mp-spec",
+      "source": {
+        "source": "local",
+        "path": "./codex-plugins/mp-spec"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Internal"
+    }
+  ]
+}

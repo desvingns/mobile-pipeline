@@ -1,0 +1,16 @@
+{
+  "name": "mp-spec",
+  "version": "1.4.0",
+  "description": "Universal-intake spec bundle creator for mobile apps (greenfield interview or clone from screenshots/APK).",
+  "author": {
+    "name": "Konstantin Shavrin",
+    "email": "k.shavrin@strikerz.inc"
+  },
+  "keywords": ["mobile", "spec", "requirements", "ears", "gherkin", "tdd"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "MP Spec",
+    "shortDescription": "Mobile app spec-bundle creator",
+    "category": "Internal"
+  }
+}

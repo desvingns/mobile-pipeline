@@ -1,0 +1,10 @@
+{
+  "name": "mp-spec",
+  "version": "1.4.0",
+  "description": "Universal-intake spec bundle creator for mobile apps (greenfield interview or clone from screenshots/APK). Produces EARS requirements, user stories, Gherkin AC, design, NFR/a11y/security/analytics/risk + traceability.",
+  "author": {
+    "name": "Konstantin Shavrin",
+    "email": "k.shavrin@strikerz.inc"
+  },
+  "keywords": ["mobile", "android", "ios", "spec", "requirements", "ears", "gherkin", "tdd", "a11y", "nfr"]
+}

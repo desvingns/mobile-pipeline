@@ -6,8 +6,26 @@ This repo uses [Semantic Versioning](https://semver.org/) — see `README.md` �
 
 ## [Unreleased]
 
+## [1.4.0] — 2026-05-31
+
 ### Added
 
+- **Multi-harness plugin marketplace (`mobile-pipeline`)** — cmp can now be consumed as a plugin
+  marketplace (modelled on the multi-harness `ai-team-bootstrap` pattern), not only copy-per-project
+  via `bootstrap.sh`. New `.claude-plugin/marketplace.json` (Claude) + `.agents/plugins/marketplace.json`
+  (Codex) list two plugins:
+  - **`mp-spec`** — the `app-spec-creator` skill (invoked as `/mp-spec`) + its 17 sub-agents →
+    `claude-plugins/mp-spec/` (Claude: skill + agents) and `codex-plugins/mp-spec/` (Codex: skill
+    only — Codex plugins can't carry sub-agents; the `.codex/agents/*.toml` roster stays per-project).
+  - **`mp-dev`** — the dev orchestrator (`/mp`) + specialist agents + deterministic scripts →
+    `claude-plugins/mp-dev/` (Claude-only). De-specialized: generic agent bodies read project facts
+    from `.claude/mp/config.json` + `CLAUDE.md` + `.claude/mp/extras/*.md` at runtime; scripts resolve
+    via `${CLAUDE_PLUGIN_ROOT}`.
+- **`lib/build-marketplace.sh`** — generator that emits both plugin trees from the canonical
+  `templates/` (one source → per-tool adapters). `bootstrap.sh` and `templates/**/scripts/*.sh` are
+  untouched, so the legacy copy-per-project bootstrap stays byte-compatible.
+- Projects consume the marketplace via `.claude/settings.json` (`extraKnownMarketplaces` +
+  `enabledPlugins`). Wired into `diet_helper`, `MyMoney_app`, and the MyMoney spec-staging folder.
 - **SPEC backlog board** — `.claude/specs/` in a generated project is now a file-based task board
   (`backlog/` / `active/` / `done/`; a SPEC's status is the folder it lives in). The orchestrator's
   `--feature` Phase 1 splits a large feature into ≥2 ordered SPEC files written to `backlog/`

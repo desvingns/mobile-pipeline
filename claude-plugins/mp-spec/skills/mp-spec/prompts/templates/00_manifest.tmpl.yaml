@@ -1,0 +1,45 @@
+# spec/00_manifest.yaml — bundle manifest & run state (template; <…> filled by orchestrator)
+schema_version: 1
+app: <APP>
+mode: <greenfield|clone>
+platforms: [android]            # add ios when --platforms includes it
+depth: <mvp|production|reference>
+language: <ru|en|bilingual>
+base: <BASE>\<APP>
+created_utc: <ISO-8601>
+finished_utc: null
+
+sources:                         # provenance — what grounds the spec
+  screenshots: <N|null>
+  play_url: <url|null>
+  apk: <package@version|null>
+  interview: <true|false>
+
+artifacts:                       # status + version per bundle file
+  constitution:      {status: pending, version: null}
+  product-brief:     {status: pending, version: null}
+  requirements:      {status: pending, version: null}
+  user-stories:      {status: pending, version: null}
+  acceptance:        {status: pending, version: null, files: 0}
+  design:            {status: pending, version: null}
+  nfr:               {status: pending, version: null}
+  a11y:              {status: pending, version: null}
+  security-privacy:  {status: pending, version: null}
+  analytics:         {status: pending, version: null}
+  i18n:              {status: pending, version: null}
+  risks:             {status: pending, version: null}
+  estimate:          {status: pending, version: null}
+  traceability:      {status: pending, version: null}
+  platform_android:  {status: pending, version: null}
+  platform_ios:      {status: stub, version: null}
+
+phases_completed: []             # A, B, C, D, E, F
+gate1_inventory_confirmed: false
+evaluator_verdict: pending       # pending | pass | fail
+evaluator_retries: 0
+gate2_accepted: false
+
+handoff:
+  target: cmp                    # cmp | portable
+  command: null                  # e.g. "/cmp --plan <BASE>\<APP>\spec"
+  done: false

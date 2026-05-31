@@ -6,6 +6,39 @@ workflow (`/discuss`, `/feature`, `/bugfix`, `/tdd`) and platform-specific speci
 Battle-tested origin: extracted from a 6-iteration `diet_helper` Android project (Kotlin +
 Compose + Hilt + Room) where the pattern was refined through real shipped features.
 
+## Marketplace (plugins) — recommended for reuse across projects
+
+Instead of copying a pipeline into every project with `bootstrap.sh`, cmp is also a **multi-harness
+plugin marketplace** named `mobile-pipeline` (`.claude-plugin/marketplace.json` for Claude,
+`.agents/plugins/marketplace.json` for Codex). It ships two plugins you enable per project — edit
+once here, regenerate, every project picks it up:
+
+| Plugin | Command | What |
+|--------|---------|------|
+| `mp-spec` | `/mp-spec` | Spec-bundle creator (was `app-spec-creator`) + 17 analysis sub-agents |
+| `mp-dev`  | `/mp`     | Dev orchestrator + specialist agents (Android) — Clean Arch, TDD, review/test/verify |
+
+**Enable in a project** — add to its `.claude/settings.json`:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "mobile-pipeline": { "source": { "source": "directory", "path": "D:\\Pet\\claude-mobile-pipeline" } }
+  },
+  "enabledPlugins": { "mp-spec@mobile-pipeline": true, "mp-dev@mobile-pipeline": true }
+}
+```
+
+Project specifics for `mp-dev` live in **`.claude/mp/config.json`** (`package`, `packagePath`,
+`platforms`, `sourceRoot`, `stack`, `uiLang`, `projectName`) + optional
+**`.claude/mp/extras/<agent>.md`** overrides — the generic plugin agents read them at runtime.
+After editing `templates/`, regenerate the plugin trees with `./lib/build-marketplace.sh`.
+
+Notes: the `directory` source is machine-local — once this repo is pushed to a git remote, swap it
+for a `git` source so projects are portable. Codex gets the `mp-spec` **skill** via
+`codex-plugins/mp-spec`; Codex sub-agents install per-project (Codex plugins carry skills, not
+sub-agents). Full guide: `docs/MARKETPLACE.md`.
+
 ## What you get
 
 Run `bootstrap.sh` in any new mobile project and you get:

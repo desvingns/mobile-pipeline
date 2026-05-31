@@ -100,3 +100,27 @@ summary: --spec <desc> = author SPEC(s) ONLY → write straight to .claude/specs
 reason: separate spec-authoring (fill the backlog) from implementation, and stop re-creating/re-approving a SPEC that was already approved when it entered the backlog (user request)
 affects: claude, codex
 by: claude
+
+## 2026-05-31T10:00-marketplace-spec
+type: add
+target: lib/build-marketplace.sh, .claude-plugin/marketplace.json, .agents/plugins/marketplace.json
+summary: cmp is now a multi-harness plugin marketplace (mobile-pipeline); new generator emits claude-plugins/mp-spec (skill /mp-spec + 17 sub-agents) and codex-plugins/mp-spec (skill only) from templates/spec
+reason: reuse one updatable source across projects (diet_helper, MyMoney_app, future) instead of copy-per-project; modelled on the ai-team-bootstrap marketplace pattern (user request)
+affects:
+by: claude
+
+## 2026-05-31T10:05-marketplace-dev
+type: add
+target: lib/build-marketplace.sh, claude-plugins/mp-dev/
+summary: emit the dev pipeline as the Claude-only mp-dev plugin (/mp orchestrator + specialist agents + deterministic scripts), de-specialized — agent bodies read .claude/mp/config.json + CLAUDE.md + .claude/mp/extras/*.md at runtime; scripts resolve via ${CLAUDE_PLUGIN_ROOT}
+reason: share the dev pipeline across projects without baking package/prefix per copy; honour the codex-001 ownership boundary by generating (not editing) bootstrap.sh / templates scripts
+affects:
+by: claude
+
+## 2026-05-31T10:10-projects-wired
+type: update
+target: diet_helper/.claude, MyMoney_app/.claude, MyMoney/.claude (downstream — outside this repo)
+summary: wired three projects to the mobile-pipeline marketplace via .claude/settings.json (extraKnownMarketplaces + enabledPlugins). MyMoney staging → mp-spec; MyMoney_app + diet_helper → mp-spec + mp-dev, each with .claude/mp/config.json + .claude/mp/extras/. MyMoney_app .codex max_threads 4→6. Old local cmp-*/dh-* agents left in place (file-safety) — listed for manual removal.
+reason: deliver the cross-project reuse the marketplace exists for; additive + reversible (no deletions)
+affects:
+by: claude
