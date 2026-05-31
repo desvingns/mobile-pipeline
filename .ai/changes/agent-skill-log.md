@@ -124,3 +124,19 @@ summary: wired three projects to the mobile-pipeline marketplace via .claude/set
 reason: deliver the cross-project reuse the marketplace exists for; additive + reversible (no deletions)
 affects:
 by: claude
+
+## 2026-05-31T14:00-fold-and-improve
+type: add
+target: templates/common/agents/{{PREFIX}}-{intake,knowledge,planner,improve}.md, templates/common/scripts/{{PREFIX}}-propose-improvement.sh, templates/common/commands/{{PREFIX}}.md
+summary: folded intake (SPEC synth), knowledge (post-ship lesson routing), planner (generic /mp-spec bundle to .claude/specs/backlog bridge), and improve (plugin-level fix drafter) into canonical mp-dev; added orchestrator --plan + --improve workflows + a post-ship Knowledge step + Rules. New propose-improvement.sh opens a gated PR against mobile-pipeline. build-marketplace.sh now also emits common agents + common scripts.
+reason: bring diet_helper intake/knowledge + MyMoney planner into the shared canon (user request) and implement the downstream to mobile-pipeline self-improvement PR loop
+affects:
+by: claude
+
+## 2026-05-31T14:05-diet-helper-archive
+type: remove
+target: diet_helper/.claude (downstream — outside this repo)
+summary: archived diet_helper generic dh-* agents + dh.md + dh-runner/reviewer.sh + PowerShell build/test + folded dh-intake/dh-knowledge into .claude/_archive_pre_mp/ (MOVED not deleted). diet_helper now uses /mp; only selfimprove-retro.md stays local. MyMoney_app left intact (bespoke --phase/--check workflow).
+reason: clean up superseded local copies now the mp-dev plugin provides them (user granted cleanup rights); reversible
+affects:
+by: claude

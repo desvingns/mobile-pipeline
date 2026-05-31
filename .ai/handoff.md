@@ -35,13 +35,25 @@ user go-ahead). Follow-ups + manual cleanup remain (below).
   generator reads templates and writes transformed COPIES into the plugin trees only.
 - `lib/build-marketplace.sh` is additive (claude-owned); may later merge with `lib/sync.sh`.
 
+## ALSO DONE (later this session)
+- **Folded** `mp-intake` / `mp-knowledge` / `mp-planner` (generic /mp-spec→backlog bridge) / `mp-improve`
+  into canonical mp-dev (15 agents now) + orchestrator `--plan` / `--improve` + post-ship Knowledge step
+  + `scripts/{{PREFIX}}-propose-improvement.sh`. validate ✔, 0 leaks.
+- **Self-improvement → PR loop** implemented (mp-knowledge routes PLUGIN-LEVEL lessons → `/mp --improve`
+  → mp-improve stages a templates/ patch → gated `propose-improvement.sh` branches+regenerates+PRs).
+  Documented in `docs/MARKETPLACE.md` → "Improvement workflow".
+- **diet_helper cleaned up** — generic `dh-*` + `dh.md` + scripts + PowerShell `build`/`test` +
+  folded `dh-intake`/`dh-knowledge` MOVED to `diet_helper/.claude/_archive_pre_mp/` (never deleted).
+  Uses `/mp` now; `selfimprove-retro.md` kept.
+
 ## NEXT / FOLLOW-UPS (open, ordered)
-1. **User:** verify `/mp-spec` + `/mp` in a session (`/plugin` → enable). Then run the **manual
-   cleanup** of superseded `cmp-*`/`dh-*` locals + diet_helper PowerShell `build`/`test` commands —
-   exact paths in `docs/MARKETPLACE.md` (kept in place per never-delete rule).
-2. Fold diet_helper `intake`/`knowledge` + MyMoney `planner` into canonical `mp-dev`.
-3. Per-project Codex **dev** agent generation (`.codex/agents/mp-*.toml` from `mp-*.md`).
-4. After `git push`: switch the 3 projects' `extraKnownMarketplaces` from `directory` → `git` source.
+1. **User:** verify `/mp-spec` + `/mp` in a session (`/plugin` → enable).
+2. **MyMoney_app dev migration** (deferred by design — bespoke `--phase`/`--check`/`--plan` + `cmp.md`
+   depends on local `cmp-*`). Rewire `cmp.md` `cmp-*`→`mp-*` then archive generic `cmp-*`; verify. NOT a blind archive.
+3. **Finish the local folder rename** — repo renamed on GitHub to `mobile-pipeline`; the working folder
+   is still `D:\Pet\claude-mobile-pipeline` (cwd-locked). User: move it + repoint the 3 `directory`
+   sources (or switch to the `git` source now that it's pushed). See final chat message.
+4. Per-project Codex **dev** agent generation (`.codex/agents/mp-*.toml` from `mp-*.md`).
 5. **[codex]** codex-001 (render `tool:` axis, `lib/sync.sh`, `bootstrap --tools`) still open + codex-owned.
 
 ## DECISIONS (+ why)

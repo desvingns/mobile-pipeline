@@ -123,10 +123,44 @@ they coexist harmlessly until you remove them.
 `~/.claude/skills/app-spec-creator` + the 17 `~/.claude/agents/<spec-agent>.md` to avoid duplicate
 names with the `mp-spec` plugin.
 
-## Follow-ups (not done in v1.4.0)
+## Improvement workflow (downstream project → mobile-pipeline PR)
 
-- Fold diet_helper's `intake`/`knowledge` agents and MyMoney's `planner` into the canonical
-  `mp-dev` set (currently the plugin is the proven base pipeline only).
+The pipeline improves itself through one loop, with a clear split between *project-local* lessons and
+*plugin-level* improvements:
+
+1. **Observe / reflect** — the existing `selfimprove/` kit (per project) captures runs and reflects;
+   after a `/mp` ship the orchestrator may spawn **`mp-knowledge`** with the SPEC + changed files + a
+   session recap.
+2. **Route** — `mp-knowledge` classifies each lesson:
+   - **PROJECT-LOCAL** (true only for this app) → it writes the project's memory and/or
+     `.claude/mp/extras/<agent>.md`. Nothing leaves the project.
+   - **PLUGIN-LEVEL** (would help *every* project — a wrong/missing rule in a generic `mp-*` agent or
+     the orchestrator) → it returns `plugin_improvements[]`, and the orchestrator offers `/mp --improve`.
+3. **Draft** — `/mp --improve` spawns **`mp-improve`** (read-only on the plugin): it locates the
+   mobile-pipeline working copy (from `extraKnownMarketplaces.mobile-pipeline.source.path` or `$MP_REPO`),
+   finds the exact **canonical** file under `templates/`, and stages a minimal patch + a change-log
+   entry under `mobile-pipeline/.ai/proposals/<slug>.*` (verified with `git apply --check`).
+4. **Gate → PR** — only after the user answers `y`, `scripts/mp-propose-improvement.sh` runs:
+   branch `improve/<slug>` → apply the patch to `templates/` → `./lib/build-marketplace.sh` (regenerate
+   the plugin trees) → commit → push → open a PR via `gh`. Review + merge happens on GitHub; once merged
+   to the default branch, every project picks it up on the next `/plugin marketplace update`.
+
+**Guarantees:** the live plugin copy is read-only; the downstream project's source is never touched;
+mobile-pipeline changes only through a reviewed PR (never a silent push); patches edit only `templates/`
+(never the generated trees), so the one-source discipline holds.
+
+See "Proposed alternatives" in the chat / `.ai/tasks/claude-003-marketplace.md` for queue-based and
+fully-automatic variants if you want less human-in-the-loop.
+
+## Follow-ups
+
+- ~~Fold intake/knowledge/planner into canonical `mp-dev`~~ — **done in v1.4.0** (planner is now the
+  generic `/mp-spec`→backlog bridge; not MyMoney's PROGRESS.md spine).
+- **MyMoney_app dev migration** — left on its bespoke `/cmp` (the `--phase`/`--check`/`--plan` PROGRESS.md
+  workflow + `cmp.md` depends on the local `cmp-*` agents). Migrating it to `/mp` needs rewiring `cmp.md`'s
+  agent references `cmp-*`→`mp-*` (the plugin agents + `.claude/mp/extras/` already replicate the
+  MyMoney specifics) and deciding whether to keep `--phase`/`--check` as a project-local command or port
+  to the backlog board. Do it as a focused, verified step — not a blind archive (would break the active pipeline).
 - Per-project Codex **dev** agent generation (`.codex/agents/mp-*.toml` from the plugin's `mp-*.md`).
 - `lib/build-marketplace.sh` may later merge with the codex-owned `lib/sync.sh` (codex-001).
 

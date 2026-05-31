@@ -194,7 +194,7 @@ build_mp_dev() {
   echo "==> mp-dev (claude, android) -> ${plugdir#"$ROOT"/}"
   [ "$DRY" = 1 ] || write_dev_snippets
 
-  for base in architect docs maintainer; do
+  for base in architect docs maintainer intake knowledge planner improve; do
     transform_dev_md "$COMMON/agents/{{PREFIX}}-$base.md" "$plugdir/agents/mp-$base.md" 1
   done
 
@@ -221,6 +221,15 @@ build_mp_dev() {
 
   transform_dev_script "$ANDROID/scripts/{{PREFIX}}-runner-android.sh"   "$plugdir/scripts/mp-runner-android.sh"   runner
   transform_dev_script "$ANDROID/scripts/{{PREFIX}}-reviewer-android.sh" "$plugdir/scripts/mp-reviewer-android.sh" reviewer
+
+  # Common (platform-neutral) scripts — e.g. the improvement → PR helper.
+  if [ -d "$COMMON/scripts" ]; then
+    for s in "$COMMON"/scripts/*.sh; do
+      [ -f "$s" ] || continue
+      base="$(basename "$s")"
+      transform_dev_script "$s" "$plugdir/scripts/${base/\{\{PREFIX\}\}/mp}" neutral
+    done
+  fi
 }
 
 build_mp_spec claude

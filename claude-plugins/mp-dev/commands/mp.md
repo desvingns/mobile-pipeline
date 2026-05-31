@@ -56,6 +56,8 @@ Usage:
   /mp --coverage [<scope>] [--target=N] — diagnostic JaCoCo coverage report (read-only, no code, Android only)
   /mp --upgrade [<model1,model2,...>] — review model assignments; update agent files when new Claude models are released
   /mp --device <screen|scope>          — one on-device instrumented-test slice: ensure a device is connected, write ONE Compose-UI test for an uncovered control, run it via connectedDebugAndroidTest, report. Android only.
+  /mp --plan <epic-slug> [--from <bundle|tdd>] — turn an /mp-spec `spec/` bundle (or a TDD/design doc) into ordered SPECs on the `.claude/specs/backlog/` board (via mp-planner, gated). Then implement with `--feature --next`.
+  /mp --improve [<note>]               — propose a PLUGIN-LEVEL fix to the mobile-pipeline marketplace (via mp-improve): stage a patch against `templates/`, then (gated) branch + open a PR. For lessons that help EVERY project, not just this one.
 
 ## Platform resolution
 
@@ -447,6 +449,77 @@ spec: [topic restated]
 
 ---
 
+## Workflow: --plan  (spec → backlog bridge)
+
+Turns a design source into an ordered set of ready-to-run SPECs on the `.claude/specs/backlog/`
+board. Use after `/mp-spec` produces a `spec/` bundle, or to break a TDD/design doc into slices.
+
+### Phase 1 — Plan
+Parse args: `<epic-slug>` (kebab-case) + optional `--from <path>` (an `/mp-spec` bundle dir or a
+TDD/design file; default: ask). Spawn `mp-planner`:
+```
+mode: bootstrap        (or `sync` if an epic with this slug already exists in the backlog)
+design_source: <path or "">
+epic_slug: <slug>
+```
+Parse its `=== PLAN ===` block.
+
+### Phase 2 — Gated write
+Show the planned SPEC filenames + which one promotes first. Ask: "Write N SPEC files to
+`.claude/specs/backlog/`? (y/d/n)" — `y` writes overview + SPECs verbatim from `rendered_markdown`;
+`d` shows full bodies first; `n` aborts. On `y`, promote the `promote:true` SPEC to `active/`. Never
+write outside `.claude/specs/`.
+
+### Phase 3 — Report
+```
+plan: <epic-slug> — N SPEC(s) → .claude/specs/backlog/ (Status: draft)
+   Next: /mp --feature --next   (implements the top-ordered SPEC)
+```
+
+---
+
+## Workflow: --improve  (improve the pipeline itself)
+
+For a lesson that would help **every** project on the plugin (a wrong/missing rule in a generic
+`mp-*` agent or this orchestrator) — NOT a project-local quirk (those go to memory / `.claude/mp/extras/`).
+Opens a PR against the **mobile-pipeline** marketplace; this project's repo is never touched.
+
+### Phase 1 — Draft
+Gather the `problem` (the user's note, or a `mp-knowledge` `plugin_improvements[]` entry).
+Resolve the mobile-pipeline repo path from `.claude/settings.json` →
+`extraKnownMarketplaces.mobile-pipeline.source.path` (or `$MP_REPO`). Spawn `mp-improve` with
+`{problem, target_hint, mp_repo}`; it stages a patch + change-log entry under `mp_repo/.ai/proposals/`
+and returns a `=== PROPOSAL ===` block. If it returns an `error` (e.g. `mp_repo_unresolved`,
+`no_clean_patch`) → relay it and ask the user for what's missing.
+
+### Phase 2 — Gated PR
+Show `summary`, `rationale`, `targets`, `apply_check`. Ask: "Open a PR against mobile-pipeline with
+this change? (y/n)". On `y`, run (the script branches → applies → regenerates plugin trees → pushes → PRs):
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/scripts/mp-propose-improvement.sh" "<mp_repo>" "<slug>" "<patch_file>" "<changelog_file>"
+```
+Parse its one JSON line. On `n` → leave the staged patch for later. **Never** push to mobile-pipeline
+without the explicit `y`.
+
+### Phase 3 — Report
+```
+improve: <slug> — PR <pr_url | not opened>
+   Branch: <branch> off <base>   (review + merge on GitHub)
+```
+
+---
+
+## Knowledge capture (after a ship)
+
+After a successful `--feature` / `--bugfix` (post-docs) you MAY spawn `mp-knowledge` with
+`{SPEC, CHANGED_FILES, SESSION_RECAP}`. No-op for routine work. It routes lessons:
+- **PROJECT-LOCAL** → writes this project's memory / `.claude/mp/extras/<agent>.md`.
+- **PLUGIN-LEVEL** → returns `plugin_improvements[]`; if non-empty, offer: "This looks like a pipeline
+  improvement that helps every project — run `/mp --improve`? (y/N)".
+Skip entirely when the user is moving fast or the task was trivial.
+
+---
+
 ## Workflow: --bugfix
 
 ### Phase 1 — Locate
@@ -638,3 +711,6 @@ Stop after one control. Do not start the next in the same run.
 - `--tdd` flag (only on `--feature`) reorders Phase 2: Tester writes failing unit tests first (`red_phase=true`), Runner verifies the red, then Developer implements until green (`green_phase=true`). Opt-in only; default order remains developer-first. `--bugfix` is unchanged — regression tests are written inline by the developer there.
 - `mp-runner-instrumented-android` runs the on-device suite (`connectedDebugAndroidTest`) for ONE test class and trusts the parsed connected report, not "BUILD SUCCESSFUL". `mp-runner-android` (JVM unit tests) is unchanged and is NOT the device runner.
 - `--device` is Android-only, runs one control per invocation, and never pushes. A connected device/emulator is mandatory: if none is present the orchestrator asks the user and records the answer to the `device-connection` memo (the runner agent cannot prompt). On-device test seams are restricted to `testTag` / `contentDescription` / `<Name>Content` visibility — a `--device` diff must never add new UI, events, or behaviour.
+- `--plan` spawns `mp-planner` (read-only) and writes ONLY under `.claude/specs/` behind a y/d/n gate; it is the `/mp-spec` bundle → backlog bridge and pairs with `--feature --next`.
+- `--improve` is the ONLY path that may change the mobile-pipeline marketplace, and ALWAYS via a gated PR (`mp-improve` stages a patch against `templates/`; the propose-improvement script branches + opens the PR after explicit `y`) — never a direct push, and it never edits this project's source. Project-local lessons do NOT go here; they go to memory / `.claude/mp/extras/`.
+- `mp-knowledge` runs at most once post-ship and is usually a no-op. It classifies each lesson PROJECT-LOCAL (→ memory/extras) vs PLUGIN-LEVEL (→ offer `--improve`). It never edits source or the live plugin copy.
