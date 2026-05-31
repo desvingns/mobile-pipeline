@@ -6,6 +6,25 @@ This repo uses [Semantic Versioning](https://semver.org/) — see `README.md` �
 
 ## [Unreleased]
 
+### Added
+
+- **SPEC backlog board** — `.claude/specs/` in a generated project is now a file-based task board
+  (`backlog/` / `active/` / `done/`; a SPEC's status is the folder it lives in). The orchestrator's
+  `--feature` Phase 1 splits a large feature into ≥2 ordered SPEC files written to `backlog/`
+  (behind one y/N gate), promotes the first to `active/`, then moves it to `done/` on ship. Epics
+  group by a `<epic-slug>-NN-<short>.md` filename prefix + an optional `-00-overview.md` index. New
+  `## SPEC backlog board` section + a Rules bullet in `templates/common/commands/{{PREFIX}}.md`;
+  full contract in `templates/common/specs/README.md`; `bootstrap.sh` now emits the
+  `backlog/active/done` board folders (each with a `.gitkeep`) into new projects.
+  Additive — single-SPEC features and the `--discuss` brainstorm-artifact flow are unchanged.
+  (VERSION bump to 1.4.0 deferred to release time per SemVer: additive = MINOR.)
+- **`--spec` + backlog-consume** — `/{{PREFIX}} --spec <desc>` authors SPEC(s) and writes them
+  straight to `.claude/specs/backlog/` as `Status: draft` (no code, no approval gate) — fills the
+  backlog ahead of time. `/{{PREFIX}} --feature --next` (or `--backlog <slug>`) implements a SPEC
+  already in the backlog: it is treated as already created + approved, so Phase 0/1 are skipped —
+  the file moves `backlog/ → active/`, runs Phase 2, then `active/ → done/`. Usage block, Rules,
+  and the specs-README lifecycle (new `draft` status) updated accordingly.
+
 ## [1.3.0] — 2026-05-29
 
 Spec-creation half: a global `app-spec-creator` spec pipeline and its installer. Produces a
