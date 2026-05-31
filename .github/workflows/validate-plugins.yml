@@ -38,8 +38,8 @@ jobs:
       - name: Generated trees match templates (regeneration drift)
         run: |
           set -e
-          ./lib/build-marketplace.sh >/dev/null
-          if ! git diff --quiet -- claude-plugins codex-plugins; then
+          bash lib/build-marketplace.sh >/dev/null
+          if ! git diff --quiet --ignore-cr-at-eol -- claude-plugins codex-plugins; then
             echo "::error::claude-plugins/ or codex-plugins/ is out of sync with templates/. Run ./lib/build-marketplace.sh and commit the result."
             git --no-pager diff --stat -- claude-plugins codex-plugins
             exit 1
