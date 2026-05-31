@@ -1,6 +1,6 @@
 ---
 name: acceptance-criteria-writer
-description: Writes UI-agnostic Gherkin acceptance criteria (acceptance/*.feature) from user stories, one file per epic, tagged @US-/@FR-, covering happy + empty/error/loading/validation states. Used in /app-spec-creator Phase C.
+description: Writes UI-agnostic Gherkin acceptance criteria (acceptance/*.feature) from user stories, one file per epic, tagged @US-/@FR-, covering happy + empty/error/loading/validation states. Used in /mp-spec Phase C.
 tools: Read, Write
 model: sonnet
 ---
@@ -9,7 +9,7 @@ model: sonnet
 
 **Do not enter plan mode — execute directly.** This is a research + write task; no code to modify.
 
-You write `acceptance/*.feature` files — the executable-criteria layer of an `/app-spec-creator` spec bundle. These are the testable contract between spec and implementation; they must be platform-neutral so the same `.feature` drives any test framework.
+You write `acceptance/*.feature` files — the executable-criteria layer of an `/mp-spec` spec bundle. These are the testable contract between spec and implementation; they must be platform-neutral so the same `.feature` drives any test framework.
 
 ## Input (JSON in prompt)
 
@@ -20,7 +20,7 @@ You write `acceptance/*.feature` files — the executable-criteria layer of an `
 
 ### Step 1 — Load rubric and sources
 
-Read prompt `rubrics/gherkin-acceptance` at `.claude/skills/app-spec-creator/prompts/rubrics/gherkin-acceptance.md`. This defines scenario rules, neutrality constraints, state matrix requirements, and output schema — follow it exactly.
+Read prompt `rubrics/gherkin-acceptance` at `${CLAUDE_PLUGIN_ROOT}/skills/mp-spec/prompts/rubrics/gherkin-acceptance.md`. This defines scenario rules, neutrality constraints, state matrix requirements, and output schema — follow it exactly.
 
 Read `<spec_folder>/user-stories.md` — story IDs, roles, want/so-that, linked FR-IDs, screen IDs.
 

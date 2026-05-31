@@ -70,6 +70,42 @@ copy_dir() {
   rm -rf "$dst"; mkdir -p "$(dirname "$dst")"; cp -r "$src" "$dst"
 }
 
+rewrite_mp_spec_file() {
+  local file="$1" tool="$2" prompt_root tmp
+  if [ "$tool" = claude ]; then
+    prompt_root='${CLAUDE_PLUGIN_ROOT}/skills/mp-spec/prompts'
+  else
+    prompt_root='prompts'
+  fi
+
+  tmp="$(mktemp)"
+  sed -e "s#{{AGENT_DIR}}/skills/app-spec-creator/prompts#${prompt_root}#g" \
+      -e "s#\\.claude/skills/app-spec-creator/prompts#${prompt_root}#g" \
+      -e "s#\\.codex/skills/app-spec-creator/prompts#${prompt_root}#g" \
+      -e 's#/app-spec-creator#/mp-spec#g' \
+      -e 's#app-spec-creator#mp-spec#g' \
+      "$file" > "$tmp"
+  mv "$tmp" "$file"
+
+  tmp="$(mktemp)"
+  if [ "$tool" = claude ]; then
+    sed -e 's#^- Skill + agents live under `~/.claude/`; prompts at `.*`\.$#- Skill + agents live inside the `mp-spec` plugin; prompts at `${CLAUDE_PLUGIN_ROOT}/skills/mp-spec/prompts/`.#' \
+        "$file" > "$tmp"
+  else
+    sed -e 's#^- Skill + agents live under `~/.codex/`; prompts at `.*`\.$#- Skill lives inside the `mp-spec` plugin; Codex sub-agent shims are installed separately; prompts live next to this SKILL.md under `prompts/`.#' \
+        "$file" > "$tmp"
+  fi
+  mv "$tmp" "$file"
+}
+
+rewrite_mp_spec_tree() {
+  local dir="$1" tool="$2" f
+  [ "$DRY" = 1 ] && return 0
+  while IFS= read -r f; do
+    rewrite_mp_spec_file "$f" "$tool"
+  done < <(find "$dir" -type f \( -name '*.md' -o -name '*.json' -o -name '*.yaml' -o -name '*.yml' \) -print)
+}
+
 # ----- mp-spec ----------------------------------------------------------------------------------
 build_mp_spec() {
   local tool="$1" adir plugdir a
@@ -85,6 +121,7 @@ build_mp_spec() {
       render_md "$a" "$plugdir/agents/$(basename "$a")" "$adir" "$tool"
     done
   fi
+  rewrite_mp_spec_tree "$plugdir" "$tool"
 }
 
 # ----- mp-dev (Claude-only): de-specialize templates into a generic /mp plugin ------------------

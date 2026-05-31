@@ -148,3 +148,11 @@ summary: improvement loop gains batch + cross-project + CI. --improve splits int
 reason: user-requested batch/cross-project/CI on the self-improvement workflow; reduce PR noise, catch systemic patterns, and protect the one-source discipline
 affects:
 by: claude
+
+## 2026-05-31T17:00-mp-spec-plugin-paths
+type: fix
+target: lib/build-marketplace.sh, claude-plugins/mp-spec/, codex-plugins/mp-spec/
+summary: marketplace mp-spec output now rewrites legacy app-spec-creator names to mp-spec and points Claude sub-agents at ${CLAUDE_PLUGIN_ROOT}/skills/mp-spec/prompts instead of the old global ~/.claude skill path
+reason: avoid broken prompt reads after removing the old app-spec-creator global install; keep generated plugin trees cleanly named as mp-spec while preserving the canonical/global install source
+affects:
+by: codex

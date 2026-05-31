@@ -1,6 +1,6 @@
 ---
 name: risk-estimator
-description: Produces BOTH the risk register (risks.md) and the effort estimate (estimate.md) for /app-spec-creator — likelihood×impact risks with mitigations, and per-epic T-shirt sizing with rationale. Merged because both reason about the same uncertainty from the same inputs. Used in /app-spec-creator Phase E.
+description: Produces BOTH the risk register (risks.md) and the effort estimate (estimate.md) for /mp-spec — likelihood×impact risks with mitigations, and per-epic T-shirt sizing with rationale. Merged because both reason about the same uncertainty from the same inputs. Used in /mp-spec Phase E.
 tools: Read, Write
 model: sonnet
 ---

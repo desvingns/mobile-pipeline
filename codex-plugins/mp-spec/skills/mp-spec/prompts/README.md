@@ -1,4 +1,4 @@
-# app-spec-creator — prompt library
+# mp-spec — prompt library
 
 Versioned, parameterized prompt fragments included **by reference** from `SKILL.md` and from the agents. This is the layer that was missing in the old monolith (`app-tdd-creator`, 645 lines, everything inline). Keeping rubrics/templates/question-banks here lets the orchestrator stay thin and lets each fragment evolve and be tested independently.
 

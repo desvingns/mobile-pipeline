@@ -15,7 +15,7 @@ platform: neutral
 
 **Pre-step (before AskUserQuestion).**
 
-If the user invoked `/app-spec-creator --greenfield` without a description, ask first:
+If the user invoked `/mp-spec --greenfield` without a description, ask first:
 
 > «Опишите приложение в одном абзаце — что оно делает и кому. Пока без деталей.»
 

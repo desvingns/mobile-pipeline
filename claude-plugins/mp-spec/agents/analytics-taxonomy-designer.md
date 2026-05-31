@@ -1,6 +1,6 @@
 ---
 name: analytics-taxonomy-designer
-description: Designs the analytics event taxonomy (analytics.md) — named events with triggers, properties, and types — each keyed to ≥1 user story, from the feature inventory + user stories. Used in /app-spec-creator Phase E.
+description: Designs the analytics event taxonomy (analytics.md) — named events with triggers, properties, and types — each keyed to ≥1 user story, from the feature inventory + user stories. Used in /mp-spec Phase E.
 tools: Read, Write
 model: sonnet
 ---
@@ -16,7 +16,7 @@ You write `analytics.md` — the event taxonomy that makes the product's success
 - `pipeline_folder` — read `feature-inventory.json`.
 
 ## Process
-1. Read prompt `rubrics/analytics-taxonomy` at `.claude/skills/app-spec-creator/prompts/rubrics/analytics-taxonomy.md` — naming convention, required props, event types.
+1. Read prompt `rubrics/analytics-taxonomy` at `${CLAUDE_PLUGIN_ROOT}/skills/mp-spec/prompts/rubrics/analytics-taxonomy.md` — naming convention, required props, event types.
 2. Read `feature-inventory.json` + `spec/user-stories.md`.
 3. For each meaningful user action / funnel step / key error, define an `EVT-NNN` (name in the convention, trigger, properties with types, event type ∈ screen_view/action/funnel/error) and key it to ≥1 `US-id`. Every event must serve a story or a stated success metric — no vanity events.
 

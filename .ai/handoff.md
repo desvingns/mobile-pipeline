@@ -1,6 +1,6 @@
 # Handoff
 
-UPDATED: 2026-05-31 by claude
+UPDATED: 2026-05-31 by codex
 CURRENT TASK: mobile-pipeline marketplace — convert cmp into a multi-harness plugin marketplace
 (`mp-spec` + `mp-dev`) modelled on `D:\tools\ai-team-bootstrap`; migrate diet_helper & MyMoney_app.
 Approved plan: `C:\Users\k.shavrin\.claude\plans\noble-questing-muffin.md`. Brief: `.ai/tasks/claude-003-marketplace.md`.
@@ -36,6 +36,11 @@ user go-ahead). Follow-ups + manual cleanup remain (below).
 - `lib/build-marketplace.sh` is additive (claude-owned); may later merge with `lib/sync.sh`.
 
 ## ALSO DONE (later this session)
+- **mp-spec plugin cleanup (codex)** — `lib/build-marketplace.sh` now rewrites marketplace output from
+  legacy `app-spec-creator` naming to `mp-spec` and changes Claude spec-agent prompt reads to
+  `${CLAUDE_PLUGIN_ROOT}/skills/mp-spec/prompts/...`. Regenerated `claude-plugins/mp-spec` and
+  `codex-plugins/mp-spec`. Verified with bash syntax, dry-run generation, Claude plugin validation,
+  leak greps, JSON parsing, `git diff --check`, and `python -m graphify update .`.
 - **Folded** `mp-intake` / `mp-knowledge` / `mp-planner` (generic /mp-spec→backlog bridge) / `mp-improve`
   into canonical mp-dev (15 agents now) + orchestrator `--plan` / `--improve` + post-ship Knowledge step
   + `scripts/{{PREFIX}}-propose-improvement.sh`. validate ✔, 0 leaks.

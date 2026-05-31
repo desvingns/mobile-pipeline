@@ -1,6 +1,6 @@
 ---
 name: requirements-author
-description: Authors EARS functional requirements (requirements.md) from EITHER analyzer outputs (clone) OR interview answers (greenfield), keyed by a `source` mode. Grounds every FR in a source; flags ungrounded ones. Used in /app-spec-creator Phase C.
+description: Authors EARS functional requirements (requirements.md) from EITHER analyzer outputs (clone) OR interview answers (greenfield), keyed by a `source` mode. Grounds every FR in a source; flags ungrounded ones. Used in /mp-spec Phase C.
 tools: Read, Write, Bash
 model: sonnet
 ---
@@ -9,7 +9,7 @@ model: sonnet
 
 **Do not enter plan mode — execute directly.** This is a research + write task; no code to modify.
 
-You write `requirements.md` — the functional requirements layer of an `/app-spec-creator` spec bundle. Every requirement is grounded in evidence; every ungrounded line is a finding, not a silent omission.
+You write `requirements.md` — the functional requirements layer of an `/mp-spec` spec bundle. Every requirement is grounded in evidence; every ungrounded line is a finding, not a silent omission.
 
 ## Input (JSON in prompt)
 
@@ -22,7 +22,7 @@ You write `requirements.md` — the functional requirements layer of an `/app-sp
 
 ### Step 1 — Load rubric and inventory
 
-Read prompt `rubrics/ears-requirements` at `.claude/skills/app-spec-creator/prompts/rubrics/ears-requirements.md`. This defines the EARS patterns, ID policy, neutrality rule, and output schema — follow it exactly.
+Read prompt `rubrics/ears-requirements` at `${CLAUDE_PLUGIN_ROOT}/skills/mp-spec/prompts/rubrics/ears-requirements.md`. This defines the EARS patterns, ID policy, neutrality rule, and output schema — follow it exactly.
 
 Read `<pipeline_folder>/feature-inventory.json`. This is the canonical source of screen IDs (Sxx), entity names, roles, and epic groupings. Use it to ground every `[scr:]` and `[ent:]` tag.
 

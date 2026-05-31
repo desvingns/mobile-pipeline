@@ -1,9 +1,9 @@
 ---
 name: mp-spec
-description: Builds a complete, testable, traceable specification BUNDLE for a mobile app (Android now, iOS-ready) and hands it off to development. Two intake modes that converge on one artifact set — GREENFIELD (staged interview elicitation for a brand-new app) and CLONE (screenshots + Google Play + optional APK, reusing the analyzer agents). Produces EARS requirements, user stories, Gherkin acceptance criteria, a platform-neutral design doc + platform appendix, NFR/a11y/security/analytics/i18n/risk/estimate artifacts, and a traceability matrix — validated by an evaluator-optimizer critic with two human gates. Supersedes app-tdd-creator. Triggers on "/app-spec-creator", "сделай спеку приложения", "собери требования по приложению", "spec bundle", "TDD по скриншотам", "воссоздай приложение", "придумай приложение с нуля". Use when the user wants structured requirements/specs for a mobile app — whether cloning an existing app or designing one from scratch — for handoff to coding agents.
+description: Builds a complete, testable, traceable specification BUNDLE for a mobile app (Android now, iOS-ready) and hands it off to development. Two intake modes that converge on one artifact set — GREENFIELD (staged interview elicitation for a brand-new app) and CLONE (screenshots + Google Play + optional APK, reusing the analyzer agents). Produces EARS requirements, user stories, Gherkin acceptance criteria, a platform-neutral design doc + platform appendix, NFR/a11y/security/analytics/i18n/risk/estimate artifacts, and a traceability matrix — validated by an evaluator-optimizer critic with two human gates. Supersedes app-tdd-creator. Triggers on "/mp-spec", "сделай спеку приложения", "собери требования по приложению", "spec bundle", "TDD по скриншотам", "воссоздай приложение", "придумай приложение с нуля". Use when the user wants structured requirements/specs for a mobile app — whether cloning an existing app or designing one from scratch — for handoff to coding agents.
 ---
 
-# /app-spec-creator — Universal-Intake Spec Pipeline
+# /mp-spec — Universal-Intake Spec Pipeline
 
 You orchestrate a multi-agent pipeline that produces a **spec bundle** (`spec/`) for a mobile app and hands it to development (your project's dev pipeline — e.g. `/cmp --plan <bundle>` — via the handoff step). Two intake modes converge on one shared artifact set, so everything downstream is mode-agnostic.
 
@@ -33,11 +33,11 @@ This skill runs under **both** Claude Code and Codex CLI. The orchestration is i
 
 - **User gates** have no structured-question tool — **ask the question in chat and STOP** until the user replies. Never proceed past a gate without an answer.
 - **Specialists** run as native Codex subagents (`.codex/agents/<name>.toml`). Request them by name; for a parallel phase, request all and **wait for every JSON result** before continuing (concurrency is bounded by `[agents] max_threads`, so a 5-way fan-out may queue — fine). Workers must not spawn descendants (`max_depth=1`).
-- Skill + agents live under `~/.codex/`; prompts at `.codex/skills/app-spec-creator/prompts/`.
+- Skill lives inside the `mp-spec` plugin; Codex sub-agent shims are installed separately; prompts live next to this SKILL.md under `prompts/`.
 
 ## Step 0 — Parse input & detect mode
 
-**Slash form:** `/app-spec-creator [<screenshots_dir>] [--apk <path>] [--play <url>] [--greenfield] [--name <APP>] [--platforms android[,ios]] [--depth mvp|production|reference] [--base <dir>] [flags]`
+**Slash form:** `/mp-spec [<screenshots_dir>] [--apk <path>] [--play <url>] [--greenfield] [--name <APP>] [--platforms android[,ios]] [--depth mvp|production|reference] [--base <dir>] [flags]`
 
 **Mode detection:**
 - Any of `<screenshots_dir>` / `--apk` / `--play` present → **clone** mode.
@@ -48,7 +48,7 @@ This skill runs under **both** Claude Code and Codex CLI. The orchestration is i
 
 **Clone-mode validation** (reuse app-tdd-creator Step 0 verbatim): screenshots dir required & non-empty; ask for Play URL / APK if not given; reject `.aab/.apks/.xapk` with extraction hint. See `prompts/questions/clone.input.md`.
 
-**Greenfield-mode validation:** no inputs needed; confirm the app idea is stated (if `/app-spec-creator --greenfield` with no description, ask for a one-paragraph idea first).
+**Greenfield-mode validation:** no inputs needed; confirm the app idea is stated (if `/mp-spec --greenfield` with no description, ask for a one-paragraph idea first).
 
 **Resolve `<APP>`:** `--name` → APK package stem → Play `id=` → screenshots folder → (greenfield) slugify the idea's working title.
 
@@ -155,6 +155,6 @@ Open the bundle folder (`Start-Process explorer.exe "<BASE>\<APP>"`). Final Russ
 Append to `spec/design.md`:
 ```markdown
 ---
-*Сгенерировано `/app-spec-creator` (mode `<mode>`, depth `<depth>`, platforms `<list>`).*
+*Сгенерировано `/mp-spec` (mode `<mode>`, depth `<depth>`, platforms `<list>`).*
 *Хендофф в разработку: `/<prefix> --plan <BASE>/<APP>/spec` (если у проекта есть spec-мост; иначе бандл портативен).*
 ```

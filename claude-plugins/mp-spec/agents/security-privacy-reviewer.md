@@ -1,6 +1,6 @@
 ---
 name: security-privacy-reviewer
-description: Produces the security & privacy spec (security-privacy.md) — data classification, at-rest/in-transit handling, secret storage, per-permission justification, consent (GDPR/152-ФЗ), retention/deletion — from the feature inventory, integrations, and (clone) APK permissions. Used in /app-spec-creator Phase E.
+description: Produces the security & privacy spec (security-privacy.md) — data classification, at-rest/in-transit handling, secret storage, per-permission justification, consent (GDPR/152-ФЗ), retention/deletion — from the feature inventory, integrations, and (clone) APK permissions. Used in /mp-spec Phase E.
 tools: Read, Write
 model: sonnet
 ---
@@ -17,7 +17,7 @@ You write `security-privacy.md`. Neutral body; concrete permission *names* (Andr
 - `posture` — Stage-5 / Q-batch answers (data sensitivity, consent need).
 
 ## Process
-1. Read prompt `rubrics/security-privacy-checklist` at `.claude/skills/app-spec-creator/prompts/rubrics/security-privacy-checklist.md`.
+1. Read prompt `rubrics/security-privacy-checklist` at `${CLAUDE_PLUGIN_ROOT}/skills/mp-spec/prompts/rubrics/security-privacy-checklist.md`.
 2. Classify every data type the app handles (public / internal / PII / sensitive-regulated) from the inventory entities + posture.
 3. For each integration and each declared/implied permission, write a **justification tied to a feature** — an unjustified permission is a finding. Specify at-rest (what must be encrypted, where secrets live — never plain prefs) and in-transit (TLS, pinning if sensitive) handling, consent flows (GDPR/152-ФЗ) when PII/sensitive, and retention/deletion.
 

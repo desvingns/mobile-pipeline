@@ -14,7 +14,7 @@ platform: ios
 This is the iOS sibling of `platform.android.tmpl.md`. It exists from day one so the bundle's directory shape is stable, but ships as a **populated stub** until iOS is in scope.
 
 ## How it gets populated later (the iOS drop-in route)
-When the project adds iOS (`/app-spec-creator … --platforms android,ios`, or a later `design-aggregator --platform ios` pass), this file is generated from the **same frozen platform-neutral bundle** (requirements, user-stories, acceptance/*.feature, design.md body, nfr/a11y/security/analytics/i18n) — **no neutral artifact is touched**. Then the iOS agent set drops in from `CMP/templates/ios/agents/*` per `CMP/docs/ADDING-PLATFORM.md`. This is the whole point of the neutral-body / platform-fenced split.
+When the project adds iOS (`/mp-spec … --platforms android,ios`, or a later `design-aggregator --platform ios` pass), this file is generated from the **same frozen platform-neutral bundle** (requirements, user-stories, acceptance/*.feature, design.md body, nfr/a11y/security/analytics/i18n) — **no neutral artifact is touched**. Then the iOS agent set drops in from `CMP/templates/ios/agents/*` per `CMP/docs/ADDING-PLATFORM.md`. This is the whole point of the neutral-body / platform-fenced split.
 
 ## Body (wrap everything below in the iOS fence)
 ```markdown

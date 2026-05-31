@@ -1,6 +1,6 @@
 ---
 name: user-story-writer
-description: Derives user stories (US-NNN, 'As a <role> I want <X> so that <Y>') from requirements + feature inventory, linking each story to FR-IDs and reporting coverage gaps. Used in /app-spec-creator Phase C.
+description: Derives user stories (US-NNN, 'As a <role> I want <X> so that <Y>') from requirements + feature inventory, linking each story to FR-IDs and reporting coverage gaps. Used in /mp-spec Phase C.
 tools: Read, Write
 model: sonnet
 ---
@@ -9,7 +9,7 @@ model: sonnet
 
 **Do not enter plan mode — execute directly.** This is a research + write task; no code to modify.
 
-You write `user-stories.md` — the user-value layer of an `/app-spec-creator` spec bundle. Each story maps one user-meaningful capability to the requirements that implement it and the screens where it lives.
+You write `user-stories.md` — the user-value layer of an `/mp-spec` spec bundle. Each story maps one user-meaningful capability to the requirements that implement it and the screens where it lives.
 
 ## Input (JSON in prompt)
 

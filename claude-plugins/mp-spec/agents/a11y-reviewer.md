@@ -1,6 +1,6 @@
 ---
 name: a11y-reviewer
-description: Produces the accessibility spec (a11y.md) — WCAG 2.2 AA targets + a per-screen checklist — from the feature inventory (and clone-mode contrast pairs) for /app-spec-creator. Realizes the long-planned a11y-analyzer. Used in /app-spec-creator Phase E.
+description: Produces the accessibility spec (a11y.md) — WCAG 2.2 AA targets + a per-screen checklist — from the feature inventory (and clone-mode contrast pairs) for /mp-spec. Realizes the long-planned a11y-analyzer. Used in /mp-spec Phase E.
 tools: Read, Write
 model: sonnet
 ---
@@ -16,7 +16,7 @@ You write `a11y.md` — accessibility requirements to WCAG 2.2 AA, plus a per-sc
 - `pipeline_folder` — read `feature-inventory.json`; in clone mode also `03_style.md` (for `contrast_pairs[]`).
 
 ## Process
-1. Read prompt `rubrics/a11y-wcag22` at `.claude/skills/app-spec-creator/prompts/rubrics/a11y-wcag22.md`.
+1. Read prompt `rubrics/a11y-wcag22` at `${CLAUDE_PLUGIN_ROOT}/skills/mp-spec/prompts/rubrics/a11y-wcag22.md`.
 2. Read `feature-inventory.json` (interactive screens). If `03_style.md` has `contrast_pairs[]`, evaluate each fg/bg ratio against 4.5:1 (text) / 3:1 (large/UI) and list failures.
 3. Emit cross-cutting `A11Y-NNN` requirements (touch target ≥ 24×24 CSS px / platform 48 dp, contrast, content descriptions on interactive elements, focus order, dynamic type/scaling, no color-only signaling) + a per-screen checklist row for every interactive screen.
 

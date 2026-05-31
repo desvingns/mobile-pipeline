@@ -46,7 +46,7 @@ Return each as a hex string `#RRGGBB`. Approximate to the nearest matchable hex 
 
 **Detect dark theme:** if at least one screenshot has a `background` luminance < 0.2 — `dark_theme_detected: true` and produce a separate `dark_palette` block with the same tokens.
 
-**Contrast pairs (for a11y):** while sampling, record the salient foreground/background hex pairs (body text on background, secondary text on surface, button label on primary, chip text, etc.) with their computed WCAG contrast ratio and the screen they appear on, as `contrast_pairs[]`. The `a11y-reviewer` (in `/app-spec-creator`) consumes these to flag sub-4.5:1 text without re-reading the images. Omit if nothing notable.
+**Contrast pairs (for a11y):** while sampling, record the salient foreground/background hex pairs (body text on background, secondary text on surface, button label on primary, chip text, etc.) with their computed WCAG contrast ratio and the screen they appear on, as `contrast_pairs[]`. The `a11y-reviewer` (in `/mp-spec`) consumes these to flag sub-4.5:1 text without re-reading the images. Omit if nothing notable.
 
 ### Pass 3 — Typography
 
