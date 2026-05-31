@@ -37,3 +37,6 @@ selfimprove/runs/*.jsonl
 
 # Personal local Claude Code settings (machine-specific paths, secrets, allowed tools)
 .claude/settings.local.json
+
+# Local secrets — copy .env.example → .env and fill in values; never commit .env
+.env

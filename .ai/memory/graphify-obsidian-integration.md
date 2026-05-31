@@ -29,8 +29,10 @@ self-improvement loop (auto-rebuild hooks + queryable graph = the observe step).
   (+ AGENTS.md for cmp & mymoney) plus PreToolUse hooks (`.claude/settings.json`,
   `.codex/hooks.json`). cmp's canonical AGENTS.md/CLAUDE.md were modified by explicit user choice.
 - Codex: global skill `~/.agents/skills/graphify`; per-project via `graphify codex install`.
-- **Semantic layer is PENDING:** set `GEMINI_API_KEY` (free tier) then
-  `graphify extract <path> --backend gemini --global --as <tag>`, or run `/graphify` in-session.
-  Re-run `global add` after any rebuild to refresh the shared base.
+- **Semantic layer:** `GEMINI_API_KEY` stored in each project's gitignored `.env` file
+  (template: `.env.example`). Loaded automatically by `scripts/graphify-hook.sh` (Codex hook)
+  and by the git `post-commit` hook. To activate: copy `.env.example` → `.env`, fill in the key,
+  then run `graphify extract <path> --backend gemini --global --as <tag>`. Re-run `global add`
+  after any rebuild to refresh the shared base.
 
 Related: [[dual-tool-architecture]], [[change-log-discipline]].
