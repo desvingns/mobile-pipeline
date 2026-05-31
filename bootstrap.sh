@@ -124,6 +124,7 @@ if [ "$DRY_RUN" -eq 1 ]; then
     echo "  .claude/commands/$PREFIX.md"
     echo "  .claude/scripts/$PREFIX-{runner-<plat>,reviewer-<plat>}.sh"
     echo "  .claude/specs/README.md"
+    echo "  .claude/specs/{backlog,active,done}/.gitkeep   (SPEC backlog board)"
     echo "  .claude/.cmp-version"
     echo "  ./CLAUDE.md ./STATE.md ./ROADMAP.md ./DOCUMENTATION.md"
     [ "$SKIP_MEMORY" -ne 1 ] && echo "  $MEMORY_PATH/MEMORY.md + memos"
@@ -179,9 +180,14 @@ done
 cp "$TEMPLATES_ROOT/templates/common/commands/{{PREFIX}}.md" \
    ".claude/commands/{{PREFIX}}.md"
 
-# 3. Common specs/README
+# 3. Common specs/README + the SPEC backlog board folders (backlog/active/done)
 cp "$TEMPLATES_ROOT/templates/common/specs/README.md" \
    ".claude/specs/README.md"
+mkdir -p .claude/specs/backlog .claude/specs/active .claude/specs/done
+for board in backlog active done; do
+    cp "$TEMPLATES_ROOT/templates/common/specs/$board/.gitkeep" \
+       ".claude/specs/$board/.gitkeep"
+done
 
 # 4. Platform agents (skip reviewer-<plat> — already handled above)
 for plat in $PLATFORMS_LIST; do

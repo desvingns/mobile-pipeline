@@ -34,3 +34,6 @@ graphify-out/
 
 # Self-improvement loop: raw telemetry (retro digests + lessons.md are tracked)
 selfimprove/runs/*.jsonl
+
+# Personal local Claude Code settings (machine-specific paths, secrets, allowed tools)
+.claude/settings.local.json

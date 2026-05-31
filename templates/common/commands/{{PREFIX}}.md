@@ -47,6 +47,8 @@ Usage:
   /{{PREFIX}} --feature --tdd <description>   — new functionality, TDD red-green order (tester writes failing tests first)
   /{{PREFIX}} --bugfix  <description>         — broken behaviour to fix
   /{{PREFIX}} --discuss <topic>               — brainstorm options before committing to a SPEC (read-only, no code)
+  /{{PREFIX}} --spec <description>            — author SPEC(s) ONLY → write to .claude/specs/backlog/ (no code, no approval gate). Fills the backlog.
+  /{{PREFIX}} --feature --next | --feature --backlog <slug> — implement a SPEC already in the backlog (skips create + approval): move backlog→active, run Phase 2, then →done.
   /{{PREFIX}} --coverage [<scope>] [--target=N] — diagnostic JaCoCo coverage report (read-only, no code, Android only)
   /{{PREFIX}} --upgrade [<model1,model2,...>] — review model assignments; update agent files when new Claude models are released
   /{{PREFIX}} --device <screen|scope>          — one on-device instrumented-test slice: ensure a device is connected, write ONE Compose-UI test for an uncovered control, run it via connectedDebugAndroidTest, report. Android only.
@@ -161,6 +163,14 @@ The coverage agent never writes tests itself. Hand the result back to `/{{PREFIX
 
 ## Workflow: --feature
 
+**Mode select (read first).** If `--feature` carries `--next` or `--backlog <slug>` (or has no description while `.claude/specs/active/` holds a SPEC) → this is **backlog-consume mode**: the SPEC already exists and was approved when it entered the backlog, so SKIP Phase 0 + Phase 1 (no brainstorm, no questions, no SPEC re-draft, no approval gate) and jump to Phase 2:
+
+1. Resolve the file — `--backlog <slug>` → the `.claude/specs/backlog/` file whose name matches `<slug>`; `--next` (or bare `--feature` with no description) → resume the SPEC already in `.claude/specs/active/` if one exists, else the top-ordered runnable file in `backlog/` (lowest `NN`; ignore `*-00-overview.md` index files).
+2. Move it `backlog/ → active/`, set front-matter `Status: active`, announce which SPEC, then run **Phase 2** using the `=== SPEC === … === END SPEC ===` block read verbatim from the file.
+3. On ship (Verifier pass / push), move it `active/ → done/`, fill `Implementation links` (commit + files), set `Status: done`.
+
+If a free-text description was given instead → run Phase 0 → Phase 1 → Phase 2 as normal.
+
 ### Phase 0 — Brainstorm trigger (optional)
 
 Before exploring the codebase, evaluate the user's feature description. Trigger heuristics:
@@ -203,6 +213,15 @@ CHANGED_HINT: [existing files to read, or "explore"]
 TEST_TYPES: unit [dao] [compose-ui] [screenshot]
 CONSTRAINTS: [specific rules or "none"]
 ```
+
+**Large features → split into a SPEC backlog.** Before emitting a single SPEC, judge the size. If the feature naturally decomposes into **two or more** independently-shippable SPECs (each roughly one focused slice — one screen group, one design layer, one subsystem), do NOT cram it into one. Instead:
+
+1. Draft the full ordered set (SPEC 1..N), each its own self-contained SPEC block.
+2. Write each as a file in `.claude/specs/backlog/` — see **SPEC backlog board** below for layout + file format — behind ONE y/N gate: *"Write N SPECs to backlog? (y/N)"*. Add an `<epic-slug>-00-overview.md` index listing the ordered SPECs, their dependencies, and any cross-cutting notes.
+3. Promote the first SPEC: move its file `backlog/ → active/`, then continue Phase 2 on it.
+4. The remaining SPECs stay in `backlog/` for the next `/{{PREFIX}} --feature` run (the top-ordered one is next).
+
+A single-SPEC feature skips the board — emit the SPEC inline as before.
 
 **Do not proceed until user confirms SPEC.**
 
@@ -398,6 +417,32 @@ feat: [description]
 
 ---
 
+## Workflow: --spec
+
+Spec-authoring only — **fills the backlog, writes no code, runs no agents.** Use it to groom a large feature into ready-to-run SPECs ahead of time.
+
+### Phase 1 — Draft
+Explore the relevant codebase area (same as `--feature` Phase 1). Ask ≤3 questions ONLY if a choice is genuinely blocking (a strategy or scope fork). Then decide single vs. split:
+- **Single SPEC** → one self-contained `=== SPEC === … === END SPEC ===` block.
+- **Large feature** → the full ordered set (SPEC 1..N), each its own block, + an epic overview.
+
+### Phase 2 — Write to backlog (no approval gate)
+Write the SPEC(s) **straight** to `.claude/specs/backlog/` with `Status: draft` — do NOT stop for a "SPEC ok? (y/n)" gate (approval happens at implement time, in `--feature`). Use the file format in `.claude/specs/README.md`:
+- Single → `backlog/<slug>.md`.
+- Split → `backlog/<epic-slug>-NN-<short>.md` (NN = order) + `backlog/<epic-slug>-00-overview.md` (goal, ordered list, dependencies, cross-cutting notes).
+
+`Status: draft` marks an auto-written, not-yet-human-reviewed SPEC. Refine by editing the files by hand, or just implement them later — `/{{PREFIX}} --feature --next` (or `--backlog <slug>`) runs them without re-creating or re-approving.
+
+### Phase 3 — Report
+```
+spec: [topic restated]
+   Wrote: N SPEC file(s) → .claude/specs/backlog/ (Status: draft)
+   Files: [list]
+   Next: /{{PREFIX}} --feature --next   (or --backlog <slug>) to implement
+```
+
+---
+
 ## Workflow: --bugfix
 
 ### Phase 1 — Locate
@@ -559,10 +604,26 @@ Stop after one control. Do not start the next in the same run.
 
 ---
 
+## SPEC backlog board
+
+`.claude/specs/` is a file-based task board for SPECs — full contract (layout, file format, lifecycle) in `.claude/specs/README.md`. It persists a **large feature that splits into several SPECs** so it is ordered and resumable across sessions, not stuck in one chat.
+
+- `backlog/` — SPECs queued, not started (+ an `<epic-slug>-00-overview.md` index).
+- `active/` — the SPEC being implemented now (normally one).
+- `done/` — shipped SPECs, with `commit` + changed files filled in.
+- A SPEC's **status is the folder it lives in**; an epic's SPECs share a filename prefix `<epic-slug>-NN-<short>.md` (NN = order).
+
+**Lifecycle the orchestrator drives:** `--feature` Phase 1 writes a multi-SPEC feature's SPEC files into `backlog/` behind one y/N gate → on starting a SPEC, move `backlog/ → active/` and confirm it with the user before Phase 2 → on ship (Verifier pass / push), move `active/ → done/` and fill `commit` + `files`. Creating/moving these markdown files is a planning action the orchestrator may do directly; it never skips the human SPEC-approval gate.
+
+---
+
 ## Rules
 
 - Orchestrator NEVER writes mobile production code (Kotlin/Swift/Compose/Gradle/Xcode build scripts) or tests.
 - Orchestrator NEVER modifies application source files directly. (Writing markdown artifacts to `.claude/specs/` during `--discuss` is allowed — these are planning documents, not code.)
+- The orchestrator may create, edit, and move SPEC markdown files under `.claude/specs/{backlog,active,done}/` (the SPEC backlog board) — planning/state artifacts, not code. Moving a file between those folders is how a SPEC's status changes.
+- `--spec <desc>` authors SPEC(s) and writes them straight to `.claude/specs/backlog/` with `Status: draft` — it runs NO agents and has NO approval gate (backlog grooming only).
+- `--feature --next` / `--feature --backlog <slug>` implement a SPEC already in the backlog: it is treated as already created + approved, so Phase 0 + Phase 1 are SKIPPED — move `backlog/ → active/`, run Phase 2, then `active/ → done/`. `--next` resumes a SPEC already in `active/` if present, else takes the top-ordered backlog file (ignoring `*-00-overview.md`).
 - All code changes happen inside spawned agents.
 - If a spawned agent fails — stop the chain and report immediately.
 - LLM agent output is validated as JSON (or BRAINSTORM block for architect). On parse failure, retry the same agent ONCE with an explicit "JSON only, no prose" preface. Second failure → stop.

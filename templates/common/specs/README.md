@@ -1,25 +1,91 @@
-# `.claude/specs/` — Persistent Brainstorm Artifacts
+# `.claude/specs/` — SPEC backlog board + brainstorm artifacts
 
-This directory stores persistent records of `/{{PREFIX}} --discuss <topic>` brainstorms — the
-options surfaced, the recommendation, and (later) the SPEC that was approved and the
-commit that shipped it.
+This directory is a lightweight, **file-based task board for SPECs**, plus the home of
+`/{{PREFIX}} --discuss` brainstorm records. It exists so a feature that is **too large for one
+SPEC** is stored, ordered, and resumable across sessions — instead of living only in one chat.
 
-**Committed to git** — gives long-term visibility into "what were we thinking about a
-month ago." If a brainstorm went nowhere, the file is still useful evidence of considered
-trade-offs. Delete only when the file is genuinely obsolete and you'd rather forget the
-context.
+**Committed to git** — long-term visibility into what we planned and why. A backlog SPEC that
+went nowhere is still useful evidence of considered trade-offs.
 
-## How files get created
+## Layout
 
-1. User runs `/{{PREFIX}} --discuss <topic>`.
-2. `{{PREFIX}}-architect` agent returns a BRAINSTORM block.
-3. The `/{{PREFIX}}` orchestrator asks: *"Save as a spec draft in `.claude/specs/`? (y/N)"*
-4. If yes, orchestrator asks for a `kebab-case` slug and writes `<slug>.md` here.
+```
+.claude/specs/
+  README.md      # this contract
+  backlog/       # SPECs queued, not started (+ an optional <epic>-00-overview.md)
+  active/        # the SPEC(s) currently being implemented — normally exactly one
+  done/          # shipped SPECs, with commit + changed files filled in
+  <slug>.md      # (root) --discuss brainstorm artifacts
+```
 
-Later, when `/{{PREFIX}} --feature` is run for the same topic, the orchestrator fills in
-the **Approved SPEC** and **Implementation links** sections.
+A SPEC's **status is the folder it lives in** (`backlog` / `active` / `done`). Moving the file
+between folders is how its status changes — there is no separate state store.
 
-## File format
+## When the board is used
+
+- `/{{PREFIX}} --feature <large feature>` — if Phase 1 finds the feature splits into **≥2
+  independently-shippable SPECs**, the orchestrator writes each SPEC as a file in `backlog/`
+  (behind one y/N gate), then promotes the first to `active/` and implements it. The rest wait
+  in `backlog/` for the next run.
+- `/{{PREFIX}} --spec <description>` — **author SPEC(s) only** and write them straight to `backlog/`
+  (`Status: draft`, no approval gate). The way to fill the backlog without implementing.
+- `/{{PREFIX}} --feature --next` (or `--backlog <slug>`) — **implement a SPEC already in the
+  backlog**: it is treated as already created + approved, so Phase 0/1 are skipped — the file moves
+  `backlog/ → active/` and goes straight to implementation, then to `done/`.
+- A single-SPEC feature skips the board — the SPEC is shown inline in chat as before.
+- `/{{PREFIX}} --discuss <topic>` — still writes a single `<slug>.md` brainstorm artifact at the
+  root (format at the bottom). When a brainstorm graduates into a multi-SPEC plan, those SPECs go
+  to `backlog/`.
+
+## Naming (epics)
+
+Group the SPECs of one large feature ("epic") by a shared filename prefix + an order number:
+
+```
+backlog/<epic-slug>-00-overview.md   # epic index: goal, ordered SPEC list, dependencies, cross-cutting notes
+backlog/<epic-slug>-01-<short>.md    # SPEC 1
+backlog/<epic-slug>-02-<short>.md    # SPEC 2
+...
+```
+
+A standalone (non-epic) SPEC is just `<slug>.md` in the relevant folder.
+
+## SPEC file format
+
+```markdown
+# <SPEC title>
+Epic: <epic-slug | —>
+Order: <NN of MM | —>
+Status: draft | backlog | active | done   # draft = auto-written by --spec (unreviewed); else mirrors the folder
+Depends-on: <epic-NN | —>
+Date: YYYY-MM-DD
+
+## SPEC
+=== SPEC ===
+<the full SPEC block — TASK / WHAT / LAYERS / CHANGED_HINT / TEST_TYPES / CONSTRAINTS>
+=== END SPEC ===
+
+## Gap / context
+<one or two lines: the concrete gap this SPEC closes>
+
+## Implementation links
+- commit: <hash>      (filled when moved to done/)
+- files:  <changed files>
+```
+
+## Lifecycle
+
+| When | Action |
+|------|--------|
+| `--spec <desc>` | write SPEC file(s) to `backlog/` with `Status: draft` — no approval gate (grooming) |
+| `--feature <desc>` splits into ≥2 SPECs | write SPEC files into `backlog/` (+ overview) behind one y/N gate, promote the first |
+| `--feature --next` / `--backlog <slug>` | take a backlog SPEC (already approved) → move `backlog/ → active/`, `Status: active`, run Phase 2 — Phase 0/1 skipped |
+| SPEC shipped (Verifier pass / push) | move `active/ → done/`, fill `commit` + `files`, set `Status: done` |
+
+Moving a SPEC to `active/` never bypasses the human SPEC-approval gate — Phase 2 still waits for
+the user's `y` before any agent runs.
+
+## `--discuss` brainstorm artifact format (root-level `<slug>.md`)
 
 ```markdown
 # <Topic, one-line restatement>
@@ -30,27 +96,10 @@ Date: YYYY-MM-DD
 <full BRAINSTORM block from {{PREFIX}}-architect — verbatim>
 
 ## Approved SPEC
-<full SPEC block from /{{PREFIX}} --feature, or "(pending)" if not yet approved>
+<full SPEC block from /{{PREFIX}} --feature, or "(pending)">
 
 ## Implementation links
 - commit: <hash>
-- files: <list of changed files>
-(or "(pending)" if not yet implemented)
+- files: <list>
+(or "(pending)")
 ```
-
-## Status lifecycle
-
-| Status | Meaning |
-|--------|---------|
-| `brainstorm` | Just options + recommendation. No SPEC yet, no code. |
-| `spec-ready` | User picked an option and approved a SPEC. Ready to implement. |
-| `in-progress` | `/{{PREFIX}} --feature` started but didn't complete (interrupted, blocked, etc). |
-| `done` | Feature shipped. Implementation links filled in. |
-
-Status is updated manually or by the orchestrator at the relevant moment.
-
-## Naming
-
-`<slug>.md` — short, kebab-case, descriptive. Examples: `csv-export.md`, `offline-sync.md`,
-`onboarding-flow.md`. Avoid version suffixes — if the topic evolves, edit the existing file
-or start a new one with a clearly different scope.
