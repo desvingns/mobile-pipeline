@@ -37,6 +37,14 @@ This repo uses [Semantic Versioning](https://semver.org/) — see `README.md` �
   source is never touched; mobile-pipeline is changed only via a reviewed PR.
 - **diet_helper migrated to `/mp`**: its generic `dh-*` agents, `dh.md`, deterministic scripts, and the
   PowerShell `build`/`test` commands moved to `.claude/_archive_pre_mp/` (reversible; never deleted).
+- **Batch + cross-project + CI for the improvement loop**: `--improve "<note>"` opens its OWN PR;
+  `--improve --drain` batches ALL queued proposals (auto-staged by `mp-knowledge` / `mp-reflect`) into
+  ONE PR (`scripts/{{PREFIX}}-improve-drain.sh`). New `--reflect` aggregates self-improvement lessons
+  across all projects (`scripts/{{PREFIX}}-cross-reflect.sh` + `{{PREFIX}}-reflect` agent, projects from
+  `~/.config/mobile-pipeline/projects.txt`) and queues improvements for patterns seen in ≥2 projects.
+  A GitHub Actions CI gate (`.github/workflows/validate-plugins.yml`) runs on every PR: JSON-manifest
+  validity, `bash -n`, placeholder/marker leak check, and a **regeneration-drift** check (committed
+  plugin trees must equal `./lib/build-marketplace.sh` output).
 - **SPEC backlog board** — `.claude/specs/` in a generated project is now a file-based task board
   (`backlog/` / `active/` / `done/`; a SPEC's status is the folder it lives in). The orchestrator's
   `--feature` Phase 1 splits a large feature into ≥2 ordered SPEC files written to `backlog/`

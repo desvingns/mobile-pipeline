@@ -140,3 +140,11 @@ summary: archived diet_helper generic dh-* agents + dh.md + dh-runner/reviewer.s
 reason: clean up superseded local copies now the mp-dev plugin provides them (user granted cleanup rights); reversible
 affects:
 by: claude
+
+## 2026-05-31T16:00-improve-batch-reflect-ci
+type: add
+target: templates/common/scripts/{{PREFIX}}-{improve-drain,cross-reflect}.sh, templates/common/agents/{{PREFIX}}-reflect.md, templates/common/commands/{{PREFIX}}.md, .github/workflows/validate-plugins.yml
+summary: improvement loop gains batch + cross-project + CI. --improve splits into direct (own PR) vs --drain (batch all queued proposals into one PR); mp-knowledge/mp-reflect now STAGE to the .ai/proposals/ queue. New --reflect aggregates lessons across projects (cross-reflect.sh + mp-reflect agent, projects from ~/.config/mobile-pipeline/projects.txt) and queues >=2-project patterns. New GitHub Actions CI gate: JSON validity + bash -n + leak check + regeneration-drift. gh installed for auto-PR.
+reason: user-requested batch/cross-project/CI on the self-improvement workflow; reduce PR noise, catch systemic patterns, and protect the one-source discipline
+affects:
+by: claude

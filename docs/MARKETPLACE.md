@@ -149,8 +149,24 @@ The pipeline improves itself through one loop, with a clear split between *proje
 mobile-pipeline changes only through a reviewed PR (never a silent push); patches edit only `templates/`
 (never the generated trees), so the one-source discipline holds.
 
-See "Proposed alternatives" in the chat / `.ai/tasks/claude-003-marketplace.md` for queue-based and
-fully-automatic variants if you want less human-in-the-loop.
+### Batch, cross-project & CI (v1.4.0)
+
+- **Queue + batch** — `mp-knowledge` / `mp-reflect` *stage* proposals to `mobile-pipeline/.ai/proposals/`
+  (the queue) rather than PR each. `/mp --improve --drain` aggregates the whole queue into **one** PR
+  (`improve/batch-<stamp>`, regenerated once) via `scripts/mp-improve-drain.sh`. A deliberate
+  `/mp --improve "<note>"` stays a **separate** single PR (`scripts/mp-propose-improvement.sh`).
+- **Cross-project reflection** — `/mp --reflect` runs `scripts/mp-cross-reflect.sh`, which aggregates each
+  project's `selfimprove/lessons.md` + retro notes (projects listed in `~/.config/mobile-pipeline/projects.txt`)
+  into a digest flagging keywords recurring in **≥2 projects**; the `mp-reflect` agent then queues
+  proposals only for genuinely general patterns. Drain them with `--improve --drain`.
+- **CI gate** — `.github/workflows/validate-plugins.yml` runs on every PR (incl. the auto-opened
+  `improve/*` PRs): JSON-manifest validity, `bash -n` on all scripts, placeholder/marker leak check, and
+  a **regeneration-drift** check (`./lib/build-marketplace.sh` then `git diff` must be empty — enforces
+  the one-source discipline so nobody hand-edits the generated trees or forgets to regenerate).
+- **gh** — the auto-PR step needs the GitHub CLI (`gh`), authenticated (it reads `GITHUB_TOKEN`). Without
+  it the scripts still push the `improve/*` branch and print the URL to open the PR manually.
+
+See "Proposed alternatives" in `.ai/tasks/claude-003-marketplace.md` for the fully-automatic variant.
 
 ## Follow-ups
 

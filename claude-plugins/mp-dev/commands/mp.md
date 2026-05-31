@@ -57,7 +57,9 @@ Usage:
   /mp --upgrade [<model1,model2,...>] — review model assignments; update agent files when new Claude models are released
   /mp --device <screen|scope>          — one on-device instrumented-test slice: ensure a device is connected, write ONE Compose-UI test for an uncovered control, run it via connectedDebugAndroidTest, report. Android only.
   /mp --plan <epic-slug> [--from <bundle|tdd>] — turn an /mp-spec `spec/` bundle (or a TDD/design doc) into ordered SPECs on the `.claude/specs/backlog/` board (via mp-planner, gated). Then implement with `--feature --next`.
-  /mp --improve [<note>]               — propose a PLUGIN-LEVEL fix to the mobile-pipeline marketplace (via mp-improve): stage a patch against `templates/`, then (gated) branch + open a PR. For lessons that help EVERY project, not just this one.
+  /mp --improve "<note>"               — propose ONE plugin-level fix from your note → its OWN gated PR to mobile-pipeline (via mp-improve). Separate from the batch.
+  /mp --improve --drain                — aggregate ALL queued proposals (auto-staged by mp-knowledge / mp-reflect) into ONE gated batch PR.
+  /mp --reflect                        — cross-project: aggregate self-improvement lessons across all projects (mp-cross-reflect.sh) + queue plugin improvements for patterns seen in >=2 projects (mp-reflect).
 
 ## Platform resolution
 
@@ -484,28 +486,55 @@ For a lesson that would help **every** project on the plugin (a wrong/missing ru
 `mp-*` agent or this orchestrator) — NOT a project-local quirk (those go to memory / `.claude/mp/extras/`).
 Opens a PR against the **mobile-pipeline** marketplace; this project's repo is never touched.
 
-### Phase 1 — Draft
-Gather the `problem` (the user's note, or a `mp-knowledge` `plugin_improvements[]` entry).
-Resolve the mobile-pipeline repo path from `.claude/settings.json` →
-`extraKnownMarketplaces.mobile-pipeline.source.path` (or `$MP_REPO`). Spawn `mp-improve` with
-`{problem, target_hint, mp_repo}`; it stages a patch + change-log entry under `mp_repo/.ai/proposals/`
-and returns a `=== PROPOSAL ===` block. If it returns an `error` (e.g. `mp_repo_unresolved`,
-`no_clean_patch`) → relay it and ask the user for what's missing.
+Resolve the mobile-pipeline repo path (both modes) from `.claude/settings.json` →
+`extraKnownMarketplaces.mobile-pipeline.source.path` (or `$MP_REPO`).
 
-### Phase 2 — Gated PR
-Show `summary`, `rationale`, `targets`, `apply_check`. Ask: "Open a PR against mobile-pipeline with
-this change? (y/n)". On `y`, run (the script branches → applies → regenerates plugin trees → pushes → PRs):
-```bash
-bash "${CLAUDE_PLUGIN_ROOT}/scripts/mp-propose-improvement.sh" "<mp_repo>" "<slug>" "<patch_file>" "<changelog_file>"
-```
-Parse its one JSON line. On `n` → leave the staged patch for later. **Never** push to mobile-pipeline
-without the explicit `y`.
+### Mode A — Direct (your note → its OWN PR)
+`/mp --improve "<note>"`. A deliberate, single improvement — kept SEPARATE from the batch.
+1. Spawn `mp-improve` with `{problem:"<note>", target_hint, mp_repo}`; it stages a patch +
+   change-log under `mp_repo/.ai/proposals/<slug>.*` and returns a `=== PROPOSAL ===` block. Relay any
+   `error` (`mp_repo_unresolved`, `no_clean_patch`).
+2. Show `summary`, `rationale`, `targets`, `apply_check`. Ask: "Open a PR for this one? (y/n)". On `y`:
+   ```bash
+   bash "${CLAUDE_PLUGIN_ROOT}/scripts/mp-propose-improvement.sh" "<mp_repo>" "<slug>" "<patch_file>" "<changelog_file>"
+   ```
+   Parse the one JSON line. On `n` → it stays queued for a later `--drain`.
 
-### Phase 3 — Report
+### Mode B — Drain (batch the queue → ONE PR)
+`/mp --improve --drain` (or `--improve` with no note). Aggregates everything auto-staged by
+`mp-knowledge` / `mp-reflect`.
+1. Count queued proposals (`mp_repo/.ai/proposals/*.patch`). None → say so and stop.
+2. List slugs + summaries. Ask: "Open ONE batch PR with these N proposals? (y/n)". On `y`:
+   ```bash
+   bash "${CLAUDE_PLUGIN_ROOT}/scripts/mp-improve-drain.sh" "<mp_repo>"
+   ```
+   Parse the one JSON line (`branch`, `pr_url`, `drained`).
+
+### Report
 ```
-improve: <slug> — PR <pr_url | not opened>
-   Branch: <branch> off <base>   (review + merge on GitHub)
+improve: <direct slug | batch of N> — PR <pr_url | not opened>
+   Branch: <branch> off <base>   (CI gate runs on the PR; review + merge on GitHub)
 ```
+**Never** push to mobile-pipeline without an explicit `y`. gh absent → the script still pushes the
+branch; open the PR from the printed GitHub URL.
+
+---
+
+## Workflow: --reflect  (cross-project, maintainer)
+
+Aggregates self-improvement lessons across ALL mobile-pipeline projects and QUEUES plugin improvements
+for patterns recurring in >=2 projects. Reads the global projects list
+`~/.config/mobile-pipeline/projects.txt` (or `$MP_PROJECTS`).
+
+1. Resolve `mp_repo` (as in `--improve`). Run:
+   ```bash
+   bash "${CLAUDE_PLUGIN_ROOT}/scripts/mp-cross-reflect.sh" "<mp_repo>"
+   ```
+   Parse its JSON (`digest`, `projects`, `recurring_themes`).
+2. Spawn `mp-reflect` with `{digest:"<mp_repo>/<digest>", mp_repo}`. It judges the recurring
+   themes and stages QUEUED proposals (opens no PRs).
+3. Report `staged` / `skipped`, then: "Queued N proposal(s). Run `/mp --improve --drain` to open
+   the batch PR."
 
 ---
 
@@ -514,8 +543,9 @@ improve: <slug> — PR <pr_url | not opened>
 After a successful `--feature` / `--bugfix` (post-docs) you MAY spawn `mp-knowledge` with
 `{SPEC, CHANGED_FILES, SESSION_RECAP}`. No-op for routine work. It routes lessons:
 - **PROJECT-LOCAL** → writes this project's memory / `.claude/mp/extras/<agent>.md`.
-- **PLUGIN-LEVEL** → returns `plugin_improvements[]`; if non-empty, offer: "This looks like a pipeline
-  improvement that helps every project — run `/mp --improve`? (y/N)".
+- **PLUGIN-LEVEL** → returns `plugin_improvements[]`; for each, spawn `mp-improve` to STAGE it
+  to the queue (`mobile-pipeline/.ai/proposals/`) — do NOT open a PR per lesson. Then tell the user:
+  "Queued N pipeline improvement(s) — run `/mp --improve --drain` to open the batch PR."
 Skip entirely when the user is moving fast or the task was trivial.
 
 ---
@@ -712,5 +742,6 @@ Stop after one control. Do not start the next in the same run.
 - `mp-runner-instrumented-android` runs the on-device suite (`connectedDebugAndroidTest`) for ONE test class and trusts the parsed connected report, not "BUILD SUCCESSFUL". `mp-runner-android` (JVM unit tests) is unchanged and is NOT the device runner.
 - `--device` is Android-only, runs one control per invocation, and never pushes. A connected device/emulator is mandatory: if none is present the orchestrator asks the user and records the answer to the `device-connection` memo (the runner agent cannot prompt). On-device test seams are restricted to `testTag` / `contentDescription` / `<Name>Content` visibility — a `--device` diff must never add new UI, events, or behaviour.
 - `--plan` spawns `mp-planner` (read-only) and writes ONLY under `.claude/specs/` behind a y/d/n gate; it is the `/mp-spec` bundle → backlog bridge and pairs with `--feature --next`.
-- `--improve` is the ONLY path that may change the mobile-pipeline marketplace, and ALWAYS via a gated PR (`mp-improve` stages a patch against `templates/`; the propose-improvement script branches + opens the PR after explicit `y`) — never a direct push, and it never edits this project's source. Project-local lessons do NOT go here; they go to memory / `.claude/mp/extras/`.
-- `mp-knowledge` runs at most once post-ship and is usually a no-op. It classifies each lesson PROJECT-LOCAL (→ memory/extras) vs PLUGIN-LEVEL (→ offer `--improve`). It never edits source or the live plugin copy.
+- `--improve` is the ONLY path that changes the mobile-pipeline marketplace, ALWAYS via a gated PR. Two modes: `--improve "<note>"` (direct → its OWN PR via `propose-improvement.sh`) and `--improve --drain` (batch the `.ai/proposals/` queue → ONE PR via `improve-drain.sh`). Patches edit only `templates/`; never a direct push; never this project's source. Project-local lessons go to memory / `.claude/mp/extras/`, not here.
+- `--reflect` is cross-project + maintainer-level: runs `mp-cross-reflect.sh` (aggregates lessons across `~/.config/mobile-pipeline/projects.txt`) then `mp-reflect`, which QUEUES proposals only for patterns seen in >=2 projects. Opens no PRs — drain with `--improve --drain`.
+- `mp-knowledge` runs at most once post-ship and is usually a no-op. It classifies each lesson PROJECT-LOCAL (→ memory/extras) vs PLUGIN-LEVEL (→ STAGE to the `.ai/proposals/` queue via `mp-improve`, then suggest `--improve --drain`). It never edits source or the live plugin copy.

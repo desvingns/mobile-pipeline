@@ -1,0 +1,47 @@
+name: validate-plugins
+
+# CI gate for the mobile-pipeline marketplace. Runs on every PR (incl. the auto-opened
+# improve/* PRs from the downstream self-improvement flow) and on push to main.
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Manifests are valid JSON
+        run: |
+          set -e
+          files=".claude-plugin/marketplace.json .agents/plugins/marketplace.json $(find claude-plugins codex-plugins -name plugin.json)"
+          for f in $files; do echo "checking $f"; python3 -c "import json,sys; json.load(open('$f'))"; done
+
+      - name: Shell scripts parse (bash -n)
+        run: |
+          set -e
+          find lib claude-plugins -name '*.sh' -print0 | while IFS= read -r -d '' s; do echo "bash -n $s"; bash -n "$s"; done
+
+      - name: No template-placeholder or marker leaks
+        run: |
+          set -e
+          if grep -rnE '\{\{[A-Z_]+\}\}' claude-plugins codex-plugins; then
+            echo "::error::placeholder {{...}} leaked into generated plugins"; exit 1; fi
+          # mp-dev must be fully platform/tool-resolved; mp-spec intentionally keeps inert platform: comments
+          if grep -rnE '<!-- /?(tool|platform):' claude-plugins/mp-dev; then
+            echo "::error::tool/platform marker leaked into mp-dev"; exit 1; fi
+          if grep -rnE '<!-- /?tool:' claude-plugins/mp-spec codex-plugins/mp-spec; then
+            echo "::error::tool: marker leaked into mp-spec"; exit 1; fi
+
+      - name: Generated trees match templates (regeneration drift)
+        run: |
+          set -e
+          ./lib/build-marketplace.sh >/dev/null
+          if ! git diff --quiet -- claude-plugins codex-plugins; then
+            echo "::error::claude-plugins/ or codex-plugins/ is out of sync with templates/. Run ./lib/build-marketplace.sh and commit the result."
+            git --no-pager diff --stat -- claude-plugins codex-plugins
+            exit 1
+          fi
+          echo "plugin trees are in sync with templates/"
