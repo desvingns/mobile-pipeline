@@ -164,3 +164,43 @@ summary: Codex spec-agent install now emits explicit model and model_reasoning_e
 reason: avoid every Codex subagent inheriting the parent session's expensive frontier model and reasoning effort
 affects: codex
 by: codex
+
+## 2026-06-01T18:00-fidelity-loop
+type: add
+target: templates/android/agents/{{PREFIX}}-fidelity-android.md, templates/common/commands/{{PREFIX}}.md
+summary: M1 clone-fidelity gate — new {{PREFIX}}-fidelity-android (multimodal opus, read-only) compares each built screen's screenshot against its reference image, scores per-screen fidelity, honours an intended-deviation ledger (spec/deviations.md), flags behavioural divergences as behavioural_unverified, and returns ready-to-file divergence SPECs; new orchestrator --fidelity workflow captures built screens (Roborazzi/screen-tour/adb), runs the comparator, prints the report, and writes divergence SPECs to .claude/specs/backlog/ behind a y/d/n gate; Usage line + Rules bullet added. Auto-emitted into claude-plugins/mp-dev by build-marketplace (android agents glob).
+reason: M1 of the clone-loop closure — the pipeline captured business logic but never compared the built app to its reference, so clones drift (the 7 MyMoney↔Monefy divergences). This is the reference-comparison gate the user requested.
+affects: claude, codex
+by: claude
+
+## 2026-06-01T18:10-fidelity-spec-inputs
+type: add
+target: templates/spec/agents/fidelity-checklist-author.md, templates/spec/skills/app-spec-creator/SKILL.md, install-spec.sh
+summary: M2 spec-side fidelity inputs — new clone-only spec agent fidelity-checklist-author (opus, multimodal) writes spec/fidelity/<Sxx>.md (per-screen visual+behavioural must-match checklists), spec/fidelity/registry.csv (screen↔reference↔FR/AC), and a spec/deviations.md intended-deviation ledger; SKILL gains a Phase E clone fan-out for it, depth=reference default for clone, the bundle layout entries, and a handoff note about the --fidelity loop; install-spec.sh $AGENTS gains the new agent so the Codex shim is generated too. (Claude mp-spec auto-globs the agent.)
+reason: give the M1 fidelity gate a precise, grounded contract per screen + a deviation ledger so intended departures aren't flagged — and default clones to full fidelity depth.
+affects: claude, codex
+by: claude
+
+## 2026-06-01T18:20-phase-plan-model
+type: add
+target: templates/common/agents/{{PREFIX}}-phase-planner.md, templates/common/implementation_plan/*.tmpl, templates/common/commands/{{PREFIX}}.md, lib/build-marketplace.sh
+summary: M3 generic phase-plan model — ported MyMoney cmp-planner-android into the generic {{PREFIX}}-phase-planner (read-only; design→PHASE_NN + PROGRESS/00_overview deltas; content-addressed slug+hash anchors; sentinel-gated merge; bootstrap/sync/phase modes) + 4 implementation_plan doc templates (README/00_overview/PROGRESS/PHASE_TEMPLATE) + orchestrator workflows --plan --phases / --phase / --check (Usage + sections + Rules). The phase-planner auto-emits a per-screen "Visual QA vs reference" task and (clone) appends a final Fidelity-gate phase. build-marketplace common-agent list gains phase-planner. Phases for clones/large builds; backlog board stays for ad-hoc.
+reason: the heavy pofazovaya model that produced MyMoney lived only in MyMoney_app/.claude; bring it into the marketplace as a generic capability + wire reference-comparison as the explicit final phase (user request).
+affects: claude
+by: claude
+
+## 2026-06-01T18:30-capture-depth
+type: update
+target: templates/spec/agents/screenshot-business-analyzer.md, templates/spec/skills/app-spec-creator/prompts/templates/design.tmpl.md, templates/spec/skills/app-spec-creator/SKILL.md
+summary: M4 capture depth — business-analyzer now extracts a per-screen interactions[] map (gestures / entry order / partial-vs-full overlays) and state_gaps[] (states present in the app but not screenshotted); design.tmpl gains a per-screen "Поведение и жесты" section + an explicit per-state requirement; SKILL A-clone surfaces state_gaps in intake (capture the missing empty/loading/error states). Closes the behavioural/state class of divergence (swipe, entry order, empty state) that static single screenshots miss.
+reason: the 7 MyMoney divergences included behavioural/state misses a single screenshot can't show; capture them up front so the fidelity gate (incl. its acceptance/feature arm) can check them.
+affects: claude, codex
+by: claude
+
+## 2026-06-01T18:40-clone-hardening
+type: add
+target: templates/android/agents/{{PREFIX}}-tester-android.md, docs/CLONE-PLAYBOOK.md, eval/clone-fidelity/README.md, VERSION
+summary: M5 hardening/DX/docs/eval — tester gains a Roborazzi golden-lock note (lock a screen as a CI golden once it passes --fidelity: the deterministic half of the hybrid strategy); new docs/CLONE-PLAYBOOK.md (end-to-end reference→spec→phases→build→fidelity→fix loop + definition-of-clone-done); new eval/clone-fidelity/README.md (MyMoney↔Monefy fixture: detection recall on the 7 known divergences, no intended-deviation false positives, non-increasing-divergence convergence guard); VERSION 1.4.0→1.5.0.
+reason: make the clone loop teachable, regression-guarded, and CI-lockable; bump the marketplace version for the fidelity + phase-model feature set.
+affects: claude, codex
+by: claude

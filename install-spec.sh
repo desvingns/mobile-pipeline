@@ -60,7 +60,8 @@ screenshot-business-analyzer|gpt-5.5|high|Multimodal screenshot analysis into sc
 screenshot-style-analyzer|gpt-5.5|high|Multimodal screenshot analysis into design tokens and contrast pairs.
 navigation-flow-analyzer|gpt-5.4|medium|Build the navigation graph from the business analysis.
 data-model-extractor|gpt-5.4|high|Derive neutral data entities, relations, and a cache strategy.
-backend-api-extractor|gpt-5.4|high|Infer REST API contracts and third-party SDKs from UI evidence.'
+backend-api-extractor|gpt-5.4|high|Infer REST API contracts and third-party SDKs from UI evidence.
+fidelity-checklist-author|gpt-5.5|high|Per-screen visual+behavioural fidelity checklist + screen<->reference registry + intended-deviation ledger (clone, depth reference).'
 
 say() { echo "$@"; }
 

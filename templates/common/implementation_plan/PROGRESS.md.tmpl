@@ -1,0 +1,22 @@
+# {{PROJECT_NAME}} — progress (authoritative state)
+
+**This file is the single source of project state.** Exactly one phase is `active` at a time.
+
+## Current state
+<!-- human-owned prose; the planner never rewrites this -->
+Not started. Run `/{{PREFIX}} --plan --phases --bootstrap` to generate the phase plan.
+
+## Phase completion
+| # | Phase | Status | Session date | Outcome |
+|---|-------|--------|--------------|---------|
+<!-- {{PREFIX}}:plan:gen id=progress-table -->
+| 01 | … | not started | — | — |
+<!-- /{{PREFIX}}:plan:gen -->
+
+(Status ordering: `not started` < `active` < `in progress` < `done`.)
+
+## Decisions log
+<!-- append-only; newest at the bottom; one line per decision, dated -->
+
+## Session log
+<!-- append-only; one line per worked task: "YYYY-MM-DD: PHASE_NN — <task> (commit <hash>)" -->

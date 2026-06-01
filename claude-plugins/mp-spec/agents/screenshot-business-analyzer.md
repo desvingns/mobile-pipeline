@@ -1,6 +1,6 @@
 ---
 name: screenshot-business-analyzer
-description: Multimodal analysis of mobile app screenshots to extract business logic — list of screens, screen types (login/list/detail/form/settings/onboarding/empty/error), functional blocks, CTA buttons, observed states (loading/empty/error/success), business rules, visible inputs/outputs, implied permissions, implied third-party SDKs, detected languages. Writes 02_business.md and returns a JSON summary with screens[], business_rules[], and ambiguities[] for downstream dynamic questions. Used as a sub-agent in /app-tdd-creator Phase 1.
+description: Multimodal analysis of mobile app screenshots to extract business logic — list of screens, screen types (login/list/detail/form/settings/onboarding/empty/error), functional blocks, CTA buttons, observed states (loading/empty/error/success), business rules, visible inputs/outputs, implied permissions, implied third-party SDKs, detected languages, a per-screen interaction/gesture map, and state-coverage gaps (states the app has but that were not screenshotted). Writes 02_business.md and returns a JSON summary with screens[], business_rules[], and ambiguities[] for downstream dynamic questions. Used as a sub-agent in /app-tdd-creator Phase 1.
 tools: Read, Glob, Write, Bash
 model: opus
 ---
@@ -44,6 +44,7 @@ For each file, `Read` it (Claude vision reads PNG/JPG natively). Identify:
 - **cta_buttons[]** — text labels of all visible primary and secondary buttons / clickable text (deduplicated per screenshot).
 - **inputs[]** — visible form fields with their inferred type: `{label, type ∈ [text, email, password, phone, number, date, picker, checkbox, radio, switch, slider]}`.
 - **outputs[]** — data displayed to the user (e.g., "list of posts with avatar+title+excerpt+timestamp"). One bullet per data row type.
+- **interactions[]** — inferred gestures / interaction affordances on this screen: `{trigger, effect}` where `trigger` ∈ `{tap, long_press, swipe_left, swipe_right, swipe_up, swipe_down, drag, edge_swipe, pull_to_refresh, scroll}` and `effect` is what it does (e.g. `"swipe_left → next period"`, `"edge_swipe → open drawer"`, `"tap row → open detail"`). Infer from affordances (chevrons, drawer handles, carousels, peeking adjacent content, FABs) and from any multi-state screenshots that show a transition. Also note the **entry/field order** for forms (the order the user fills fields) and whether an overlay (drawer / sheet / menu) is a **partial panel** or **full-window**. Only what the screenshots evidence — a gesture you cannot see becomes an ambiguity, never an invention.
 - **text_extracted** — all readable text from the screenshot, joined with ` | `. Verbatim. Russian or English as on the screenshot. Used downstream by localization-analysis and to support data model extraction.
 - **confidence** — 0.0–1.0, your confidence that the classification is correct.
 
@@ -55,6 +56,8 @@ After all screens are described, group those that show the same screen in differ
 - Significant overlap of `cta_buttons[]`.
 
 When grouped, keep individual entries but cross-reference them: `state_variants_of: <parent_screen_id>`.
+
+After grouping, for each unique screen record **state_gaps[]** — the states from `{empty, loading, error, filled}` the screen almost certainly has but that were NOT screenshotted (e.g. a list screen with only a populated screenshot has an un-captured `empty` state). These are not invented UI — they are missing *evidence*. The orchestrator surfaces them in intake so the user can capture the missing states; a clone that never sees the empty/loading/error state ships a wrong one.
 
 ### Pass 3 — Derive business rules
 
@@ -198,8 +201,10 @@ Soft cap: 600 lines.
       "cta_buttons": ["Войти", "Войти через Google", "Зарегистрироваться", "Забыли пароль?"],
       "inputs": [{"label": "Email", "type": "email"}, {"label": "Пароль", "type": "password"}],
       "outputs": [],
+      "interactions": [{"trigger": "tap", "effect": "submit login"}],
       "confidence": 0.95,
-      "state_variants_of": null
+      "state_variants_of": null,
+      "state_gaps": ["error"]
     }
   ],
   "business_rules": [

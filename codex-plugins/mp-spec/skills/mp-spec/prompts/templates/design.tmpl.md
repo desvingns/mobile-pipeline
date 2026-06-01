@@ -115,7 +115,8 @@ flowchart LR
 
   > Platform-specific sealed-class Kotlin snippet goes in `platform/android.md`.
 
-- **Все состояния**: loading / empty / error / success / normal
+- **Все состояния**: loading / empty / error / success / normal — describe what EACH state shows (a clone must reproduce the empty/loading/error states, not only the populated one)
+- **Поведение и жесты**: per-screen interaction map — gestures (`swipe`, `edge_swipe`, `drag`, `long_press`, `pull_to_refresh`) → effect; form entry/field order; whether overlays (drawer / sheet / menu) are partial panels or full-window. Sourced from `02_business.md` `interactions[]`. The behavioural arm of `/<prefix> --fidelity` checks these against `acceptance/*.feature`, since a static screenshot cannot prove a gesture.
 - **Действия пользователя и обработка** (prose)
 - **Навигация**: откуда, куда — со ссылкой на §3
 - **Связанные API-вызовы** (со ссылкой на §9)

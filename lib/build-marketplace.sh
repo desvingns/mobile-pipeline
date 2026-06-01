@@ -231,7 +231,7 @@ build_mp_dev() {
   echo "==> mp-dev (claude, android) -> ${plugdir#"$ROOT"/}"
   [ "$DRY" = 1 ] || write_dev_snippets
 
-  for base in architect docs maintainer intake knowledge planner improve reflect; do
+  for base in architect docs maintainer intake knowledge planner phase-planner improve reflect; do
     transform_dev_md "$COMMON/agents/{{PREFIX}}-$base.md" "$plugdir/agents/mp-$base.md" 1
   done
 

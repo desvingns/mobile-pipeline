@@ -1,0 +1,30 @@
+# {{PROJECT_NAME}} — phase overview (spine)
+
+> Generated / reconciled by `/{{PREFIX}} --plan --phases`. Edit §1 to reshape the phase partition,
+> then re-run `--plan --phases --sync`.
+
+## §1 Phase map
+| # | Phase | Design sections | Screens | Modules |
+|---|-------|-----------------|---------|---------|
+<!-- {{PREFIX}}:plan:gen id=overview-phasemap -->
+| 01 | … | … | … | … |
+<!-- /{{PREFIX}}:plan:gen -->
+
+## §2 Dependency graph
+```mermaid
+graph TD
+<!-- {{PREFIX}}:plan:gen id=overview-graph -->
+  P01 --> P02
+<!-- /{{PREFIX}}:plan:gen -->
+```
+Critical path: P01 → … (the longest prerequisite chain).
+
+## §3 Anchor index (design section → content-addressed anchor)
+<!-- {{PREFIX}}:plan:gen id=overview-anchors -->
+- §X.Y <title> — slug:<heading-slug> h:<8hex> (≈L<from>–<to>)
+<!-- /{{PREFIX}}:plan:gen -->
+
+## §4 Decisions cheatsheet
+<!-- {{PREFIX}}:plan:gen id=overview-decisions -->
+- <decision-id> — one-liner (intended deviations from a clone reference also live in `spec/deviations.md`).
+<!-- /{{PREFIX}}:plan:gen -->
