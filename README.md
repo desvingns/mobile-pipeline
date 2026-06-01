@@ -6,6 +6,29 @@ workflow (`/discuss`, `/feature`, `/bugfix`, `/tdd`) and platform-specific speci
 Battle-tested origin: extracted from a 6-iteration `diet_helper` Android project (Kotlin +
 Compose + Hilt + Room) where the pattern was refined through real shipped features.
 
+## The four main pipelines
+
+Everyday work runs through **two plugin commands** — `/mp-spec` (build the spec) and `/mp`
+(build the app). They compose into four end-to-end pipelines. Both come from the
+`mobile-pipeline` marketplace below; enable it in your project first, then:
+
+| # | Pipeline | How to run | Output |
+|---|----------|------------|--------|
+| **1** | **Plan from an APK reference** — implementation plan with phases | `/mp-spec <screenshots/> --apk app.apk --play <play_url>` → `/mp --plan --phases --bootstrap --from <bundle>/spec` | `spec/` bundle + per-screen fidelity checklist, then numbered `docs/implementation_plan/PHASE_NN_*.md` |
+| **2** | **Execute the phases, one task at a time** | `/mp --phase` (repeat) · `/mp --check` to validate · `/mp --fidelity` (clone gate) | One task per run: SPEC → develop → review → test → verify, ticked in `PROGRESS.md` |
+| **3** | **Spec from a brief (ТЗ) + fill the backlog** | `/mp-spec --greenfield` → `/mp --plan <epic-slug> --from <bundle>/spec` | `spec/` bundle from interview, then ordered SPECs on the `.claude/specs/backlog/` board |
+| **4** | **Execute the backlog SPECs, one at a time** | `/mp --feature --next` (repeat) · or `/mp --feature --backlog <slug>` | Each SPEC promoted `backlog → active → done` through the full develop→verify→push chain |
+
+**1 → 2** is the heavy *clone* loop (reference fidelity is a verifiable gate — see
+`docs/CLONE-PLAYBOOK.md`). **3 → 4** is the lighter *greenfield* loop (a resumable backlog
+board for ad-hoc, independently-shippable features). The two coexist — pick the phase model
+for a full app build, the backlog for individual features.
+
+> `/mp-spec` and `/mp` are the marketplace-plugin commands. If you bootstrapped a per-project
+> pipeline with a custom `--prefix` instead (see Quick start), the dev command is `/<prefix>`
+> with the same flags (`--plan --phases`, `--phase`, `--feature --next`, …). The spec tool is
+> also installable globally as `/app-spec-creator` via `install-spec.sh` (see Two halves).
+
 ## Marketplace (plugins) — recommended for reuse across projects
 
 Instead of copying a pipeline into every project with `bootstrap.sh`, cmp is also a **multi-harness
@@ -128,6 +151,7 @@ in Claude Code to start.
 - `docs/USAGE.md` — full `bootstrap.sh` flags, examples for each platform
 - `docs/ARCHITECTURE.md` — agent graph, how context flows between agents, why each layer exists
 - `docs/SPEC-PIPELINE.md` — spec tool: `install-spec.sh`, the `spec/` bundle, 17 agents, intake modes, dual-harness, handoff
+- `docs/CLONE-PLAYBOOK.md` — the clone loop (pipelines 1→2): reference → spec → phases → build → fidelity → fix
 - `docs/CUSTOMIZATION.md` — how to adapt templates for your stack (different DI / DB / test framework)
 - `docs/UPGRADE.md` — how to pull cmp improvements into an existing project (`--upgrade` flow)
 - `docs/ADDING-PLATFORM.md` — how to add a new platform (Flutter, React Native) to cmp
