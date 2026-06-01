@@ -156,3 +156,11 @@ summary: marketplace mp-spec output now rewrites legacy app-spec-creator names t
 reason: avoid broken prompt reads after removing the old app-spec-creator global install; keep generated plugin trees cleanly named as mp-spec while preserving the canonical/global install source
 affects:
 by: codex
+
+## 2026-06-01T09:00-codex-model-tiering
+type: update
+target: install-spec.sh, templates/spec/codex/agent.toml.tmpl, templates/spec/skills/app-spec-creator/SKILL.md, templates/common/agents/{{PREFIX}}-maintainer.md, templates/common/commands/{{PREFIX}}.md, docs/SPEC-PIPELINE.md, docs/MARKETPLACE.md, CHANGELOG.md
+summary: Codex spec-agent install now emits explicit model and model_reasoning_effort tiers; mp-dev templates/docs define the future Codex dev-agent tier contract
+reason: avoid every Codex subagent inheriting the parent session's expensive frontier model and reasoning effort
+affects: codex
+by: codex

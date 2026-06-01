@@ -19,6 +19,17 @@ Every agent belongs to one tier. When model versions change, the tier logic stay
 | `standard` | Code comprehension, writing tests and docs | `*-tester-*`, `*-architect`, `*-docs`, `*-ui-designer-*`, `*-maintainer` |
 | `powerful` | Feature implementation, bugfixes | `*-developer-*` |
 
+## Codex tier policy
+
+Future native Codex shims for this dev pipeline should mirror the same intent with explicit
+`model` and `model_reasoning_effort` fields instead of inheriting the parent session:
+
+| Tier | Codex config | Agent file patterns |
+|------|--------------|---------------------|
+| `fast` | `gpt-5.4-mini` / `low` for runners, `medium` for reviewers/verifiers | `*-runner-*`, `*-reviewer-*`, `*-verifier-*`, `*-coverage-*` |
+| `standard` | `gpt-5.4` / `high` | `*-tester-*`, `*-architect`, `*-docs`, `*-ui-designer-*`, `*-maintainer` |
+| `powerful` | `gpt-5.5` / `high` | `*-developer-*` |
+
 ---
 
 ## On Start

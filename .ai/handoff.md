@@ -1,6 +1,6 @@
 # Handoff
 
-UPDATED: 2026-05-31 by codex
+UPDATED: 2026-06-01 by codex
 CURRENT TASK: mobile-pipeline marketplace — convert cmp into a multi-harness plugin marketplace
 (`mp-spec` + `mp-dev`) modelled on `D:\tools\ai-team-bootstrap`; migrate diet_helper & MyMoney_app.
 Approved plan: `C:\Users\k.shavrin\.claude\plans\noble-questing-muffin.md`. Brief: `.ai/tasks/claude-003-marketplace.md`.
@@ -50,6 +50,12 @@ user go-ahead). Follow-ups + manual cleanup remain (below).
 - **diet_helper cleaned up** — generic `dh-*` + `dh.md` + scripts + PowerShell `build`/`test` +
   folded `dh-intake`/`dh-knowledge` MOVED to `diet_helper/.claude/_archive_pre_mp/` (never deleted).
   Uses `/mp` now; `selfimprove-retro.md` kept.
+- **Codex model tiering (codex)** — `install-spec.sh --harness codex` now emits explicit
+  `model` + `model_reasoning_effort` in every generated MP Spec TOML. The generated `mp-spec` skill
+  documents the tiers, and `mp-dev` maintainer/command templates + marketplace docs now define the
+  future Codex dev-agent tier contract (`mini` for mechanical/checking, `gpt-5.4` for standard
+  authoring/analysis, `gpt-5.5` for frontier/critic work). Regenerated marketplace outputs and
+  validated temp Codex install + manifests.
 
 ## NEXT / FOLLOW-UPS (open, ordered)
 1. **User:** verify `/mp-spec` + `/mp` in a session (`/plugin` → enable).
@@ -58,7 +64,8 @@ user go-ahead). Follow-ups + manual cleanup remain (below).
 3. **Finish the local folder rename** — repo renamed on GitHub to `mobile-pipeline`; the working folder
    is still `D:\Pet\claude-mobile-pipeline` (cwd-locked). User: move it + repoint the 3 `directory`
    sources (or switch to the `git` source now that it's pushed). See final chat message.
-4. Per-project Codex **dev** agent generation (`.codex/agents/mp-*.toml` from `mp-*.md`).
+4. Per-project Codex **dev** agent generation (`.codex/agents/mp-*.toml` from `mp-*.md`) using the
+   now-documented fast/standard/powerful Codex tier policy.
 5. **[codex]** codex-001 (render `tool:` axis, `lib/sync.sh`, `bootstrap --tools`) still open + codex-owned.
 
 ## DECISIONS (+ why)

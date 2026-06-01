@@ -42,24 +42,25 @@ done
 
 [ -d "$SPEC_SRC" ] || { echo "spec source not found: $SPEC_SRC" >&2; exit 1; }
 
-# Canonical agent table: name|codex_reasoning_effort|short_description (no '#' or '/' in description).
-AGENTS='constitution-author|low|Generate the spec bundle constitution.md (standards layer) from project conventions.
-requirements-author|medium|Author EARS functional requirements from analyzer outputs or interview answers; ground every FR.
-user-story-writer|medium|Derive user stories (US-NNN) from requirements, linked to FR IDs, reporting coverage gaps.
-acceptance-criteria-writer|medium|Write UI-agnostic Gherkin acceptance criteria per epic, covering the state matrix.
-spec-evaluator|high|Evaluator-optimizer critic; cross-check the bundle, build traceability.csv, return a verdict. Read-only on artifacts.
-nfr-analyzer|medium|Derive measurable non-functional requirements with numeric thresholds.
-a11y-reviewer|medium|Produce the accessibility spec (WCAG 2.2 AA) plus a per-screen checklist.
-security-privacy-reviewer|medium|Data classification, consent, and per-permission justification.
-analytics-taxonomy-designer|medium|Design the analytics event taxonomy keyed to user stories.
-risk-estimator|medium|Risk register plus effort estimate from inventory, NFRs, and integrations.
-apk-analyzer|medium|Extract ground-truth from an APK (palette, strings, manifest, libraries).
-play-store-scraper|low|Scrape a Google Play listing for app metadata (needs the Chrome MCP).
-screenshot-business-analyzer|high|Multimodal screenshot analysis into screens, business rules, states, and hints.
-screenshot-style-analyzer|high|Multimodal screenshot analysis into design tokens and contrast pairs.
-navigation-flow-analyzer|medium|Build the navigation graph from the business analysis.
-data-model-extractor|medium|Derive neutral data entities, relations, and a cache strategy.
-backend-api-extractor|medium|Infer REST API contracts and third-party SDKs from UI evidence.'
+# Canonical Codex agent table: name|model|reasoning_effort|short_description
+# (no '#' or '/' in description).
+AGENTS='constitution-author|gpt-5.4-mini|medium|Generate the spec bundle constitution.md (standards layer) from project conventions.
+requirements-author|gpt-5.4|high|Author EARS functional requirements from analyzer outputs or interview answers; ground every FR.
+user-story-writer|gpt-5.4|high|Derive user stories (US-NNN) from requirements, linked to FR IDs, reporting coverage gaps.
+acceptance-criteria-writer|gpt-5.4|high|Write UI-agnostic Gherkin acceptance criteria per epic, covering the state matrix.
+spec-evaluator|gpt-5.5|xhigh|Evaluator-optimizer critic; cross-check the bundle, build traceability.csv, return a verdict. Read-only on artifacts.
+nfr-analyzer|gpt-5.4|medium|Derive measurable non-functional requirements with numeric thresholds.
+a11y-reviewer|gpt-5.4|medium|Produce the accessibility spec (WCAG 2.2 AA) plus a per-screen checklist.
+security-privacy-reviewer|gpt-5.4|medium|Data classification, consent, and per-permission justification.
+analytics-taxonomy-designer|gpt-5.4|medium|Design the analytics event taxonomy keyed to user stories.
+risk-estimator|gpt-5.4|medium|Risk register plus effort estimate from inventory, NFRs, and integrations.
+apk-analyzer|gpt-5.4|medium|Extract ground-truth from an APK (palette, strings, manifest, libraries).
+play-store-scraper|gpt-5.4-mini|low|Scrape a Google Play listing for app metadata (needs the Chrome MCP).
+screenshot-business-analyzer|gpt-5.5|high|Multimodal screenshot analysis into screens, business rules, states, and hints.
+screenshot-style-analyzer|gpt-5.5|high|Multimodal screenshot analysis into design tokens and contrast pairs.
+navigation-flow-analyzer|gpt-5.4|medium|Build the navigation graph from the business analysis.
+data-model-extractor|gpt-5.4|high|Derive neutral data entities, relations, and a cache strategy.
+backend-api-extractor|gpt-5.4|high|Infer REST API contracts and third-party SDKs from UI evidence.'
 
 say() { echo "$@"; }
 
@@ -92,7 +93,7 @@ install_claude() {
   guard_existing "$sk"
   if [ "$DRY_RUN" != 1 ]; then mkdir -p "$sk" "$ag"; rm -rf "$sk/prompts"; cp -r "$SPEC_SRC/skills/app-spec-creator/prompts" "$sk/prompts"; fi
   render_md "$SPEC_SRC/skills/app-spec-creator/SKILL.md" "$sk/SKILL.md" "$adir" claude
-  while IFS='|' read -r name _ _; do
+  while IFS='|' read -r name _ _ _; do
     [ -n "$name" ] || continue
     render_md "$SPEC_SRC/agents/$name.md" "$ag/$name.md" "$adir" claude
   done <<EOF
@@ -101,7 +102,7 @@ EOF
 }
 
 install_codex() {
-  local home="$1" sk ag adir="~/.codex" tmpl cfg name effort desc out
+  local home="$1" sk ag adir="~/.codex" tmpl cfg name model effort desc out
   sk="$home/.codex/skills/app-spec-creator"; ag="$home/.codex/agents"
   tmpl="$SPEC_SRC/codex/agent.toml.tmpl"
   say "==> Codex form -> $home/.codex"
@@ -112,12 +113,13 @@ install_codex() {
     cp "$SPEC_SRC/codex/skills/app-spec-creator/agents/openai.yaml" "$sk/agents/openai.yaml"
   fi
   render_md "$SPEC_SRC/skills/app-spec-creator/SKILL.md" "$sk/SKILL.md" "$adir" codex
-  while IFS='|' read -r name effort desc; do
+  while IFS='|' read -r name model effort desc; do
     [ -n "$name" ] || continue
     render_md "$SPEC_SRC/agents/$name.md" "$ag/$name.md" "$adir" codex     # canonical spec the shim reads
     if [ "$DRY_RUN" = 1 ]; then echo "  [dry] toml $ag/$name.toml"; continue; fi
     out="$(mktemp)"
-    sed -e "s#{{NAME}}#${name}#g" -e "s#{{EFFORT}}#${effort}#g" \
+    sed -e "s#{{NAME}}#${name}#g" -e "s#{{MODEL}}#${model}#g" \
+        -e "s#{{EFFORT}}#${effort}#g" \
         -e "s#{{AGENT_DIR}}#${adir}#g" -e "s#{{DESC}}#${desc}#g" "$tmpl" > "$out"
     mv "$out" "$ag/$name.toml"
   done <<EOF

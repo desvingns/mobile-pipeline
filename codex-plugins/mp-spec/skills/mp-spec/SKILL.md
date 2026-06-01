@@ -33,6 +33,7 @@ This skill runs under **both** Claude Code and Codex CLI. The orchestration is i
 
 - **User gates** have no structured-question tool — **ask the question in chat and STOP** until the user replies. Never proceed past a gate without an answer.
 - **Specialists** run as native Codex subagents (`.codex/agents/<name>.toml`). Request them by name; for a parallel phase, request all and **wait for every JSON result** before continuing (concurrency is bounded by `[agents] max_threads`, so a 5-way fan-out may queue — fine). Workers must not spawn descendants (`max_depth=1`).
+- **Model tiers** are pinned in each generated Codex TOML, not inherited from the parent session: simple scrapers/constitution use `gpt-5.4-mini`, most authoring and analysis roles use `gpt-5.4`, screenshot analyzers use `gpt-5.5`, and `spec-evaluator` uses `gpt-5.5` with `xhigh` reasoning. Do not override those tiers ad hoc unless the task explicitly calls for it.
 - Skill lives inside the `mp-spec` plugin; Codex sub-agent shims are installed separately; prompts live next to this SKILL.md under `prompts/`.
 
 ## Step 0 — Parse input & detect mode

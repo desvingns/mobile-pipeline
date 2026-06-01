@@ -204,6 +204,9 @@ inlining them, so a rubric can be bumped once and all consumers pick it up.
 - Canonical agent specs: `~/.codex/agents/<name>.md` (the prose the shims read)
 - Native shims: `~/.codex/agents/<name>.toml` — Codex-native subagent wrappers. Each `.toml`
   re-reads its `.md` so the canonical source stays authoritative.
+- Generated shims pin both `model` and `model_reasoning_effort`: simple scrapers/constitution use
+  `gpt-5.4-mini`, most authoring/analysis roles use `gpt-5.4`, screenshot analyzers use `gpt-5.5`,
+  and `spec-evaluator` uses `gpt-5.5` with `xhigh` reasoning.
 - Gates: ask in chat + **STOP** — the skill never proceeds past a gate without an explicit
   user reply (no `AskUserQuestion` tool available in Codex)
 - Config: `[agents]` section merged into `~/.codex/config.toml`

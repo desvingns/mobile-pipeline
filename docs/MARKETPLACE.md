@@ -61,8 +61,10 @@ codex plugin marketplace add /d/Pet/claude-mobile-pipeline   # or the git URL
 codex plugin add mp-spec@mobile-pipeline
 ```
 Codex sub-agents (spec): `./install-spec.sh --harness codex` writes `~/.codex/agents/*.toml` +
-`[agents]` config (needs `max_threads >= 6`). Codex dev agents are not yet auto-generated — see
-"Follow-ups".
+`[agents]` config (needs `max_threads >= 6`). Generated spec agents pin explicit Codex model tiers
+(`gpt-5.4-mini` for simple/mechanical roles, `gpt-5.4` for standard authoring/analysis, `gpt-5.5`
+for screenshot/evaluator-critical roles) instead of inheriting the parent session. Codex dev agents
+are not yet auto-generated — see "Follow-ups".
 
 ## `mp-dev` runtime config (per project)
 
@@ -177,7 +179,8 @@ See "Proposed alternatives" in `.ai/tasks/claude-003-marketplace.md` for the ful
   agent references `cmp-*`→`mp-*` (the plugin agents + `.claude/mp/extras/` already replicate the
   MyMoney specifics) and deciding whether to keep `--phase`/`--check` as a project-local command or port
   to the backlog board. Do it as a focused, verified step — not a blind archive (would break the active pipeline).
-- Per-project Codex **dev** agent generation (`.codex/agents/mp-*.toml` from the plugin's `mp-*.md`).
+- Per-project Codex **dev** agent generation (`.codex/agents/mp-*.toml` from the plugin's `mp-*.md`),
+  using the documented fast/standard/powerful `model` + `model_reasoning_effort` tiers.
 - `lib/build-marketplace.sh` may later merge with the codex-owned `lib/sync.sh` (codex-001).
 
 ## Renaming the repo / folder (manual)

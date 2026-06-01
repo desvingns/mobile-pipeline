@@ -627,6 +627,8 @@ fix: [description]
 
 Reviews and optionally updates model assignments across all pipeline agent files.
 Run this when Anthropic releases a new Claude model family version.
+For future Codex-native dev shims, use the same fast/standard/powerful tier intent with explicit
+`model` + `model_reasoning_effort` fields instead of inheriting the parent session.
 
 ### Phase 1 — Invoke maintainer
 
