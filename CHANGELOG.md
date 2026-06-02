@@ -6,6 +6,8 @@ This repo uses [Semantic Versioning](https://semver.org/) — see `README.md` �
 
 ## [Unreleased]
 
+## [1.5.0] — 2026-06-02
+
 ### Changed
 
 - **Visual/device autotest pre-flight gate for Android `/mp` work** — explicitly visual tasks

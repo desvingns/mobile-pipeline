@@ -46,7 +46,7 @@ once here, regenerate, every project picks it up:
 ```json
 {
   "extraKnownMarketplaces": {
-    "mobile-pipeline": { "source": { "source": "directory", "path": "D:\\Pet\\claude-mobile-pipeline" } }
+    "mobile-pipeline": { "source": { "source": "github", "repo": "desvingns/mobile-pipeline" } }
   },
   "enabledPlugins": { "mp-spec@mobile-pipeline": true, "mp-dev@mobile-pipeline": true }
 }
@@ -57,8 +57,9 @@ Project specifics for `mp-dev` live in **`.claude/mp/config.json`** (`package`, 
 **`.claude/mp/extras/<agent>.md`** overrides — the generic plugin agents read them at runtime.
 After editing `templates/`, regenerate the plugin trees with `./lib/build-marketplace.sh`.
 
-Notes: the `directory` source is machine-local — once this repo is pushed to a git remote, swap it
-for a `git` source so projects are portable. Codex gets the `mp-spec` **skill** via
+Notes: this uses the portable `github` source (`desvingns/mobile-pipeline`) — pull updates with
+`claude plugin marketplace update mobile-pipeline`. A local `directory` source (`{"source":"directory",
+"path":"D:\\Pet\\mobile-pipeline"}`) also works for offline development. Codex gets the `mp-spec` **skill** via
 `codex-plugins/mp-spec`; Codex sub-agents install per-project (Codex plugins carry skills, not
 sub-agents). Full guide: `docs/MARKETPLACE.md`.
 
