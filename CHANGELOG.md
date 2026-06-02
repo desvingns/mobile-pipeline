@@ -6,6 +6,16 @@ This repo uses [Semantic Versioning](https://semver.org/) — see `README.md` �
 
 ## [Unreleased]
 
+### Changed
+
+- **Per-project device-run helper is now first-class in `mp-runner-instrumented-android`** — the
+  instrumented runner's Step 2 override now also discovers the helper in the project's per-agent
+  extras (not only `CLAUDE.md`) and explicitly sanctions invoking a PowerShell host-AVD helper from
+  the Bash tool (e.g. `powershell.exe -File scripts/<helper>.ps1 -TestClass '<FQN>'`) as the
+  documented exception to the Bash-only default — still parsing the report, never the exit code. Lets
+  Windows host-AVD projects (where AGP UTP rejects a `:`-serial) run `--device` slices through their
+  helper instead of the bare `connectedDebugAndroidTest`. Surfaced by the MyMoney clone migration.
+
 ## [1.5.0] — 2026-06-02
 
 ### Changed

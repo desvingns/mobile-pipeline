@@ -220,3 +220,11 @@ summary: Added a hard Android visual autotest device pre-flight for explicitly v
 reason: MyMoney visual work exposed that correct visual development cannot proceed when the required Pixel 5/device is not booted; make the generic pipeline stop early instead of developing or reporting visual tests blind.
 affects: claude, codex
 by: codex
+
+## 2026-06-02T20:00-device-run-helper-extras-discovery
+type: update
+target: templates/android/agents/{{PREFIX}}-runner-instrumented-android.md, claude-plugins/mp-dev/agents/mp-runner-instrumented-android.md
+summary: Broadened the instrumented runner's Step 2 "project-specific device-run helper" override to also discover the helper in the project's per-agent extras (not only CLAUDE.md), and explicitly sanctioned invoking a PowerShell host-AVD helper from the Bash tool (e.g. powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/<helper>.ps1 -TestClass '<FQN>') as the documented exception to the Bash-only default. Still parse the report, never the exit code.
+reason: MyMoney clone migration — its on-device flow runs through scripts/run_connected_test_on_host_avd.ps1 because AGP 8.7.3 UTP rejects the host-AVD remote serial on this Windows host; the generic --device path forbade PowerShell and only looked in CLAUDE.md, so the per-project helper was not first-class.
+affects: claude, codex
+by: claude

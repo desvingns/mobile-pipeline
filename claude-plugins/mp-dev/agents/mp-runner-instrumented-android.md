@@ -62,10 +62,15 @@ Default (works on most hosts):
   --no-daemon 2>&1 | grep -E "FAILED|BUILD (SUCCESSFUL|FAILED)|Tests on" | tail -n 20
 ```
 
-**Project-specific device-run helper:** some environments cannot use the remote serial directly (e.g.
-a Windows VM reaching a host emulator, where AGP UTP rejects a serial containing `:`). If `CLAUDE.md`
-documents a device-run helper (an ADB-proxy script, a specific `-Tasks/-TestClass` wrapper, etc.), use
-it instead of the bare command above. Honour any post-run wait the helper requires.
+**Project-specific device-run helper (overrides the default above).** Some environments cannot use the
+bare gradle task — e.g. a Windows host where AGP UTP rejects a remote serial containing `:`, or a host
+AVD reached over `adb connect`. If `CLAUDE.md` or the project's extras for this agent document a
+device-run helper, use that helper **instead of** the bare command above and treat it as the
+sanctioned exception to the Bash-only default. The helper may be invoked from the Bash tool even when
+it is a PowerShell script — for example a host-AVD wrapper like
+`powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/<helper>.ps1 -TestClass '<FQN>'`, an
+ADB-proxy script, or a task wrapper. Honour any post-run wait or report path the helper specifies, and
+still parse the report (Step 3), never the exit code.
 
 ## Step 3 — Parse the report, NOT the exit code
 
