@@ -95,6 +95,11 @@ If the XML report is missing (jacoco task failed) → `"coverage": "unknown"`, t
 
 ## Step 5 — Screenshots (only if `screenshot_record_needed=true` in prompt)
 
+Roborazzi/Paparazzi screenshots are JVM-side visual regression locks. When the SPEC/task also
+requires connected-device visual autotests, this step does not satisfy that requirement; the
+orchestrator must run the visual autotest device pre-flight and the instrumented runner separately.
+Never report screenshot success as proof that device visual tests ran.
+
 ```bash
 # Record new baselines first
 ./gradlew :app:recordRoborazziDebug --no-daemon 2>&1 |

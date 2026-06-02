@@ -145,6 +145,11 @@ Generate 3–5 short steps for the user to run on a real device or emulator. Wri
 
 **Use SPEC.WHAT and CHANGED_FILES to ground the steps in real screens.** Don't invent navigation that doesn't exist. If you can't generate a meaningful checklist (e.g., change was internal refactor only), output 1–2 generic steps suggesting the user open the most-impacted screen and verify no crash.
 
+For explicitly visual work, the checklist is only a human-eye supplement. It must never replace a
+required visual/device autotest run; if the SPEC implies visual/device autotests, mention in the
+checklist that the user should inspect the same connected device/emulator after the automated visual
+gate has passed.
+
 **Good example shape** (translate to the project's configured UI language as appropriate):
 - "Open app → bottom nav → 'Stats' tab displays, opens without crash."
 - "On Today screen swipe week left → header shows previous week, day highlights correctly."

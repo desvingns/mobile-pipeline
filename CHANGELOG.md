@@ -8,6 +8,12 @@ This repo uses [Semantic Versioning](https://semver.org/) — see `README.md` �
 
 ### Changed
 
+- **Visual/device autotest pre-flight gate for Android `/mp` work** — explicitly visual tasks
+  (`visual`, layout, theme, animation, screenshot, fidelity/reference comparison, visual QA,
+  `instrumented-compose-ui`, `--device`, `--fit`, or visual device done-criteria) must confirm a
+  usable booted device/emulator before implementation/test execution. If absent, the orchestrator
+  stops and asks the user to connect the required device; JVM-only checks and screenshot baselines
+  may not be claimed as device visual verification.
 - **Renamed the clone reference-comparison gate flag `--fidelity` → `--fit`** across the
   orchestrator command, agent docs, skill prose, templates, the clone playbook and the README
   (Claude + Codex). Only the flag token changed — the "fidelity" concept (agent names, the

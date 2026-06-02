@@ -1,6 +1,17 @@
 # Handoff
 
-UPDATED: 2026-06-02 by claude
+UPDATED: 2026-06-02 by codex
+
+## LATEST (2026-06-02, codex) — visual autotest device gate
+Added the hard Android visual/device autotest pre-flight requested from the MyMoney incident:
+canonical `/mp` command template now stops before implementation/test execution for explicitly visual
+tasks (visual/layout/theme/animation/screenshot/fidelity/reference comparison/visual QA,
+`instrumented-compose-ui`, `--device`, `--fit`, or visual device done-criteria) when no usable booted
+device/emulator is connected. Runner/tester/verifier templates now state that JVM screenshots,
+manual checklists, or "BUILD SUCCESSFUL" cannot substitute for connected-device visual evidence.
+Regenerated `claude-plugins/mp-dev` from templates. CHANGELOG `[Unreleased]` and
+`.ai/changes/agent-skill-log.md` entry `2026-06-02T12:30-visual-device-gate` updated. VERSION left at
+`1.5.0` because current unreleased 1.5.0 changes are still grouped under `[Unreleased]`.
 
 ## LATEST (2026-06-02, claude) — flag rename `--fidelity` → `--fit`
 Renamed the clone reference-comparison gate FLAG `--fidelity` → `--fit` repo-wide (Claude
@@ -80,6 +91,8 @@ user go-ahead). Follow-ups + manual cleanup remain (below).
 4. Per-project Codex **dev** agent generation (`.codex/agents/mp-*.toml` from `mp-*.md`) using the
    now-documented fast/standard/powerful Codex tier policy.
 5. **[codex]** codex-001 (render `tool:` axis, `lib/sync.sh`, `bootstrap --tools`) still open + codex-owned.
+6. Optional: run `graphify update .` when the local `graphify` command is available; the current
+   PowerShell session could not find it.
 
 ## DECISIONS (+ why)
 - Names: marketplace `mobile-pipeline`; `/mp` (dev), `/mp-spec` (spec). Unified `mp` prefix (user).

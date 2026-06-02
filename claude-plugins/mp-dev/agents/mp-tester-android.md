@@ -255,6 +255,10 @@ The compose-ui section above runs on the JVM (Robolectric). The `--device` flow 
 Compose-UI test **on a connected device/emulator** (`androidTest` → `connectedDebugAndroidTest`),
 driven by `mp-runner-instrumented-android`.
 
+- If SPEC/task text explicitly requires visual/device autotests, do not downgrade that requirement to
+  Robolectric Compose UI tests, Roborazzi screenshots, or manual checklist text. The orchestrator must
+  pass the visual autotest device pre-flight first; without it, report the missing device gate instead
+  of writing a substitute test plan.
 - **Write exactly ONE `@Test` per `--device` slice** (new file, or one new `@Test` in the screen's
   existing `*ContentUiTest`). Never batch — device tests are run and recorded one at a time.
 - Instrumented (real-device) pattern, not Robolectric: `@RunWith(AndroidJUnit4::class)`,
@@ -324,6 +328,11 @@ class AppNavHostTest {
 ## Test Type: screenshot
 
 **Trigger:** `SPEC.TEST_TYPES` contains `screenshot` — visual component, only on explicit request
+
+Screenshot tests are useful regression locks, but they are not a substitute for a required
+connected-device visual/device autotest. If the SPEC also requires device-rendered verification, keep
+`screenshot_record_needed: true` for the screenshot work and report that the device gate remains
+mandatory.
 
 ```kotlin
 @OptIn(ExperimentalRoborazziApi::class)

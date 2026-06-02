@@ -73,6 +73,29 @@ When this project has **one** platform, agent names with `<platform>` suffix bel
 
 When this project has **multiple** platforms, every SPEC must include an explicit `PLATFORM: <name>` field, and orchestrator spawns the matching platform's agent for each step. If a task spans both platforms, run two SPECs sequentially (one per platform) — do not interleave.
 
+## Visual autotest device pre-flight (Android)
+
+Run this hard gate before implementation/test execution for Android tasks that are explicitly visual
+and require visual/device autotests. Do not apply it to every presentation-layer change; apply it when
+the SPEC/task/phase mentions visual, layout, theme, animation, screenshot, fidelity, reference
+comparison, visual QA, `screenshot`, `instrumented-compose-ui`, `--device`, `--fit`, or a phase
+done-criterion that requires device-rendered visual autotests.
+
+Read the `device-connection` memory memo, then confirm a usable booted device/emulator with
+`adb devices -l`. If the project records a required AVD/device name or helper in `CLAUDE.md` or
+`.claude/mp/extras/`, verify that exact device and boot state before spawning any agent. If no usable
+device is present, or the wrong/offline/unauthorized device is attached, STOP immediately and ask the
+user to boot/connect the required device/emulator first; record/update the `device-connection` memo
+after they answer, then re-check. Use this stop message:
+
+```
+Visual autotests need a connected, booted device/emulator before this pipeline can continue. Please
+start/connect <required device> first; correct development cannot proceed without visual testing.
+```
+
+Never continue blind, never replace a required device visual gate with JVM-only checks or screenshot
+baselines, and never claim visual tests ran or passed without the connected-device evidence.
+
 ## Startup
 
 1. Read `.claude/mp/config.json` (package, platforms, sourceRoot, stack, uiLang) and `CLAUDE.md` for tech stack/architecture, plus any `.claude/mp/extras/*.md` project overrides.
@@ -240,6 +263,10 @@ A single-SPEC feature skips the board — emit the SPEC inline as before.
 ### Phase 2 — Implement
 
 **Mode selection.** If the user passed `--tdd` after `--feature` → use the **TDD order** described at the end of this Phase (after Step 6). Otherwise use the **default order** below.
+
+Before spawning any Phase 2 agent, apply the **Visual autotest device pre-flight (Android)** when the
+SPEC is explicitly visual and requires visual/device autotests. If the gate fails, stop before
+Developer/UI Designer/Tester/Runner.
 
 Spawn agents in sequence. Pass SPEC to each. Use `<platform>` resolution as described in the "Platform resolution" section above.
 
@@ -540,7 +567,9 @@ Build a SPEC from the task line verbatim: `WHAT` = the task text; `LAYERS` from 
 "SPEC ок? (y / r — edit the task line and re-run / n)".
 
 ### Phase 3 — Run pipeline
-Run the default `--feature` Phase 2 (Step 0 .. Step 4.5 + tests). **Skip push by default** (push per
+Before running the default `--feature` Phase 2, apply the **Visual autotest device pre-flight
+(Android)** if the synthesized SPEC is explicitly visual and requires visual/device autotests. Run the
+default `--feature` Phase 2 (Step 0 .. Step 4.5 + tests). **Skip push by default** (push per
 phase, not per task): ask "Push now? (y/N — default N)".
 
 ### Phase 4 — Record progress
@@ -652,6 +681,9 @@ Skip questions if bug location is obvious.
 
 ### Phase 2 — Fix
 
+Before spawning Developer, apply the **Visual autotest device pre-flight (Android)** when the bugfix is
+explicitly visual and requires visual/device autotests. If the gate fails, stop before any fix work.
+
 **Step 1 — Developer**:
 Spawn agent `mp-developer-<platform>` with prompt:
 ```
@@ -747,7 +779,7 @@ instrumented runner agent is Android-only).
 
 ### Phase 1 — Ensure a device is connected (mandatory) + pick the target
 
-1. **A connected device is non-negotiable — never run, or claim to run, on-device tests without one.**
+1. Apply the **Visual autotest device pre-flight (Android)**. **A connected device is non-negotiable — never run, or claim to run, on-device tests without one.**
    Read the connection from the `device-connection` memory memo, then confirm with `adb devices`. If
    none is listed (offline/unauthorized/empty), the wrong device is attached, or the connection was
    lost: **STOP and ask the user where/how the test device/emulator is connected now** (device,
@@ -818,10 +850,11 @@ silently drifting away from its reference.
    b. else `.claude/mp/config.json` `referenceScreenshotsDir` (+ optional `referenceScreenshotMap`);
    c. else ASK the user for the reference screenshots directory and how its images map to screens.
    Build the `screens[]` list of `{screen_id, name, reference}` pairs.
-2. **Device gate (mandatory, same as `--device`).** Read the `device-connection` memo, confirm with
-   `adb devices`. If none is usable → STOP, ask the user how the device/emulator is connected,
-   record the answer to the memo, re-check. Capture needs a booted device (unless every built screen
-   comes from recorded Roborazzi/Paparazzi output — then a device is optional).
+2. **Device gate (mandatory, same as `--device`).** Apply the **Visual autotest device pre-flight
+   (Android)**, then read the `device-connection` memo and confirm with `adb devices`. If none is
+   usable → STOP, ask the user how the device/emulator is connected, record the answer to the memo,
+   re-check. Capture needs a booted device (unless every built screen comes from recorded
+   Roborazzi/Paparazzi output — then a device is optional).
 
 ### Phase 2 — Capture the built screens
 
@@ -903,6 +936,7 @@ until the score converges and only intended deviations remain.
 - `mp-verifier-<platform>` runs after Runner pass on `--feature` only. A static_checks failure blocks the chain; on pass, push waits for explicit user `y` after the manual checklist is shown. (`--bugfix` skips Verifier — bugfixes rarely touch wiring.)
 - `--tdd` flag (only on `--feature`) reorders Phase 2: Tester writes failing unit tests first (`red_phase=true`), Runner verifies the red, then Developer implements until green (`green_phase=true`). Opt-in only; default order remains developer-first. `--bugfix` is unchanged — regression tests are written inline by the developer there.
 - `mp-runner-instrumented-android` runs the on-device suite (`connectedDebugAndroidTest`) for ONE test class and trusts the parsed connected report, not "BUILD SUCCESSFUL". `mp-runner-android` (JVM unit tests) is unchanged and is NOT the device runner.
+- Visual/device autotest work has a hard Android pre-flight gate before implementation/test execution. Trigger it only for explicitly visual tasks (visual/layout/theme/animation/screenshot/fidelity/reference comparison/visual QA, `screenshot`, `instrumented-compose-ui`, `--device`, `--fit`, or visual device done-criteria). If no usable required device/emulator is connected, stop and ask the user to connect it; correct development cannot proceed without visual testing. Never continue blind or claim visual tests ran.
 - `--device` is Android-only, runs one control per invocation, and never pushes. A connected device/emulator is mandatory: if none is present the orchestrator asks the user and records the answer to the `device-connection` memo (the runner agent cannot prompt). On-device test seams are restricted to `testTag` / `contentDescription` / `<Name>Content` visibility — a `--device` diff must never add new UI, events, or behaviour.
 - `--fit` is Android + clone-only: it captures built screens, compares them against reference images via `mp-fidelity-android` (read-only, multimodal), and writes divergence SPECs to `.claude/specs/backlog/` ONLY behind a y/d/n gate (same write-boundary as `--plan`). It honours `spec/deviations.md` — intended deviations are acknowledged, not filed — and flags behavioural divergences (gestures, entry order, transitions) as `behavioural_unverified` for the acceptance/feature arm rather than asserting them from a static image. Never weakens a comparison; never pushes.
 - `--plan` spawns `mp-planner` (read-only) and writes ONLY under `.claude/specs/` behind a y/d/n gate; it is the `/mp-spec` bundle → backlog bridge and pairs with `--feature --next`.

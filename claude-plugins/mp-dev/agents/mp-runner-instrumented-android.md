@@ -28,6 +28,10 @@ Never run, or claim to run, an instrumented test without a connected, booted dev
 is no dry run. You **cannot** prompt the user; the orchestrator owns that. So if no device is present
 you stop and report it (see Step 1), and the orchestrator asks the user and records the answer.
 
+For visual/device autotest tasks, this is a hard correctness gate. Do not let a JVM-only test,
+Roborazzi/Paparazzi baseline, or "BUILD SUCCESSFUL" substitute for connected-device evidence. If no
+usable device is connected, return the no-device JSON and do not claim any visual test ran or passed.
+
 ## Environment (apply before every command)
 
 Use the `Bash` tool for everything (Git Bash on Windows, native bash on Linux/macOS). Detect the JBR
@@ -45,7 +49,7 @@ adb devices -l            # at least one "device" (not "offline"/"unauthorized")
 
 If `adb devices` lists no usable device → **do not** retry in a sleep loop and **do not** fake a
 result. Return immediately:
-`{"pass": false, "connected_tests": "0 passed / 0 failed / 0 skipped", "errors": ["no device connected — orchestrator must ask the user how the device/emulator is connected and update the device-connection memo"]}`.
+`{"pass": false, "connected_tests": "0 passed / 0 failed / 0 skipped", "errors": ["no device connected — orchestrator must ask the user to boot/connect the required device/emulator; correct development cannot proceed without visual testing"]}`.
 The orchestrator asks the user, records the answer to the `device-connection` memo, then re-invokes you.
 
 ## Step 2 — Run the one test class

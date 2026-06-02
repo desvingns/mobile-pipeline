@@ -212,3 +212,11 @@ summary: Renamed the orchestrator clone-gate FLAG from --fidelity to --fit acros
 reason: user request — shorter, friendlier flag name for the reference-comparison gate.
 affects: claude, codex
 by: claude
+
+## 2026-06-02T12:30-visual-device-gate
+type: update
+target: templates/common/commands/{{PREFIX}}.md, templates/android/agents/{{PREFIX}}-runner-instrumented-android.md, templates/android/agents/{{PREFIX}}-runner-android.md, templates/android/agents/{{PREFIX}}-tester-android.md, templates/android/agents/{{PREFIX}}-verifier-android.md, claude-plugins/mp-dev/
+summary: Added a hard Android visual autotest device pre-flight for explicitly visual /mp work; generated mp-dev copies now stop before implementation/test execution when required connected-device visual evidence is unavailable, and agents no longer allow JVM screenshots/manual checklist text to substitute for device visual tests.
+reason: MyMoney visual work exposed that correct visual development cannot proceed when the required Pixel 5/device is not booted; make the generic pipeline stop early instead of developing or reporting visual tests blind.
+affects: claude, codex
+by: codex
