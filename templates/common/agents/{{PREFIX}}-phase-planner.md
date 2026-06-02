@@ -54,10 +54,10 @@ If `design_source_available: false`, omit/zero the hash and emit a warning that 
 
 **(f) Final Fidelity-gate phase — CLONE ONLY.** When `clone: true`, append a terminal phase
 `PHASE_<last+1>_fidelity_gate` (prereqs = all screen-building phases). Its tasks:
-1. `- [ ] TASK-NN.1 Run `/{{PREFIX}} --fidelity` over every screen in fidelity/registry.csv.`
-2. `- [ ] TASK-NN.k **Fix divergences** — implement each filed divergence SPEC (`/{{PREFIX}} --feature --next`), re-run `--fidelity`.`
+1. `- [ ] TASK-NN.1 Run `/{{PREFIX}} --fit` over every screen in fidelity/registry.csv.`
+2. `- [ ] TASK-NN.k **Fix divergences** — implement each filed divergence SPEC (`/{{PREFIX}} --feature --next`), re-run `--fit`.`
 3. `- [ ] TASK-NN.k Update PROGRESS.md.`
-Its **Done criteria**: `/{{PREFIX}} --fidelity` reports 0 unexplained divergences (only `spec/deviations.md` entries remain) and the overall fidelity score meets the project's clone-done threshold. This is the user-requested "reference-comparison as the last phase".
+Its **Done criteria**: `/{{PREFIX}} --fit` reports 0 unexplained divergences (only `spec/deviations.md` entries remain) and the overall fidelity score meets the project's clone-done threshold. This is the user-requested "reference-comparison as the last phase".
 
 ## Idempotency & merge (sync / re-runs)
 - Wrap generated regions in HTML-comment sentinels: `<!-- {{PREFIX}}:plan:gen id=PHASE_NN hash=… generated=<date> -->` … `<!-- /{{PREFIX}}:plan:gen -->`. `## Notes for next session` is **human-owned — never written**.

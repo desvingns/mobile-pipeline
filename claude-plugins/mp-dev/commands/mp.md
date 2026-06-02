@@ -56,7 +56,7 @@ Usage:
   /mp --coverage [<scope>] [--target=N] — diagnostic JaCoCo coverage report (read-only, no code, Android only)
   /mp --upgrade [<model1,model2,...>] — review model assignments; update agent files when new Claude models are released
   /mp --device <screen|scope>          — one on-device instrumented-test slice: ensure a device is connected, write ONE Compose-UI test for an uncovered control, run it via connectedDebugAndroidTest, report. Android only.
-  /mp --fidelity [<screen|scope>]      — Android clone projects: capture the built app's screens, compare each against its reference image (mp-fidelity-android), and file a backlog SPEC per UNEXPLAINED visual divergence (gated). The reference-comparison gate for a clone.
+  /mp --fit [<screen|scope>]      — Android clone projects: capture the built app's screens, compare each against its reference image (mp-fidelity-android), and file a backlog SPEC per UNEXPLAINED visual divergence (gated). The reference-comparison gate for a clone.
   /mp --plan <epic-slug> [--from <bundle|tdd>] — turn an /mp-spec `spec/` bundle (or a TDD/design doc) into ordered SPECs on the `.claude/specs/backlog/` board (via mp-planner, gated). Then implement with `--feature --next`.
   /mp --plan --phases [--bootstrap|--sync|--phase NN] [--from <bundle|tdd>] — clone/large builds: turn the design into a numbered PHASE_NN plan under docs/implementation_plan/ (via mp-phase-planner, gated). The HEAVY phase model; the backlog board stays for ad-hoc features.
   /mp --phase                          — assisted progression: take the next unchecked task in the active PHASE_NN, synthesise a SPEC, run the --feature pipeline, tick it, log to PROGRESS.md. Pairs with --plan --phases.
@@ -803,7 +803,7 @@ Stop after one control. Do not start the next in the same run.
 
 ---
 
-## Workflow: --fidelity  (Android clone projects — reference-comparison gate)
+## Workflow: --fit  (Android clone projects — reference-comparison gate)
 
 The clone analogue of a QA pass: capture the built app's screens, compare each against the reference
 image it is meant to reproduce, and file a backlog SPEC for every UNEXPLAINED visual divergence.
@@ -866,10 +866,10 @@ Never write outside `.claude/specs/`.
 fidelity: <N screens compared> — overall <overall_score>/100
    Filed: <M> divergence SPEC(s) → .claude/specs/backlog/ (epic: fidelity)
    Behavioural to verify: <K> (run the acceptance/feature arm / --device)
-   Next: /mp --feature --next  (fix the top divergence), then re-run /mp --fidelity
+   Next: /mp --feature --next  (fix the top divergence), then re-run /mp --fit
 ```
 
-The loop closes by implementing the filed SPECs (`--feature --next`) and re-running `--fidelity`
+The loop closes by implementing the filed SPECs (`--feature --next`) and re-running `--fit`
 until the score converges and only intended deviations remain.
 
 ---
@@ -904,9 +904,9 @@ until the score converges and only intended deviations remain.
 - `--tdd` flag (only on `--feature`) reorders Phase 2: Tester writes failing unit tests first (`red_phase=true`), Runner verifies the red, then Developer implements until green (`green_phase=true`). Opt-in only; default order remains developer-first. `--bugfix` is unchanged — regression tests are written inline by the developer there.
 - `mp-runner-instrumented-android` runs the on-device suite (`connectedDebugAndroidTest`) for ONE test class and trusts the parsed connected report, not "BUILD SUCCESSFUL". `mp-runner-android` (JVM unit tests) is unchanged and is NOT the device runner.
 - `--device` is Android-only, runs one control per invocation, and never pushes. A connected device/emulator is mandatory: if none is present the orchestrator asks the user and records the answer to the `device-connection` memo (the runner agent cannot prompt). On-device test seams are restricted to `testTag` / `contentDescription` / `<Name>Content` visibility — a `--device` diff must never add new UI, events, or behaviour.
-- `--fidelity` is Android + clone-only: it captures built screens, compares them against reference images via `mp-fidelity-android` (read-only, multimodal), and writes divergence SPECs to `.claude/specs/backlog/` ONLY behind a y/d/n gate (same write-boundary as `--plan`). It honours `spec/deviations.md` — intended deviations are acknowledged, not filed — and flags behavioural divergences (gestures, entry order, transitions) as `behavioural_unverified` for the acceptance/feature arm rather than asserting them from a static image. Never weakens a comparison; never pushes.
+- `--fit` is Android + clone-only: it captures built screens, compares them against reference images via `mp-fidelity-android` (read-only, multimodal), and writes divergence SPECs to `.claude/specs/backlog/` ONLY behind a y/d/n gate (same write-boundary as `--plan`). It honours `spec/deviations.md` — intended deviations are acknowledged, not filed — and flags behavioural divergences (gestures, entry order, transitions) as `behavioural_unverified` for the acceptance/feature arm rather than asserting them from a static image. Never weakens a comparison; never pushes.
 - `--plan` spawns `mp-planner` (read-only) and writes ONLY under `.claude/specs/` behind a y/d/n gate; it is the `/mp-spec` bundle → backlog bridge and pairs with `--feature --next`.
-- `--plan --phases` / `--phase` / `--check` are the HEAVY phase model for clone/large builds (numbered PHASE_NN + PROGRESS + content-addressed `slug:+h:` anchors), bridged read-only by `mp-phase-planner`. They coexist with the lightweight `--plan` backlog board — pick the phase model for a full clone, the backlog for a one-off feature. The phase-planner writes ONLY `phases/PHASE_NN_*.md`, `PROGRESS.md` (append-only), `00_overview.md`, behind a y/d/n gate; it never touches `## Notes for next session`, auto-emits a per-screen "Visual QA vs reference" task, and (for a clone) appends a final Fidelity-gate phase whose done-criteria is a clean `/mp --fidelity`.
+- `--plan --phases` / `--phase` / `--check` are the HEAVY phase model for clone/large builds (numbered PHASE_NN + PROGRESS + content-addressed `slug:+h:` anchors), bridged read-only by `mp-phase-planner`. They coexist with the lightweight `--plan` backlog board — pick the phase model for a full clone, the backlog for a one-off feature. The phase-planner writes ONLY `phases/PHASE_NN_*.md`, `PROGRESS.md` (append-only), `00_overview.md`, behind a y/d/n gate; it never touches `## Notes for next session`, auto-emits a per-screen "Visual QA vs reference" task, and (for a clone) appends a final Fidelity-gate phase whose done-criteria is a clean `/mp --fit`.
 - `--improve` is the ONLY path that changes the mobile-pipeline marketplace, ALWAYS via a gated PR. Two modes: `--improve "<note>"` (direct → its OWN PR via `propose-improvement.sh`) and `--improve --drain` (batch the `.ai/proposals/` queue → ONE PR via `improve-drain.sh`). Patches edit only `templates/`; never a direct push; never this project's source. Project-local lessons go to memory / `.claude/mp/extras/`, not here.
 - `--reflect` is cross-project + maintainer-level: runs `mp-cross-reflect.sh` (aggregates lessons across `~/.config/mobile-pipeline/projects.txt`) then `mp-reflect`, which QUEUES proposals only for patterns seen in >=2 projects. Opens no PRs — drain with `--improve --drain`.
 - `mp-knowledge` runs at most once post-ship and is usually a no-op. It classifies each lesson PROJECT-LOCAL (→ memory/extras) vs PLUGIN-LEVEL (→ STAGE to the `.ai/proposals/` queue via `mp-improve`, then suggest `--improve --drain`). It never edits source or the live plugin copy.

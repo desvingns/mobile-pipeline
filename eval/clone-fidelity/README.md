@@ -1,6 +1,6 @@
 # Eval: clone fidelity
 
-Measures whether the clone loop (spec → phases → build → `--fidelity`) actually makes a build
+Measures whether the clone loop (spec → phases → build → `--fit`) actually makes a build
 **converge** to its reference — and guards the pipeline itself against regressing on that.
 
 ## Known reference fixture

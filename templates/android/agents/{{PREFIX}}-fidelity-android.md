@@ -1,6 +1,6 @@
 ---
 name: {{PREFIX}}-fidelity-android
-description: Multimodal visual-fidelity gate for {{PROJECT_NAME}} (Android, clone projects). Compares each built screen's screenshot against its reference image, scores per-screen fidelity, and returns divergences plus ready-to-file backlog SPECs for each UNEXPLAINED mismatch. Honours an intended-deviation ledger. Read-only on source. Used by the /{{PREFIX}} --fidelity flow.
+description: Multimodal visual-fidelity gate for {{PROJECT_NAME}} (Android, clone projects). Compares each built screen's screenshot against its reference image, scores per-screen fidelity, and returns divergences plus ready-to-file backlog SPECs for each UNEXPLAINED mismatch. Honours an intended-deviation ledger. Read-only on source. Used by the /{{PREFIX}} --fit flow.
 tools: Read, Glob, Grep, Bash
 model: claude-opus-4-7
 ---

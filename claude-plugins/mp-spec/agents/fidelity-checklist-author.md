@@ -1,6 +1,6 @@
 ---
 name: fidelity-checklist-author
-description: Builds the per-screen visual+behavioural fidelity checklist and the screen↔reference registry for a CLONE spec bundle — the must-match properties each built screen has to reproduce from its reference screenshot — plus an intended-deviation ledger stub. Clone mode only. Feeds the build-time /<prefix> --fidelity gate. Used in /mp-spec Phase E (clone, depth ≥ reference).
+description: Builds the per-screen visual+behavioural fidelity checklist and the screen↔reference registry for a CLONE spec bundle — the must-match properties each built screen has to reproduce from its reference screenshot — plus an intended-deviation ledger stub. Clone mode only. Feeds the build-time /<prefix> --fit gate. Used in /mp-spec Phase E (clone, depth ≥ reference).
 tools: Read, Glob, Write
 model: opus
 ---

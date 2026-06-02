@@ -1,6 +1,19 @@
 # Handoff
 
-UPDATED: 2026-06-01 by codex
+UPDATED: 2026-06-02 by claude
+
+## LATEST (2026-06-02, claude) — flag rename `--fidelity` → `--fit`
+Renamed the clone reference-comparison gate FLAG `--fidelity` → `--fit` repo-wide (Claude
+`claude-plugins/**` + Codex `codex-plugins/**` + canonical `templates/**` + docs/README/playbook/eval).
+Only the literal flag token changed; the "fidelity" CONCEPT is untouched (agent `mp-fidelity-android`,
+`fidelity-checklist-author`, `spec/fidelity/` & `build/fidelity/` paths, `fidelity_score`, epic
+`fidelity`, the Fidelity-gate phase). Historical `.ai/changes/agent-skill-log.md` entries left verbatim
+(append-only) + new entry `2026-06-02T10:00-rename-fidelity-flag-to-fit` added; CHANGELOG `[Unreleased]`
+updated. **Note:** `D:\Pet\TDD_creater\MyMoney(_app)` has NO `--fidelity` flag (older `cmp`-prefix
+bootstrap predating the gate) — nothing to rename there. Codex: pick up the log entry on next sync.
+
+---
+
 CURRENT TASK: mobile-pipeline marketplace — convert cmp into a multi-harness plugin marketplace
 (`mp-spec` + `mp-dev`) modelled on `D:\tools\ai-team-bootstrap`; migrate diet_helper & MyMoney_app.
 Approved plan: `C:\Users\k.shavrin\.claude\plans\noble-questing-muffin.md`. Brief: `.ai/tasks/claude-003-marketplace.md`.

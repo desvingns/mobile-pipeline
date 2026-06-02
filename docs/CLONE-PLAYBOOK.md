@@ -7,7 +7,7 @@ in 7 ways before anyone noticed.
 ## The loop
 
 ```
-/mp-spec (clone)         /mp --plan --phases        /mp --phase            /mp --fidelity
+/mp-spec (clone)         /mp --plan --phases        /mp --phase            /mp --fit
 reference  ─────────►  spec bundle  ─────────►  PHASE_NN plan  ──────►  implement  ──────►  built vs reference
  (APK + Play +          (+ per-screen fidelity    (every screen        (one task        ├─ visual: LLM-judge
   screenshots)           checklist + deviations     anchored to its       at a time)      ├─ behavioural: acceptance/*.feature
@@ -36,7 +36,7 @@ state ships a wrong one.
 `/mp --plan --phases --bootstrap --from <bundle>/spec`. The `mp-phase-planner` writes
 `docs/implementation_plan/PHASE_NN_*.md` (+ PROGRESS/00_overview) with content-addressed anchors.
 For a clone it auto-adds, per screen, a **"Visual QA vs reference"** task, and appends a terminal
-**Fidelity-gate** phase whose done-criteria is a clean `--fidelity`. (Ad-hoc features still use the
+**Fidelity-gate** phase whose done-criteria is a clean `--fit`. (Ad-hoc features still use the
 lightweight `/mp --plan` backlog board — the two coexist.)
 
 ### 3. Implement, one task at a time
@@ -45,14 +45,14 @@ develop → review → test → verify, ticks the box, logs to PROGRESS. `/mp --
 PROGRESS ↔ PHASE ↔ anchor consistency (and flags design drift).
 
 ### 4. Compare the build to the reference
-`/mp --fidelity` (Android, clone): captures the built screens (Roborazzi output → screen-tour →
+`/mp --fit` (Android, clone): captures the built screens (Roborazzi output → screen-tour →
 `adb screencap`), runs the multimodal `mp-fidelity-android`, and prints a per-screen fidelity score +
 divergences. Each **unexplained** divergence (intended ones in `deviations.md` are suppressed) becomes
 a backlog SPEC. Behavioural divergences it can't see in a static image are flagged
 `behavioural_unverified` for the `acceptance/*.feature` arm.
 
 ### 5. Fix and re-compare (converge)
-`/mp --feature --next` to implement each filed divergence SPEC, then re-run `/mp --fidelity`. Repeat
+`/mp --feature --next` to implement each filed divergence SPEC, then re-run `/mp --fit`. Repeat
 until the score meets your clone-done threshold and only `deviations.md` entries remain. Lock each
 correct screen with a Roborazzi golden (CI then catches future drift).
 

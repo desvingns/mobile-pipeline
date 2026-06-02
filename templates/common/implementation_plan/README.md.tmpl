@@ -28,6 +28,6 @@ Stack / architecture / module map: see the repo-root `CLAUDE.md`. Anchors are co
 (`slug:` + `h:` hash) so they survive design edits; `/{{PREFIX}} --check` reports drift.
 
 ## 5. Fidelity (clone projects)
-The last phase is a **Fidelity gate**: `/{{PREFIX}} --fidelity` compares every built screen against
+The last phase is a **Fidelity gate**: `/{{PREFIX}} --fit` compares every built screen against
 its reference image; each unexplained divergence becomes a backlog SPEC. The plan is done when the
 fidelity score meets the clone-done threshold and only `spec/deviations.md` entries remain.

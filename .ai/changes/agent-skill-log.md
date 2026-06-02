@@ -204,3 +204,11 @@ summary: M5 hardening/DX/docs/eval — tester gains a Roborazzi golden-lock note
 reason: make the clone loop teachable, regression-guarded, and CI-lockable; bump the marketplace version for the fidelity + phase-model feature set.
 affects: claude, codex
 by: claude
+
+## 2026-06-02T10:00-rename-fidelity-flag-to-fit
+type: update
+target: claude-plugins/mp-dev/commands/mp.md, templates/common/commands/{{PREFIX}}.md, claude-plugins/mp-dev/agents/mp-fidelity-android.md, claude-plugins/mp-dev/agents/mp-phase-planner.md, claude-plugins/mp-dev/agents/mp-tester-android.md, claude-plugins/mp-spec/agents/fidelity-checklist-author.md, claude-plugins/mp-spec/skills/mp-spec/SKILL.md, codex-plugins/mp-spec/skills/mp-spec/SKILL.md, templates/spec/**, templates/android/agents/**, templates/common/agents/{{PREFIX}}-phase-planner.md, templates/common/implementation_plan/README.md.tmpl, docs/CLONE-PLAYBOOK.md, eval/clone-fidelity/README.md, README.md
+summary: Renamed the orchestrator clone-gate FLAG from --fidelity to --fit across all command specs, agent docs, skill prose, templates, playbook and README. Only the literal flag token changed; the "fidelity" CONCEPT is untouched — agent names (mp-fidelity-android, fidelity-checklist-author), bundle paths (spec/fidelity/, build/fidelity/), epic slug (fidelity), fidelity_score, Fidelity-gate phase, and section titles all keep "fidelity". Historical log entries left verbatim (append-only).
+reason: user request — shorter, friendlier flag name for the reference-comparison gate.
+affects: claude, codex
+by: claude

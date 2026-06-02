@@ -54,7 +54,7 @@ This skill runs under **both** Claude Code and Codex CLI. The orchestration is i
 
 **Flags** (superset of app-tdd-creator's): `--name`, `--depth {mvp|production|reference}`, `--platforms` (default `android`), `--base` (output root; default `~/AppSpecs` — a personal folder you control, kept separate from any unrelated work context), `--resume`, `--fresh`, `--dry-run`, `--skip-play`, `--skip-apk`, `--only <list>`, `--no-bridge` (stop after bundle, don't offer handoff).
 
-**Depth default:** clone mode defaults to `--depth reference` (full visual + behavioural fidelity — turns on the per-screen fidelity checklist + the downstream `/<prefix> --fidelity` gate); greenfield defaults to `--depth production`. Override with `--depth`.
+**Depth default:** clone mode defaults to `--depth reference` (full visual + behavioural fidelity — turns on the per-screen fidelity checklist + the downstream `/<prefix> --fit` gate); greenfield defaults to `--depth production`. Override with `--depth`.
 
 **Clone-mode validation** (reuse app-tdd-creator Step 0 verbatim): screenshots dir required & non-empty; ask for Play URL / APK if not given; reject `.aab/.apks/.xapk` with extraction hint. See `prompts/questions/clone.input.md`.
 
@@ -99,7 +99,7 @@ Run the app-tdd-creator fan-out **unchanged**:
 2. Sequential: `navigation-flow-analyzer` (sonnet) → `data-model-extractor` (sonnet).
 Question batches A–E interleave exactly as app-tdd-creator does — `Read prompt questions/clone.batchA.md` … `clone.batchE.md`. Dynamic batch B from `ambiguities[]`.
 
-The business-analyzer also returns a per-screen `interactions[]` map (gestures / entry order / partial-vs-full overlays) and `state_gaps[]` (states the app has but that were not screenshotted). **Surface `state_gaps[]` in intake** and ask the user to capture the missing states (empty/loading/error) — a clone that never sees a state ships a wrong one (the empty-state class of divergence). The `interactions[]` map feeds the per-screen behaviour spec in `design.md` and the behavioural arm of `/<prefix> --fidelity`.
+The business-analyzer also returns a per-screen `interactions[]` map (gestures / entry order / partial-vs-full overlays) and `state_gaps[]` (states the app has but that were not screenshotted). **Surface `state_gaps[]` in intake** and ask the user to capture the missing states (empty/loading/error) — a clone that never sees a state ships a wrong one (the empty-state class of divergence). The `interactions[]` map feeds the per-screen behaviour spec in `design.md` and the behavioural arm of `/<prefix> --fit`.
 
 ### A-green (staged interview elicitation)
 Funnel: broad → narrow, each stage's answers constrain the next (anti-hallucination via propose-then-confirm). Five batches via AskUserQuestion (≤4 Qs each), saved to `input/interview/stageN.yaml`:
@@ -139,7 +139,7 @@ Write the confirmed inventory to `pipeline/feature-inventory.json` (the neutral 
 
 One message, parallel: `nfr-analyzer`, `a11y-reviewer`, `security-privacy-reviewer`, `analytics-taxonomy-designer`, `risk-estimator` (writes both `risks.md` + `estimate.md`). Each reads `feature-inventory.json` + posture answers + relevant rubric, writes its artifact, returns JSON.
 
-**Clone mode, depth ≥ reference:** also fan out `fidelity-checklist-author` (opus, multimodal) → `spec/fidelity/<Sxx>.md` (per-screen visual + behavioural must-match checklists, each grounded in its reference screenshot), `spec/fidelity/registry.csv` (screen ↔ reference image ↔ FR/AC), and a `spec/deviations.md` stub (intended deviations from the reference). This is the contract the build-time `/<prefix> --fidelity` gate later checks the running app against — so the clone converges to the reference instead of drifting (the failure mode that produced the 7 MyMoney↔Monefy divergences).
+**Clone mode, depth ≥ reference:** also fan out `fidelity-checklist-author` (opus, multimodal) → `spec/fidelity/<Sxx>.md` (per-screen visual + behavioural must-match checklists, each grounded in its reference screenshot), `spec/fidelity/registry.csv` (screen ↔ reference image ↔ FR/AC), and a `spec/deviations.md` stub (intended deviations from the reference). This is the contract the build-time `/<prefix> --fit` gate later checks the running app against — so the clone converges to the reference instead of drifting (the failure mode that produced the 7 MyMoney↔Monefy divergences).
 
 ## Step 8 — Phase F: evaluate (evaluator-optimizer) + traceability
 
@@ -154,7 +154,7 @@ On `pass`, print the verdict summary + coverage stats + warnings, then AskUserQu
 
 Unless `--no-bridge`: tell the user the bundle is ready and how to hand it off to their dev pipeline. If the project ships a **spec-bridge** (e.g. MyMoney's `cmp-planner-android`, invoked as `/<prefix> --plan <bundle>`, which turns the bundle into the project's plan files behind a `y/d/n` gate), name it and print the command. Otherwise the **portable handoff is the bundle itself**: `traceability.csv` + `design.md` + `acceptance/*.feature` feed any coding pipeline (e.g. `/<prefix> --feature` per epic). Always print the bundle path.
 
-**Clone fidelity loop.** For a clone bundle (depth ≥ reference), tell the user that after the dev pipeline implements the screens they should run `/<prefix> --fidelity` to compare the built app against the reference screenshots — the bundle's `fidelity/` checklists + `deviations.md` drive that gate, and each unexplained divergence becomes a backlog SPEC to fix, closing the clone loop.
+**Clone fidelity loop.** For a clone bundle (depth ≥ reference), tell the user that after the dev pipeline implements the screens they should run `/<prefix> --fit` to compare the built app against the reference screenshots — the bundle's `fidelity/` checklists + `deviations.md` drive that gate, and each unexplained divergence becomes a backlog SPEC to fix, closing the clone loop.
 
 ## Step 11 — Report
 
