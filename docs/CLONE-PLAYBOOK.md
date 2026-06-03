@@ -7,16 +7,28 @@ in 7 ways before anyone noticed.
 ## The loop
 
 ```
-/mp-spec (clone)         /mp --plan --phases        /mp --phase            /mp --fit
-reference  ─────────►  spec bundle  ─────────►  PHASE_NN plan  ──────►  implement  ──────►  built vs reference
- (APK + Play +          (+ per-screen fidelity    (every screen        (one task        ├─ visual: LLM-judge
-  screenshots)           checklist + deviations     anchored to its       at a time)      ├─ behavioural: acceptance/*.feature
-                         + screen↔ref registry)     reference; LAST                       ├─ suppress deviations.md
-                                                    phase = Fidelity gate)                 └─ divergences → backlog SPECs
-                                                                                              └─ fixed → Roborazzi golden (CI)
+/mp-spec --apk --graph (clone)              /mp --plan --phases     /mp --phase       /mp --fit
+reference APK ─► [A.0 crawl] ─► spec bundle ───────► PHASE_NN plan ──► implement ──► built vs reference
+ (+ Play +       install +      (+ per-STATE          (every screen     (one task     ├─ visual: LLM-judge
+  screenshots)   drive device   fidelity checklist     anchored to its   at a time)    ├─ behavioural: acceptance/*.feature
+                 vision-first:   + deviations           reference; LAST                ├─ suppress deviations.md
+                 observed state  + screen↔ref↔state                                     └─ divergences → backlog SPECs
+                 graph + per-     registry)             phase = Fidelity gate)             └─ fixed → Roborazzi golden (CI)
+                 state shots
+                 (empty+filled))
 ```
 
 ## Step by step
+
+### 0. (optional, recommended) Let the crawler capture the reference for you
+If you pass `--apk` at `--depth reference` (the clone default) **and a device/emulator is reachable**,
+`/mp-spec` runs **Phase A.0 — a dynamic crawl** before anything else: it installs the APK, drives it
+**vision-first** with a navigator → executor → reviewer trio, and builds an *observed* state graph with
+screenshots. It auto-fills `input/screenshots/`, records transitions in `input/crawl/state-graph.json`,
+and (with consent) **seeds synthetic data** to capture **populated** states — so you get real
+empty *and* filled screens, not a partial hand-set. It is **additive**: no device or the APK won't run →
+it silently falls back to the static path below. Force it with `--graph`, disable with `--no-graph`.
+This is what makes "capture every state" automatic instead of manual.
 
 ### 1. Build the spec bundle (capture the reference faithfully)
 `/mp-spec <screenshots_dir> --apk <app.apk> --play <play_url>` (clone mode; defaults to
@@ -29,8 +41,12 @@ reference  ─────────►  spec bundle  ────────
 
 **Capture every state.** The business-analyzer reports `state_gaps[]` (states the app has but that
 weren't screenshotted) and an `interactions[]` map (gestures, entry order, partial-vs-full overlays).
-When it flags a gap, capture the missing empty/loading/error screenshot — a clone that never sees a
-state ships a wrong one.
+If Step 0 ran, the crawl has already closed most gaps (it observed the states first-hand, and observed
+transitions overrode the navigation guesses with `source:observed` edges) — only states behind a wall
+it flagged `needs_human` remain. Without a crawl, capture the missing empty/loading/error screenshot
+yourself — a clone that never sees a state ships a wrong one. When the crawl captured empty *and* filled
+states, `fidelity-checklist-author` writes a must-match block per state and a `registry.csv` row per
+(screen, state), so `--fit` checks each state against its own real reference frame.
 
 ### 2. Turn the bundle into a phase plan
 `/mp --plan --phases --bootstrap --from <bundle>/spec`. The `mp-phase-planner` writes

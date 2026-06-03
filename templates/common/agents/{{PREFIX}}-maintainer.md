@@ -21,14 +21,15 @@ Every agent belongs to one tier. When model versions change, the tier logic stay
 
 ## Codex tier policy
 
-Future native Codex shims for this dev pipeline should mirror the same intent with explicit
+Native Codex shims for this dev pipeline must mirror the same intent with explicit
 `model` and `model_reasoning_effort` fields instead of inheriting the parent session:
 
 | Tier | Codex config | Agent file patterns |
 |------|--------------|---------------------|
-| `fast` | `gpt-5.4-mini` / `low` for runners, `medium` for reviewers/verifiers | `*-runner-*`, `*-reviewer-*`, `*-verifier-*`, `*-coverage-*` |
+| `fast-run` | `gpt-5.4-mini` / `low` | `*-runner-*`, `*-coverage-*` |
+| `fast-check` | `gpt-5.4-mini` / `medium` | `*-reviewer-*`, `*-verifier-*` |
 | `standard` | `gpt-5.4` / `high` | `*-tester-*`, `*-architect`, `*-docs`, `*-ui-designer-*`, `*-maintainer` |
-| `powerful` | `gpt-5.5` / `high` | `*-developer-*` |
+| `powerful` | `gpt-5.5` / `high` | `*-developer-*`, `*-fidelity-*` |
 
 ---
 

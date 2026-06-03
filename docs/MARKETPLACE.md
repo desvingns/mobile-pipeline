@@ -10,12 +10,12 @@ every project picks it up.
 | Plugin | Slash | Harness | Contents |
 |--------|-------|---------|----------|
 | `mp-spec` | `/mp-spec` | Claude (skill + agents), Codex (skill only) | Spec-bundle creator (renamed from `app-spec-creator`) + 17 analysis sub-agents |
-| `mp-dev`  | `/mp`     | Claude only | Dev orchestrator + specialist agents (architect, developer, reviewer, tester, runner, verifier, docs, …) + deterministic scripts |
+| `mp-dev`  | `/mp`     | Claude (command + agents + scripts), Codex (skill only) | Dev orchestrator + specialist agents (architect, developer, reviewer, tester, runner, verifier, docs, ...) + deterministic scripts |
 
 **Why Codex differs:** Claude plugins can carry sub-agents (`agents/`); Codex plugins carry only
-`skills`/`.mcp.json`/`.app.json`. So Codex gets the `mp-spec` *skill* via the marketplace, but the
-sub-agent roster (`.codex/agents/*.toml`) is installed **per project** (via `install-spec.sh` for
-spec; per-project generation for dev — see below).
+`skills`/`.mcp.json`/`.app.json`. So Codex gets the `mp-spec` and `mp-dev` *skills* via the
+marketplace, but the sub-agent roster (`.codex/agents/*.toml`) is installed **per project** (via
+`install-spec.sh` for spec; via the `templates/dev/codex/agent.toml.tmpl` shim contract for dev).
 
 ## Layout
 
@@ -27,7 +27,8 @@ mobile-pipeline/                          # this repo (rename optional — see b
 │   ├── mp-spec/{.claude-plugin/plugin.json, skills/mp-spec/{SKILL.md,prompts/}, agents/*.md}
 │   └── mp-dev/{.claude-plugin/plugin.json, commands/mp.md, agents/mp-*.md, scripts/mp-*.sh}
 ├── codex-plugins/
-│   └── mp-spec/{.codex-plugin/plugin.json, skills/mp-spec/{SKILL.md,prompts/}}
+│   ├── mp-spec/{.codex-plugin/plugin.json, skills/mp-spec/{SKILL.md,prompts/}}
+│   └── mp-dev/{.codex-plugin/plugin.json, skills/mp-dev/{SKILL.md,references/}}
 ├── templates/                            # CANONICAL source (unchanged; bootstrap.sh still uses it)
 └── lib/build-marketplace.sh              # generator: templates/ → plugin trees
 ```
@@ -59,12 +60,19 @@ and `/mp`. (Or register globally once: `claude plugin marketplace add <path>`.)
 ```bash
 codex plugin marketplace add /d/Pet/claude-mobile-pipeline   # or the git URL
 codex plugin add mp-spec@mobile-pipeline
+codex plugin add mp-dev@mobile-pipeline
 ```
 Codex sub-agents (spec): `./install-spec.sh --harness codex` writes `~/.codex/agents/*.toml` +
 `[agents]` config (needs `max_threads >= 6`). Generated spec agents pin explicit Codex model tiers
 (`gpt-5.4-mini` for simple/mechanical roles, `gpt-5.4` for standard authoring/analysis, `gpt-5.5`
-for screenshot/evaluator-critical roles) instead of inheriting the parent session. Codex dev agents
-are not yet auto-generated — see "Follow-ups".
+for screenshot/evaluator-critical roles) instead of inheriting the parent session.
+
+Codex sub-agents (dev): the `mp-dev` Codex plugin provides the `$mp`/`/mp` skill bridge plus
+`skills/mp-dev/references/codex-agent-shims.md`. Projects still install the 18 native
+`.codex/agents/mp-*.toml` wrappers locally, using `templates/dev/codex/agent.toml.tmpl` and
+`templates/dev/codex/config-fragment.toml`. The wrappers read the canonical Claude `mp-dev` agent
+bodies from the plugin cache and then `.claude/mp/extras/<agent>.md`, so Claude and Codex share the
+same project-specific overrides.
 
 ## `mp-dev` runtime config (per project)
 
@@ -179,8 +187,9 @@ See "Proposed alternatives" in `.ai/tasks/claude-003-marketplace.md` for the ful
   agent references `cmp-*`→`mp-*` (the plugin agents + `.claude/mp/extras/` already replicate the
   MyMoney specifics) and deciding whether to keep `--phase`/`--check` as a project-local command or port
   to the backlog board. Do it as a focused, verified step — not a blind archive (would break the active pipeline).
-- Per-project Codex **dev** agent generation (`.codex/agents/mp-*.toml` from the plugin's `mp-*.md`),
-  using the documented fast/standard/powerful `model` + `model_reasoning_effort` tiers.
+- Optional installer automation for Codex **dev** agent shims. The skill/reference/template contract now
+  exists; a future `lib/sync.sh` or bootstrap/install command can generate the 18 project-local
+  `.codex/agents/mp-*.toml` files from `templates/dev/codex/agent.toml.tmpl`.
 - `lib/build-marketplace.sh` may later merge with the codex-owned `lib/sync.sh` (codex-001).
 
 ## Renaming the repo / folder (manual)

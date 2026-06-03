@@ -6,3 +6,4 @@
 - [Change-log discipline](change-log-discipline.md) — log every agent/skill edit; sync reads only the diff
 - [Graphify + Obsidian integration](graphify-obsidian-integration.md) — AST graphs for cmp/mymoney/diet + shared global graph (~/.graphify) + D:\Pet\ai-hub vault; semantic layer pending a key
 - [Self-improvement loop](self-improvement-loop.md) — observe→reflect→propose→gate→propagate on cmp's own primitives (the selfimprove/ kit)
+- [Reference crawler](reference-crawler.md) — dynamic reference-APK crawl for /mp-spec clone intake: vision-first state graph, dedup invariant, fills input/screenshots/, 4-phase plan

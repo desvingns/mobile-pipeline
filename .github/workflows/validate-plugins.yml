@@ -30,7 +30,7 @@ jobs:
           if grep -rnE '\{\{[A-Z_]+\}\}' claude-plugins codex-plugins; then
             echo "::error::placeholder {{...}} leaked into generated plugins"; exit 1; fi
           # mp-dev must be fully platform/tool-resolved; mp-spec intentionally keeps inert platform: comments
-          if grep -rnE '<!-- /?(tool|platform):' claude-plugins/mp-dev; then
+          if grep -rnE '<!-- /?(tool|platform):' claude-plugins/mp-dev codex-plugins/mp-dev; then
             echo "::error::tool/platform marker leaked into mp-dev"; exit 1; fi
           if grep -rnE '<!-- /?tool:' claude-plugins/mp-spec codex-plugins/mp-spec; then
             echo "::error::tool: marker leaked into mp-spec"; exit 1; fi

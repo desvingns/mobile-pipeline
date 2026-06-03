@@ -1,0 +1,6 @@
+interface:
+  display_name: "MP Dev"
+  short_description: "Run the shared mobile development pipeline through Codex."
+  default_prompt: "Use $mp --feature --next or $mp --check."
+policy:
+  allow_implicit_invocation: true

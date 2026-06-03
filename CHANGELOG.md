@@ -6,6 +6,53 @@ This repo uses [Semantic Versioning](https://semver.org/) — see `README.md` �
 
 ## [Unreleased]
 
+### Added
+
+- **Dynamic reference-APK crawler (Phase 1)** for `/mp-spec` clone intake — a new optional Phase A.0
+  that installs the reference APK on a connected device and drives it **vision-first** to build a
+  state graph with screenshots, dedup states, and fill `input/screenshots/` with an *observed* corpus
+  (replacing hand-collected screenshots). Adds five cross-platform device primitives
+  (`scripts/crawl/{device-preflight,app-control,screencap,ui-dump,input}.sh`, each emitting one JSON
+  line), the `crawl-executor` agent (opus; vision-first BFS + state dedup + a forbidden-action
+  guardrail), `--graph`/`--no-graph` flags, and the `clone.crawl-setup` device/consent prompt.
+  Additive: auto-skips to the static path when no device is reachable or the APK won't run.
+  Device-validated on an emulator (Android 34) — fixed MSYS `/sdcard` path mangling on Git Bash,
+  Compose tap-by-text resolution (label on a non-clickable node), and launch foreground-confirmation.
+  Phases 2–4 (navigator/executor/reviewer trio, autonomous data-seeding, fidelity wiring) are tracked
+  in `.ai/tasks/claude-004-reference-crawler.md`.
+- **Reference-APK crawler (Phase 2) — agent trio + coverage gate.** Split the single-agent crawler into
+  three separate-session sub-agents — `crawl-navigator` (plans the next affordance + replay path),
+  `crawl-executor` (goal-scoped vision-first device driver), `crawl-reviewer` (classifies the resulting
+  edge flow/cycle/error/dead_end + scores coverage confidence) — run by an orchestrator loop with a
+  max-2-retry `executor⇄reviewer` inner loop (mirrors the Phase F evaluator-optimizer) and a
+  done/plateau/budget stop, all state persisted to files for crash-recovery. `navigation-flow-analyzer`
+  now consumes the observed `state-graph.json`, converting walked transitions to `source:observed`
+  edges (mapping crawl `ST*` → business `S*` via the shared screenshot filename) and inferring only the
+  transitions the crawl didn't reach.
+- **Reference-APK crawler (Phase 3) — autonomous seeding + auth.** The crawl now observes **populated**
+  states, not just empties. `crawl-navigator` emits `auth` goals (get past a sign-in/onboarding wall —
+  unblock before breadth) and `seed` goals (create entries to reveal an empty state's filled form);
+  `crawl-executor` fills forms with deterministic **synthetic** data (user-provided test credentials if
+  given, else self-registers), creates N entries, and captures the `data_state:"filled"` result;
+  `crawl-reviewer` judges auth/seed success from the after-screenshot. Guardrails: synthetic data only,
+  no real-money/send/share, and SMS/email-OTP/captcha walls become `needs_human` (accept-and-prune, no
+  retry). New consent modes (`seed` / explore-only / decline) + an optional test-credentials question in
+  `clone.crawl-setup`; credentials are runtime-only and never written to any artifact.
+- **Reference-APK crawler (Phase 4) — closes the clone loop.** `fidelity-checklist-author` now consumes
+  the crawl's observed per-state frames: it grounds per-screen must-match checklists in the real empty
+  *and* filled states (the `data_state:"filled"` ones seeding produced), writes a visual block per state,
+  and emits a `registry.csv` row per (screen, state) — so `--fit` drives the built app into each state
+  and compares it against its own reference frame, killing the empty-state class of divergence. New
+  `docs/REFERENCE-CRAWLER.md` consolidates the subsystem; `docs/CLONE-PLAYBOOK.md` gains the crawl
+  front-door (Step 0) + updated loop diagram. The crawler is now feature-complete across all four phases
+  (device primitives → trio + coverage gate → autonomous seeding/auth → fidelity wiring).
+- **Codex `mp-dev` marketplace bridge** - added `codex-plugins/mp-dev` with the `$mp`/`/mp` skill,
+  UI metadata, and a `codex-agent-shims` reference for the 18 native project-local
+  `.codex/agents/mp-*.toml` wrappers. The bridge reads the canonical Claude `mp-dev` command and
+  agent bodies plus `.claude/mp/config.json` / `.claude/mp/extras/*`, documents the Bash-absent
+  fallback path, and keeps Claude/Codex project-specific improvements synchronized through the shared
+  extras layer.
+
 ### Changed
 
 - **Per-project device-run helper is now first-class in `mp-runner-instrumented-android`** — the

@@ -1,0 +1,6 @@
+# Appended to a project's .codex/config.toml when installing native mp-dev agent shims.
+# If the project already has an [agents] table, merge these keys by hand instead.
+[agents]
+max_threads = 6
+max_depth = 1
+job_max_runtime_seconds = 1800

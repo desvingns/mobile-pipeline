@@ -47,6 +47,7 @@ templates/common/         # tool- & platform-neutral: architect, docs, reviewer-
 templates/android/        # Android specialists, scripts (runner/reviewer .sh), memory, snippets
 templates/ios/            # iOS specialists (stubs — being fleshed out)
 templates/spec/           # GLOBAL spec-creation tool: app-spec-creator skill + 17 neutral spec agents + prompt library + codex/ adapters (installed by install-spec.sh — see docs/SPEC-PIPELINE.md)
+templates/dev/codex/      # Codex mp-dev skill bridge + per-project native .codex/agents/mp-*.toml shim templates
 docs/                     # USAGE, ARCHITECTURE, UPGRADE, ADDING-PLATFORM, local-llm (design notes)
 .ai/                      # shared cross-tool workspace (memory / handoff / tasks / changes) — see .ai/README.md
 AGENTS.md / CLAUDE.md     # this file (canonical) + thin Claude import

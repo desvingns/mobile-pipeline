@@ -1,6 +1,121 @@
 # Handoff
 
-UPDATED: 2026-06-02 by codex
+UPDATED: 2026-06-03 by claude
+
+## LATEST (2026-06-03, claude) — reference-APK crawler, Phase 4 (closes the clone loop) — FEATURE-COMPLETE
+`fidelity-checklist-author` now consumes the crawl's observed per-state frames (`crawl_graph` +
+`crawl_states_dir`): per-screen must-match grounded in the real **empty AND filled** states (the
+`data_state:"filled"` ones seeding produced), a visual block per state, and a `registry.csv` row per
+(screen, state) with a `data_state` column — so `--fit` drives the built app into each state and
+compares it to its own reference frame (kills the empty-state divergence class). SKILL Step 7 passes the
+crawl inputs to the fidelity author when A.0 ran. Docs: `CLONE-PLAYBOOK.md` gains a Step 0 (crawl
+front-door) + updated loop diagram; new `docs/REFERENCE-CRAWLER.md` consolidates the subsystem. Auto-
+enable on `--depth reference` was already wired (Phase 1). No new agents/scripts; plugins regenerated,
+0 leaks. Change-log: `2026-06-03T18:00-reference-crawler-phase4`.
+
+**Crawler is now feature-complete across all 4 phases** (primitives → trio+coverage → seeding/auth →
+fidelity). Phase 1 was device-validated (3 bugs fixed); Phases 2–4 are authored + build/lint/0-leak
+clean but the **full loop has not been run end-to-end on a device**. NOT committed (codex mp-dev-bridge
+WIP also sits in the tree). NEXT: a throwaway-AVD end-to-end run (crawl → spec → build → `--fit`) on a
+clonable app — expect replay/seeding rough edges to surface, as Phase 1 did. Task: `.ai/tasks/claude-004-reference-crawler.md`.
+
+## LATEST (2026-06-03, claude) — reference-APK crawler, Phase 3 (autonomous seeding + auth)
+The crawl now observes **populated** states, not just empties. `crawl-navigator` emits `auth` goals
+(get past a sign-in/onboarding wall — unblock before breadth) and `seed` goals (create entries to reveal
+an empty state's filled form), plus `explore`. `crawl-executor` branches on `goal.type`: auth =
+fill+submit the form (user `credentials` if provided, else self-register with synthetic data; detect
+OTP/captcha verification walls); seed = open the create flow and create `count` synthetic entries, then
+capture the `data_state:"filled"` result. Added a deterministic ASCII synthetic-data fixture set
+(reproducible corpus) + hardened guardrails (synthetic only; no real-money/send/share; verification wall
+→ `blocker:needs_human`, accept-and-prune). `crawl-reviewer` judges auth/seed success from the
+after-shot. `clone.crawl-setup` gains consent modes (seed | explore-only | decline) + an optional
+**test-credentials** question — **credentials are runtime-only and MUST NOT be written to meta/trace/
+session/bundle/any committed file** (the orchestrator holds them in-session and passes them to the
+executor for auth goals). No new agents/scripts; plugins regenerated, 0 leaks. Change-log:
+`2026-06-03T17:00-reference-crawler-phase3`. STATUS: **authored + builds/lints clean; auth/seed not yet
+run on a device.** NEXT: validate auth + a create flow on a throwaway AVD (confirm a filled node +
+creds never hit artifacts), then Phase 4 (feed `fidelity-checklist-author` the real per-state frames).
+Not committed.
+
+## LATEST (2026-06-03, claude) — reference-APK crawler, Phase 2 (agent trio)
+Split the single-agent crawler into a **separate-session trio** + an orchestrator-owned, file-persisted
+loop. New `crawl-navigator` (sonnet, read-only — picks the next affordance + replay path, decides done)
+and `crawl-reviewer` (opus multimodal, read-only — classifies the edge flow/cycle/error/dead_end, judges
+the success_test, scores coverage_confidence, gates accept/continue). `crawl-executor` refactored
+whole-crawl → **goal-scoped** (relaunch → replay path → one affordance → capture+dedup → return).
+`SKILL.md` Step 2.0 is now the loop `navigator → (executor⇄reviewer, ≤2 retries) → merge → coverage`,
+stop on done/plateau(K=4)/budget(40/25/60); finalize records `screenshot_file` per node.
+`navigation-flow-analyzer` consumes the optional `state-graph.json` → `source:observed` edges override
+guesses (crawl `ST*`→business `S*` mapped via the shared screenshot filename). `install-spec.sh` gains
+crawl-navigator (gpt-5.4/medium) + crawl-reviewer (gpt-5.5/high). Plugins regenerated; `bash -n` clean,
+dry-run roster shows all 3 crawl agents, 0 leaks. Change-log: `2026-06-03T16:00-reference-crawler-phase2`.
+STATUS: **authored + builds/lints clean; trio loop not yet run end-to-end on a device.** NEXT: validate
+the loop on a throwaway AVD with a real reference APK (NOT the user's live MyMoney emulator), then Phase 3
+(autonomous seeding). Not committed.
+
+## LATEST (2026-06-03, claude) — reference-APK crawler, Phase 1
+Started **claude-004** (dynamic reference-APK crawler for `/mp-spec` clone intake). Approved plan:
+`C:\Users\k.shavrin\.claude\plans\ai-steady-galaxy.md`. Brief: `.ai/tasks/claude-004-reference-crawler.md`.
+STATUS: **Phase 1 authored, builds/lints clean, AND device-validated on a real emulator (3 bugs fixed). Not committed.**
+
+DONE (this session):
+- Device primitives `templates/spec/skills/app-spec-creator/scripts/crawl/`:
+  `_crawl-lib.sh` + `device-preflight.sh` `app-control.sh` `screencap.sh` `ui-dump.sh` `input.sh`
+  (cross-platform bash, one JSON line each, `$ANDROID_SERIAL`-targeted, mirror `mp-runner-android.sh`).
+  `bash -n` clean (shellcheck not installed locally — CI/`validate-plugins.yml` should run it).
+- `templates/spec/agents/crawl-executor.md` (opus): vision-first BFS, state dedup, forbidden-action
+  guardrail, writes `trace.jsonl` + `state-graph.json` + fills `input/screenshots/`.
+- `SKILL.md`: `--graph`/`--no-graph` (Step 0), new **Step 2.0 A.0-crawl**, `input/crawl/` bundle slot,
+  observed-evidence note in A-clone. New prompt `prompts/questions/clone.crawl-setup.md`.
+- Shipping: `install-spec.sh` AGENTS table gains `crawl-executor` (gpt-5.5/high) + both installers copy
+  `scripts/`; `lib/build-marketplace.sh` copies `scripts/` into the mp-spec skill.
+- **Regenerated the plugin trees** (`bash lib/build-marketplace.sh`): `claude-plugins/mp-spec` now
+  carries `agents/crawl-executor.md` + `skills/mp-spec/scripts/crawl/*`; codex mp-spec gets the scripts.
+  Verified: 0 `{{…}}`/tool-marker leaks in rendered `crawl-executor.md`; dry-run + `bash -n` clean.
+- **Device-validated on a real emulator** (emulator-5554, Android 34): preflight/current/screencap/
+  ui-dump/input(key,swipe,tap-xy,**tap-by-text**) all return valid JSON; `tap --text "Chrome"` →
+  foreground became Chrome (full hybrid path proven on hardware). Fixed 3 bugs `bash -n` could not catch
+  (`2026-06-03T15:00-reference-crawler-device-fixes`): MSYS `/sdcard` path mangling (Git Bash) in
+  ui-dump → `MSYS_NO_PATHCONV` + `exec-out cat` redirect; `--clickable` too strict for Compose (label on
+  a non-clickable node) → prefer-then-fallback; `launch` now confirms foreground + retries. Re-ran the
+  plugin regen so the shipped scripts include the fixes. NOTE: the emulator is the user's **live MyMoney
+  dev device** — MyMoney got uninstalled mid-test by their parallel work; coordinate before
+  installing/clearing apps on it.
+
+DECISIONS (+ why):
+- Crawler is **additive** and lives in `/mp-spec` clone intake (Phase A.0) — it fills the existing
+  `input/screenshots/` slot + one `state-graph.json`, so analyzers change only by an *optional* input
+  later. See `.ai/memory/reference-crawler.md`.
+- Orchestrator passes `scripts_dir` to the executor at runtime → scripts stay path-neutral (no
+  plugin-vs-global hard-coding in the agent). Full autonomy ⇒ guardrails + graceful degradation.
+
+NEXT / FOLLOW-UPS:
+1. **Device smoke** (user has an emulator from `--fit`): preflight→install→screencap→ui-dump→input tap;
+   each must print one valid JSON line. Then a real `/mp-spec --apk … --graph` A/B vs static.
+2. Phase 2 (navigator/executor/reviewer trio + coverage gate + wire observed edges into
+   `navigation-flow-analyzer`), Phase 3 (autonomous seeding), Phase 4 (fidelity frames). See task file.
+3. **[codex]** for codex-side crawling parity, add `crawl-executor` to
+   `templates/spec/codex/skills/app-spec-creator/agents/openai.yaml` (codex-owned; I left it untouched).
+   Run shellcheck on `scripts/crawl/*.sh`.
+
+OWNERSHIP NOTE: I edited the shared `install-spec.sh` + `lib/build-marketplace.sh` additively (scripts
+copy + one AGENTS row) on top of codex's in-flight mp-dev-bridge changes already in the working tree —
+no codex content removed. Did NOT touch `lib/render.sh`, `lib/sync.sh`, `bootstrap.sh`, or `.codex/`.
+
+BLOCKERS: none (Phase 1 is code-complete pending a device smoke test).
+
+---
+
+## LATEST (2026-06-03, codex) - Codex mp-dev marketplace bridge
+Added the missing Codex side of `mp-dev`: `codex-plugins/mp-dev` now ships a `$mp`/`/mp` skill,
+`agents/openai.yaml`, and `references/codex-agent-shims.md`. Added canonical source templates under
+`templates/dev/codex/` (`.codex-plugin/plugin.json`, skill files, `agent.toml.tmpl`, and
+`config-fragment.toml`), wired `lib/build-marketplace.sh` to regenerate the Codex plugin, and added
+`mp-dev` to `.agents/plugins/marketplace.json`. Docs now say Codex receives both `mp-spec` and
+`mp-dev` skills while native `.codex/agents/mp-*.toml` shims remain per-project. The dev-agent Codex
+tier policy is now active guidance, including `mp-fidelity-android` as `gpt-5.5/high` read-only.
+Follow-up is only installer automation for those shims via future `lib/sync.sh` or bootstrap/install
+work.
 
 ## LATEST (2026-06-02, codex) — visual autotest device gate
 Added the hard Android visual/device autotest pre-flight requested from the MyMoney incident:
@@ -88,8 +203,9 @@ user go-ahead). Follow-ups + manual cleanup remain (below).
 3. **Finish the local folder rename** — repo renamed on GitHub to `mobile-pipeline`; the working folder
    is still `D:\Pet\claude-mobile-pipeline` (cwd-locked). User: move it + repoint the 3 `directory`
    sources (or switch to the `git` source now that it's pushed). See final chat message.
-4. Per-project Codex **dev** agent generation (`.codex/agents/mp-*.toml` from `mp-*.md`) using the
-   now-documented fast/standard/powerful Codex tier policy.
+4. Optional installer automation for per-project Codex **dev** agent shims. The `mp-dev` Codex skill
+   and `templates/dev/codex/agent.toml.tmpl` now define the contract; future `lib/sync.sh` or
+   bootstrap/install work can generate the 18 `.codex/agents/mp-*.toml` files automatically.
 5. **[codex]** codex-001 (render `tool:` axis, `lib/sync.sh`, `bootstrap --tools`) still open + codex-owned.
 6. Optional: run `graphify update .` when the local `graphify` command is available; the current
    PowerShell session could not find it.

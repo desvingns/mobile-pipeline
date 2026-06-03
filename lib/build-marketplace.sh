@@ -15,8 +15,10 @@
 #                            installed per-project by install-spec.sh.)
 #   claude-plugins/mp-dev/   commands/mp.md + agents/mp-*.md + scripts/mp-*.sh  (the /mp dev pipeline,
 #                            de-specialized: agent bodies read project facts from .claude/mp/config.json
-#                            + CLAUDE.md + .claude/mp/extras/*.md at runtime). Claude-only; the Codex
-#                            dev roster is generated per-project during project wiring.
+#                            + CLAUDE.md + .claude/mp/extras/*.md at runtime).
+#   codex-plugins/mp-dev/    skills/mp-dev/{SKILL.md,references/}                (skill only; native
+#                            .codex/agents/mp-*.toml shims stay per-project and use
+#                            templates/dev/codex/agent.toml.tmpl).
 #
 # Ownership: this script never edits templates/ — it reads them and writes transformed copies into
 # the plugin trees. bootstrap.sh and templates/**/scripts/*.sh stay untouched.
@@ -24,6 +26,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SPEC_SRC="$ROOT/templates/spec"
+DEV_CODEX="$ROOT/templates/dev/codex"
 COMMON="$ROOT/templates/common"
 ANDROID="$ROOT/templates/android"
 
@@ -36,6 +39,7 @@ DRY=0
 if [ "${1:-}" = "--dry-run" ]; then DRY=1; fi
 
 [ -d "$SPEC_SRC" ] || { echo "spec source not found: $SPEC_SRC" >&2; exit 1; }
+[ -d "$DEV_CODEX" ] || { echo "dev codex source not found: $DEV_CODEX" >&2; exit 1; }
 
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
@@ -115,6 +119,9 @@ build_mp_spec() {
   render_md "$SPEC_SRC/skills/app-spec-creator/SKILL.md" "$plugdir/skills/mp-spec/SKILL.md" "$adir" "$tool"
   set_skill_name "$plugdir/skills/mp-spec/SKILL.md" "mp-spec"
   copy_dir "$SPEC_SRC/skills/app-spec-creator/prompts" "$plugdir/skills/mp-spec/prompts"
+  # Crawl device primitives (.sh) — copied verbatim; rewrite_mp_spec_tree skips .sh so they stay
+  # path-neutral. The orchestrator passes scripts_dir to the crawl-executor at runtime.
+  copy_dir "$SPEC_SRC/skills/app-spec-creator/scripts" "$plugdir/skills/mp-spec/scripts"
   if [ "$tool" = claude ]; then
     for a in "$SPEC_SRC"/agents/*.md; do
       [ -f "$a" ] || continue
@@ -269,8 +276,23 @@ build_mp_dev() {
   fi
 }
 
+build_mp_dev_codex() {
+  local plugdir="$ROOT/codex-plugins/mp-dev"
+  echo "==> mp-dev (codex) -> ${plugdir#"$ROOT"/}"
+  if [ "$DRY" = 1 ]; then
+    echo "  [dry] copy   ${DEV_CODEX#"$ROOT"/}/.codex-plugin -> ${plugdir#"$ROOT"/}/.codex-plugin"
+    echo "  [dry] copy   ${DEV_CODEX#"$ROOT"/}/skills/mp-dev -> ${plugdir#"$ROOT"/}/skills/mp-dev"
+    return 0
+  fi
+  rm -rf "$plugdir"
+  mkdir -p "$plugdir"
+  copy_dir "$DEV_CODEX/.codex-plugin" "$plugdir/.codex-plugin"
+  copy_dir "$DEV_CODEX/skills/mp-dev" "$plugdir/skills/mp-dev"
+}
+
 build_mp_spec claude
 build_mp_spec codex
 build_mp_dev
+build_mp_dev_codex
 
 echo "build-marketplace: done ($([ "$DRY" = 1 ] && echo dry-run || echo wrote) mp-spec + mp-dev)."

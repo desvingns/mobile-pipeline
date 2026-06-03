@@ -45,9 +45,11 @@ This skill runs under **both** Claude Code and Codex CLI. The orchestration is i
 - None present, or `--greenfield` → **greenfield** mode.
 - `--mode greenfield|clone` overrides detection.
 
-**Flags** (superset of app-tdd-creator's): `--name`, `--depth {mvp|production|reference}`, `--platforms` (default `android`), `--base` (output root; default `~/AppSpecs` — a personal folder you control, kept separate from any unrelated work context), `--resume`, `--fresh`, `--dry-run`, `--skip-play`, `--skip-apk`, `--only <list>`, `--no-bridge` (stop after bundle, don't offer handoff).
+**Flags** (superset of app-tdd-creator's): `--name`, `--depth {mvp|production|reference}`, `--platforms` (default `android`), `--base` (output root; default `~/AppSpecs` — a personal folder you control, kept separate from any unrelated work context), `--resume`, `--fresh`, `--dry-run`, `--skip-play`, `--skip-apk`, `--only <list>`, `--no-bridge` (stop after bundle, don't offer handoff), `--graph` / `--no-graph` (force-on / force-off the dynamic reference crawl — see Phase A.0).
 
 **Depth default:** clone mode defaults to `--depth reference` (full visual + behavioural fidelity — turns on the per-screen fidelity checklist + the downstream `/<prefix> --fit` gate); greenfield defaults to `--depth production`. Override with `--depth`.
+
+**Dynamic crawl auto-enable (clone only):** Phase A.0 runs when an `--apk` is supplied AND depth is `reference` AND a booted device is reachable — unless `--no-graph`. `--graph` forces the attempt (and asks for a device if none is found). It is always **additive**: if there is no device or the APK won't install/launch, log the reason and fall back to the static A-clone (user-provided screenshots) unchanged.
 
 **Clone-mode validation** (reuse app-tdd-creator Step 0 verbatim): screenshots dir required & non-empty; ask for Play URL / APK if not given; reject `.aab/.apks/.xapk` with extraction hint. See `prompts/questions/clone.input.md`.
 
@@ -62,7 +64,8 @@ Base: `<BASE>\<APP>\` (where `<BASE>` = `--base` or default personal folder). La
 ```
 <BASE>\<APP>\
 ├── input\
-│   ├── screenshots\        (clone: normalized 01.png…NN.png)
+│   ├── screenshots\        (clone: normalized 01.png…NN.png — filled by the crawler when it runs)
+│   ├── crawl\              (clone, --graph: trace.jsonl, states\STxx.png+xml, state-graph.json+.mmd, session.md)
 │   ├── apk\ apk_decoded\ play_html\   (clone, as app-tdd-creator)
 │   └── interview\          (greenfield: stage1.yaml … stage5.yaml)
 ├── pipeline\               (raw agent outputs 01..07 + elicitation.md, eval_report.md)
@@ -86,6 +89,63 @@ If `--dry-run` — print planned phases + gates, stop.
 
 Print `⟳ Phase A — Сбор данных (<mode>)`.
 
+### A.0-crawl (clone, optional — dynamic reference exploration)
+Runs only under the auto-enable / `--graph` conditions above. Goal: replace hand-collected screenshots
+with an **observed** corpus + a state graph, so the analyzers stop guessing. **You (the main session)
+own the loop and the state files**; the work is split across three single-purpose sub-agents in
+**separate sessions** — `crawl-navigator` (plans the next step), `crawl-executor` (drives the device),
+`crawl-reviewer` (classifies the result + scores coverage). State lives only in files, so a killed run
+resumes from them.
+
+1. **Resolve the crawl scripts dir.** Use whichever exists: `${CLAUDE_PLUGIN_ROOT}/skills/mp-spec/scripts/crawl`
+   (plugin) → `.codex/skills/mp-spec/scripts/crawl` (global install). Call it `$CRAWL`.
+2. **Device pre-flight (you ask; sub-agents can't).** `bash "$CRAWL/device-preflight.sh"`. If `ok:false`,
+   ask the user where/how the test device is connected (`Read prompt questions/clone.crawl-setup.md`) —
+   adb path, serial, how connected — set `ADB`/`ANDROID_SERIAL` accordingly and retry. Record the working
+   answer in `pipeline/00_meta.yaml` (`crawl.device{serial,w,h,android}`) so `--resume` never re-asks.
+   If still no device and `--graph` was not explicit → skip A.0 (note `crawl.skipped:"no device"`), fall
+   through to static A-clone.
+3. **Consent + install + reset + init the graph.** First confirm the crawl **consent** and collect any
+   optional **test credentials** (`Read prompt questions/clone.crawl-setup.md`): consent mode
+   `seed`/`explore-only`/`decline`; hold credentials **in session only — never write them to any file**.
+   Then `app-control.sh install <apk>` → `app-control.sh clear <package>` (once — deterministic
+   first-run) → `app-control.sh launch <package>` (`package` from the apk-analyzer; run it first if
+   needed). If install/launch fails → note `crawl.skipped:"<reason>"`, fall through to static A-clone.
+   Capture the launch state (`screencap` + `ui-dump`), make it node `ST01` (`launch_state`), enumerate
+   its frontier, and write the initial `input/crawl/state-graph.json`.
+4. **The trio loop** (you drive it; persist after every step so `--resume` works). Repeat until a stop
+   condition (below):
+   a. **Navigate.** Call `crawl-navigator` with `{state_graph, coverage, budget}`. It returns one
+      `goal` (or `{done:true}`). The goal `type` is `explore`, or — when consent is `seed` — `auth`
+      (get past a sign-in wall) / `seed` (populate an empty state). On `done` → finalize. (If consent
+      was `explore-only`, tell the navigator to emit explore goals only.)
+   b. **Execute ⇄ Review** (inner loop, **max 2 retries** — mirror the Phase F evaluator-optimizer):
+      - Call `crawl-executor` with `{goal, package, scripts_dir:$CRAWL, crawl_dir, state_graph, device,
+        iter}` — and for an `auth` goal also pass `credentials` if the user provided them (runtime-only;
+        do not persist). It relaunches, replays `goal.path`, performs the goal (explore: one affordance;
+        auth: fill+submit the form; seed: create `count` synthetic entries), captures + dedups, and
+        returns a result (`reached_target`, `goal_type`, `after`{new|known,data_state}, `dead_end`,
+        `blocker` — `needs_human:…` on an OTP/captcha wall).
+      - Call `crawl-reviewer` with `{goal, result, before_shot, coverage, retries_so_far}`. It returns
+        `{edge_class, success_met, coverage_confidence, decision, critique, needs_seeding, needs_human}`.
+      - `decision:continue` and retries < 2 → re-call the executor with `goal.critique = review.critique`.
+        Else accept.
+   c. **Merge** the accepted result into `state-graph.json`: add/refresh the `after` node (with its
+      frontier), add the edge `{from:before_state, to:after.id, action, class:review.edge_class,
+      confidence:1.0, source:"observed"}`, and move `goal.affordance` from the before-node's
+      `frontier_remaining` → `tried` (or `blocked` on a guardrail). Bump `coverage{iters,states,actions}`.
+   d. **Update `coverage.md`** (roots seen, states/iter trend, `coverage_confidence`, accumulated
+      `needs_seeding[]` / `needs_human[]`) and append the iteration to `session.md`.
+   **Stop** when: navigator says `done`; OR coverage plateaus (≥ K=4 iters added no new state); OR
+   budget hit (`max_iters`/`max_states`/`max_actions`, defaults `40/25/60`). Surface `needs_human[]`
+   briefly to the user.
+5. **Finalize + cleanup.** For each unique node, copy its representative frame to `input/screenshots/`
+   (`NN.png`, in node order) **and record `screenshot_file:"NN.png"` on the node** (this filename is the
+   bridge that lets `navigation-flow-analyzer` map crawl `ST*` ids onto business `S*` screens — both
+   reference the same image). Write `state-graph.mmd`. `app-control.sh stop <package>`. Set
+   `crawl.completed:true` + coverage in `00_meta.yaml`. The observed corpus now feeds A-clone (below);
+   `state-graph.json` feeds `navigation-flow-analyzer` (observed edges override its guesses).
+
 ### A-clone (reuse existing analyzer agents)
 Run the app-tdd-creator fan-out **unchanged**:
 1. Parallel: `play-store-scraper` (haiku), `screenshot-business-analyzer` (opus), `screenshot-style-analyzer` (opus), `apk-analyzer` (sonnet, if `--apk`). Merge JSON into `00_meta.yaml` with the same source-priority table (APK ground-truth wins palette/strings/manifest/permissions/SDKs/locales).
@@ -93,6 +153,8 @@ Run the app-tdd-creator fan-out **unchanged**:
 Question batches A–E interleave exactly as app-tdd-creator does — `Read prompt questions/clone.batchA.md` … `clone.batchE.md`. Dynamic batch B from `ambiguities[]`.
 
 The business-analyzer also returns a per-screen `interactions[]` map (gestures / entry order / partial-vs-full overlays) and `state_gaps[]` (states the app has but that were not screenshotted). **Surface `state_gaps[]` in intake** and ask the user to capture the missing states (empty/loading/error) — a clone that never sees a state ships a wrong one (the empty-state class of divergence). The `interactions[]` map feeds the per-screen behaviour spec in `design.md` and the behavioural arm of `/<prefix> --fit`.
+
+When **A.0-crawl ran**, `input/screenshots/` already holds the observed states, so `state_gaps[]` is typically near-empty — only ask the user for states the crawl could not reach (e.g. behind an auth wall it flagged `needs_human`). `input/crawl/state-graph.json` records the observed transitions; later phases consume it to upgrade `navigation-flow-analyzer` edges from inferred to `source:observed` (Phase 2 of the crawler work).
 
 ### A-green (staged interview elicitation)
 Funnel: broad → narrow, each stage's answers constrain the next (anti-hallucination via propose-then-confirm). Five batches via AskUserQuestion (≤4 Qs each), saved to `input/interview/stageN.yaml`:
@@ -133,6 +195,8 @@ Write the confirmed inventory to `pipeline/feature-inventory.json` (the neutral 
 One message, parallel: `nfr-analyzer`, `a11y-reviewer`, `security-privacy-reviewer`, `analytics-taxonomy-designer`, `risk-estimator` (writes both `risks.md` + `estimate.md`). Each reads `feature-inventory.json` + posture answers + relevant rubric, writes its artifact, returns JSON.
 
 **Clone mode, depth ≥ reference:** also fan out `fidelity-checklist-author` (opus, multimodal) → `spec/fidelity/<Sxx>.md` (per-screen visual + behavioural must-match checklists, each grounded in its reference screenshot), `spec/fidelity/registry.csv` (screen ↔ reference image ↔ FR/AC), and a `spec/deviations.md` stub (intended deviations from the reference). This is the contract the build-time `/<prefix> --fit` gate later checks the running app against — so the clone converges to the reference instead of drifting (the failure mode that produced the 7 MyMoney↔Monefy divergences).
+
+**When A.0-crawl ran**, also pass `crawl_graph` (`input/crawl/state-graph.json`) + `crawl_states_dir` (`input/crawl/states/`) to `fidelity-checklist-author`. It then grounds the checklist in the **observed per-state frames** — including the `data_state:"filled"` states the seed goals produced — and emits a `registry.csv` row per (screen, captured state), so `--fit` drives the built app into each state (empty *and* filled) and compares it against its own real reference frame. This is the payoff of the dynamic crawl: the fidelity contract is anchored to states the reference app actually showed, not a partial hand-captured set.
 
 ## Step 8 — Phase F: evaluate (evaluator-optimizer) + traceability
 

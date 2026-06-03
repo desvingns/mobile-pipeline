@@ -59,9 +59,10 @@ After editing `templates/`, regenerate the plugin trees with `./lib/build-market
 
 Notes: this uses the portable `github` source (`desvingns/mobile-pipeline`) — pull updates with
 `claude plugin marketplace update mobile-pipeline`. A local `directory` source (`{"source":"directory",
-"path":"D:\\Pet\\mobile-pipeline"}`) also works for offline development. Codex gets the `mp-spec` **skill** via
-`codex-plugins/mp-spec`; Codex sub-agents install per-project (Codex plugins carry skills, not
-sub-agents). Full guide: `docs/MARKETPLACE.md`.
+"path":"D:\\Pet\\mobile-pipeline"}`) also works for offline development. Codex gets the `mp-spec`
+and `mp-dev` **skills** via `codex-plugins/`; native `.codex/agents/*.toml` sub-agent shims still
+install per-project because Codex plugins carry skills, not sub-agents. Full guide:
+`docs/MARKETPLACE.md`.
 
 ## What you get
 

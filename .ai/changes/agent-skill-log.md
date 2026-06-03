@@ -228,3 +228,51 @@ summary: Broadened the instrumented runner's Step 2 "project-specific device-run
 reason: MyMoney clone migration — its on-device flow runs through scripts/run_connected_test_on_host_avd.ps1 because AGP 8.7.3 UTP rejects the host-AVD remote serial on this Windows host; the generic --device path forbade PowerShell and only looked in CLAUDE.md, so the per-project helper was not first-class.
 affects: claude, codex
 by: claude
+
+## 2026-06-03T10:00-codex-mp-dev-bridge
+type: add
+target: templates/dev/codex/, codex-plugins/mp-dev/, lib/build-marketplace.sh, .agents/plugins/marketplace.json, templates/common/agents/{{PREFIX}}-maintainer.md, docs/MARKETPLACE.md, README.md
+summary: Added the Codex mp-dev marketplace skill bridge, UI metadata, per-project agent-shim reference/template/config fragment, generator wiring, and marketplace entry; updated the dev-agent Codex tier policy from future guidance to the active shim contract.
+reason: MyMoney hard-switch migration proved Codex needs the same mp-dev entrypoint as Claude while keeping project behavior synchronized through .claude/mp/extras/* and native .codex/agents/mp-*.toml shims.
+affects: codex
+by: codex
+
+## 2026-06-03T14:00-reference-crawler-phase1
+type: add
+target: templates/spec/skills/app-spec-creator/scripts/crawl/{_crawl-lib,device-preflight,app-control,screencap,ui-dump,input}.sh, templates/spec/agents/crawl-executor.md, templates/spec/skills/app-spec-creator/SKILL.md, templates/spec/skills/app-spec-creator/prompts/questions/clone.crawl-setup.md, install-spec.sh, lib/build-marketplace.sh
+summary: Phase 1 of the dynamic reference-APK crawler for /mp-spec clone intake. New optional Phase A.0 installs the reference APK on a connected device and drives it vision-first (crawl-executor, opus) to build a state graph with screenshots, dedup states, and fill input/screenshots/ with an observed corpus. Five cross-platform device primitives under scripts/crawl/ (one JSON line each, mirror mp-runner-android.sh conventions, target $ANDROID_SERIAL, no install-path assumptions). SKILL gains --crawl/--no-crawl + Step 2.0 + the input/crawl/ bundle slot; clone.crawl-setup prompt handles device/consent. install-spec.sh AGENTS table gains crawl-executor (gpt-5.5/high) and both installers + build-marketplace now copy scripts/ into the skill. Additive — auto-skips to static A-clone when no device or the APK won't run.
+reason: static clone intake produces a shallow spec (inferred gestures, uncaptured states, guessed nav edges); observing the running reference yields real states + transitions. Phase 1 de-risks the core assumption (can we reliably drive an arbitrary APK) before the navigator/executor/reviewer trio (Phase 2), autonomous seeding (Phase 3), and fidelity wiring (Phase 4).
+affects: claude, codex
+by: claude
+
+## 2026-06-03T15:00-reference-crawler-device-fixes
+type: fix
+target: templates/spec/skills/app-spec-creator/scripts/crawl/{ui-dump,input,app-control}.sh, templates/spec/agents/crawl-executor.md
+summary: Device-validated the crawl primitives on a real emulator (emulator-5554, Android 34) and fixed three bugs the offline tests could not catch. (1) ui-dump.sh: Git Bash (MSYS) mangled the on-device /sdcard path before it reached adb.exe — now export MSYS_NO_PATHCONV=1 and stream via `adb exec-out cat "$DEV_PATH" > "$OUT"` (a bash redirect, so the LOCAL dest is not an adb path arg). (2) input.sh resolve_center: --clickable was too strict for Compose (the visible label sits on a non-clickable node while the clickable is an anonymous View) — now PREFER a clickable match, else fall back to any text match, so tapping the label's centre hits the parent. (3) app-control.sh launch: now CONFIRMS the target reached the foreground (poll + one retry) and reports ok:false honestly instead of a false success. Also: ui-dump now exposes clickable/clickable_labeled counts and flags compose_degenerate when clickables carry no label; crawl-executor.md documents the Compose label pattern. End-to-end proven: tap --text "Chrome" resolved+tapped → foreground became Chrome.
+reason: a real device smoke (the user asked why it wasn't run) exposed Windows/MSYS path conversion, the Compose uiautomator pattern, and unverified launches — exactly the class of bug `bash -n` and synthetic-dump unit tests miss.
+affects: claude, codex
+by: claude
+
+## 2026-06-03T16:00-reference-crawler-phase2
+type: add
+target: templates/spec/agents/{crawl-navigator,crawl-reviewer,crawl-executor,navigation-flow-analyzer}.md, templates/spec/skills/app-spec-creator/SKILL.md, install-spec.sh
+summary: Phase 2 of the reference-APK crawler — split the single-agent crawler into a separate-session trio. New crawl-navigator (sonnet, read-only) plans the next affordance to explore + its replay path and decides done; new crawl-reviewer (opus, multimodal, read-only) classifies each edge (flow|cycle|error|dead_end), judges the success_test, scores coverage_confidence, and gates accept vs continue; crawl-executor refactored from whole-crawl to goal-scoped (relaunch → replay path → one affordance → capture+dedup → return). SKILL Step 2.0 rewritten: the orchestrator owns a file-persisted loop navigator→(executor⇄reviewer, max 2 retries — mirrors the Phase F evaluator-optimizer)→merge→coverage, stopping on done/plateau(K=4)/budget(40/25/60). navigation-flow-analyzer now accepts the optional observed state-graph.json and converts its edges to source:observed/confidence:1.0 (mapping crawl ST* → business S* via the shared screenshot_file), inferring only uncovered transitions. install-spec.sh AGENTS table gains crawl-navigator (gpt-5.4/medium) + crawl-reviewer (gpt-5.5/high); plugins regenerated, 0 leaks.
+reason: the colleague's core advice — never reuse one session for multiple roles; navigator/executor/reviewer with a confidence-gated loop yields better decisions, classified edges, and a coverage stop, and lets observed transitions replace navigation guesses.
+affects: claude, codex
+by: claude
+
+## 2026-06-03T17:00-reference-crawler-phase3
+type: add
+target: templates/spec/agents/{crawl-navigator,crawl-executor,crawl-reviewer}.md, templates/spec/skills/app-spec-creator/SKILL.md, templates/spec/skills/app-spec-creator/prompts/questions/clone.crawl-setup.md
+summary: Phase 3 of the reference-APK crawler — autonomous data-seeding + auth so populated states are actually observed. crawl-navigator now emits auth goals (get past a sign-in/onboarding wall — unblock before breadth) and seed goals (create entries to reveal an empty state's populated form), in addition to explore. crawl-executor branches on goal.type: auth = fill the form (user-provided credentials if any, else synthetic) + submit + detect verification walls; seed = open the create flow and create `count` entries with synthetic data, then capture the filled list/dashboard. Added a deterministic ASCII synthetic-data fixture set (reproducible corpus) and strengthened guardrails (synthetic only; no real-money/send/share; SMS/email-OTP/captcha → blocker:needs_human, no retry). crawl-reviewer judges auth/seed success from the after-shot (authenticated landing / populated list) and treats needs_human blockers as accept-and-prune. clone.crawl-setup gains a Phase-3 consent (seed | explore-only | decline) + an optional TEST-credentials question; credentials are runtime-only and MUST NOT be written to any artifact. SKILL Step 2.0 collects consent/creds up front and passes credentials to the executor for auth goals. No new agents/scripts; plugins regenerated, 0 leaks.
+reason: the static and explore-only paths only ever see empty UI; the user specifically wanted populated/filled states, which require getting past auth and creating data — done autonomously with synthetic fixtures and graceful needs_human degradation on walls the crawl cannot pass.
+affects: claude, codex
+by: claude
+
+## 2026-06-03T18:00-reference-crawler-phase4
+type: add
+target: templates/spec/agents/fidelity-checklist-author.md, templates/spec/skills/app-spec-creator/SKILL.md, docs/CLONE-PLAYBOOK.md, docs/REFERENCE-CRAWLER.md
+summary: Phase 4 of the reference-APK crawler — close the clone loop. fidelity-checklist-author now consumes the optional crawl_graph + crawl_states_dir: it grounds per-screen must-match checklists in the OBSERVED per-state frames (incl. the data_state:"filled" states seeding produced), writes a visual block per state when a screen was captured empty AND filled, and emits a registry.csv row per (screen, captured state) with a data_state column — so the build-time --fit gate drives the built app into each state and compares it against its own real reference frame. SKILL Step 7 passes the crawl inputs to the fidelity author when A.0-crawl ran. CLONE-PLAYBOOK gains a Step 0 (the dynamic crawl front-door) + updated loop diagram + the auto-state-capture note; new docs/REFERENCE-CRAWLER.md consolidates the subsystem (trio, scripts, artifacts, seam, gotchas, phasing). Auto-enable on --depth reference was already wired (Phase 1). No new agents/scripts; plugins regenerated, 0 leaks. Crawler now feature-complete across all 4 phases.
+reason: the dynamic crawl's payoff is only realized when its observed empty+filled frames become the fidelity contract the --fit gate checks against — otherwise the build still drifts on the empty-state class of divergence. This anchors fidelity to states the reference actually showed.
+affects: claude, codex
+by: claude

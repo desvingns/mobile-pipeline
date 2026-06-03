@@ -61,7 +61,10 @@ screenshot-style-analyzer|gpt-5.5|high|Multimodal screenshot analysis into desig
 navigation-flow-analyzer|gpt-5.4|medium|Build the navigation graph from the business analysis.
 data-model-extractor|gpt-5.4|high|Derive neutral data entities, relations, and a cache strategy.
 backend-api-extractor|gpt-5.4|high|Infer REST API contracts and third-party SDKs from UI evidence.
-fidelity-checklist-author|gpt-5.5|high|Per-screen visual+behavioural fidelity checklist + screen<->reference registry + intended-deviation ledger (clone, depth reference).'
+fidelity-checklist-author|gpt-5.5|high|Per-screen visual+behavioural fidelity checklist + screen<->reference registry + intended-deviation ledger (clone, depth reference).
+crawl-executor|gpt-5.5|high|Driver of the reference-APK crawl trio; goal-scoped vision-first device driver — replay to a target state, perform one affordance, capture and dedup (clone, --graph).
+crawl-navigator|gpt-5.4|medium|Planner of the reference-APK crawl trio; read the observed state graph and pick the next affordance to explore plus its replay path (clone, --graph).
+crawl-reviewer|gpt-5.5|high|Critic of the reference-APK crawl trio; multimodal — classify each explored edge, score coverage confidence, gate accept vs retry (clone, --graph).'
 
 say() { echo "$@"; }
 
@@ -92,7 +95,11 @@ install_claude() {
   sk="$home/.claude/skills/app-spec-creator"; ag="$home/.claude/agents"
   say "==> Claude form -> $home/.claude"
   guard_existing "$sk"
-  if [ "$DRY_RUN" != 1 ]; then mkdir -p "$sk" "$ag"; rm -rf "$sk/prompts"; cp -r "$SPEC_SRC/skills/app-spec-creator/prompts" "$sk/prompts"; fi
+  if [ "$DRY_RUN" != 1 ]; then
+    mkdir -p "$sk" "$ag"
+    rm -rf "$sk/prompts"; cp -r "$SPEC_SRC/skills/app-spec-creator/prompts" "$sk/prompts"
+    rm -rf "$sk/scripts"; [ -d "$SPEC_SRC/skills/app-spec-creator/scripts" ] && cp -r "$SPEC_SRC/skills/app-spec-creator/scripts" "$sk/scripts"
+  fi
   render_md "$SPEC_SRC/skills/app-spec-creator/SKILL.md" "$sk/SKILL.md" "$adir" claude
   while IFS='|' read -r name _ _ _; do
     [ -n "$name" ] || continue
@@ -111,6 +118,7 @@ install_codex() {
   if [ "$DRY_RUN" != 1 ]; then
     mkdir -p "$sk/agents" "$ag"
     rm -rf "$sk/prompts"; cp -r "$SPEC_SRC/skills/app-spec-creator/prompts" "$sk/prompts"
+    rm -rf "$sk/scripts"; [ -d "$SPEC_SRC/skills/app-spec-creator/scripts" ] && cp -r "$SPEC_SRC/skills/app-spec-creator/scripts" "$sk/scripts"
     cp "$SPEC_SRC/codex/skills/app-spec-creator/agents/openai.yaml" "$sk/agents/openai.yaml"
   fi
   render_md "$SPEC_SRC/skills/app-spec-creator/SKILL.md" "$sk/SKILL.md" "$adir" codex

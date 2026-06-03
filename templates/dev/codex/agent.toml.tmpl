@@ -1,0 +1,17 @@
+# {{NAME}} - Codex subagent shim. Generated from the canonical mp-dev Claude plugin.
+# The canonical behavior lives in the markdown body; this shim only makes Codex run it natively.
+name = "{{NAME}}"
+description = "{{DESC}}"
+model = "{{MODEL}}"
+model_reasoning_effort = "{{EFFORT}}"
+sandbox_mode = "{{SANDBOX}}"
+
+developer_instructions = """
+Read AGENTS.md first; if it is absent, read CLAUDE.md.
+Read the canonical Claude mp-dev agent body at {{BASE_AGENT_PATH}}.
+Read .claude/mp/config.json and .claude/mp/extras/{{NAME}}.md if it exists; the extras override the generic body.
+Interpret Claude tool names (Read/Write/Edit/Glob/Grep/Bash/Agent) as the equivalent Codex file, shell, and native-subagent operations.
+If Bash is unavailable, do not require deterministic Claude .sh scripts; use the native Codex reviewer/runner fallback paths.
+Return only the structured payload required by the canonical body. Do not spawn descendant agents.
+{{EXTRA_INSTRUCTIONS}}
+"""

@@ -20,6 +20,11 @@ You will read:
 - `pipeline/02_business.md` (screen map, CTA buttons)
 - `pipeline/user_answers_qB.yaml` (user choices on MVP scope and missing screens)
 - (optional) `pipeline/user_answers_qB_dynamic.yaml`
+- **(optional) `input/crawl/state-graph.json`** — the OBSERVED state graph from the dynamic crawl
+  (Phase A.0). When present it is **ground truth** for transitions: real edges someone actually walked,
+  not guesses. Each crawl node carries a `screenshot_file` (e.g. `05.png`) — the same image
+  `02_business.md` lists under a screen's `file`, which is how you map a crawl `ST*` id to a business
+  `S*` id.
 
 ## Process
 
@@ -45,7 +50,15 @@ For each screen pick **one** role:
 
 ### 3. Derive edges (transitions)
 
-For each screen, infer where its CTA buttons lead:
+**Observed edges win.** If `input/crawl/state-graph.json` is present, first convert its edges: map each
+crawl node to a business `screen_id` by matching `screenshot_file` to the screen's `file` in
+`02_business.md` (fall back to `screen_guess` + `activity` when a file match is ambiguous — flag those).
+Emit every mapped transition as an edge with `source:"observed"`, `confidence:1.0`, and the crawl edge's
+`class` (`flow`→`push`/`replace`, `cycle`→`pop`/`replace`, `modal` if the target was a sheet). Then only
+**infer** edges for screens/transitions the crawl did NOT cover (mark those `source:"inferred"`). Never
+override an observed edge with a guess; if your inference contradicts an observed edge, drop the guess.
+
+For each screen still needing edges, infer where its CTA buttons lead:
 
 - "Войти" on login → home
 - "Зарегистрироваться" on login → register
@@ -57,10 +70,11 @@ For each screen, infer where its CTA buttons lead:
 
 For ambiguous CTAs, write the most likely target and mark the edge with `confidence: 0.6` (or lower). The aggregator can highlight these as open questions.
 
-Edge format: `{from, to, trigger, type, confidence}` where:
+Edge format: `{from, to, trigger, type, confidence, source}` where:
 - `trigger` — what causes the navigation (`tap_login_button`, `tap_list_item`, `fab_tap`, `back`, `system_back`, `deep_link`)
 - `type` — `push` (regular navigate) / `replace` (login → home, clears auth stack) / `pop` (back) / `modal` (modal sheet)
-- `confidence` — 0.0–1.0
+- `confidence` — 0.0–1.0 (always `1.0` when `source` is `observed`)
+- `source` — `observed` (converted from the crawl graph — authoritative) | `inferred` (guessed from CTAs)
 
 ### 4. Identify deep-link candidates
 
@@ -177,7 +191,8 @@ Soft cap: 350 lines.
   "auth_graph_screens": ["S00", "S01", "S03", "S0A"],
   "modal_screens": ["S08", "S0G", "S0P"],
   "edges": [
-    {"from": "S01", "to": "S02", "trigger": "login_success", "type": "replace", "confidence": 0.95}
+    {"from": "S01", "to": "S02", "trigger": "login_success", "type": "replace", "confidence": 1.0, "source": "observed"},
+    {"from": "S02", "to": "S04", "trigger": "tap_list_item", "type": "push", "confidence": 0.7, "source": "inferred"}
   ],
   "deep_links": [
     {"pattern": "/post/{id}", "target_screen_id": "S04", "params_named": ["id"]}

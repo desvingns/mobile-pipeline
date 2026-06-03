@@ -1,0 +1,16 @@
+{
+  "name": "mp-dev",
+  "version": "1.5.0",
+  "description": "Codex skill bridge for the MP Dev mobile development pipeline. Reads shared Claude mp-dev command and agent bodies plus .claude/mp project overrides; native subagent shims stay per project.",
+  "author": {
+    "name": "Konstantin Shavrin",
+    "email": "k.shavrin@strikerz.inc"
+  },
+  "keywords": ["mobile", "android", "ios", "kotlin", "compose", "clean-architecture", "tdd", "codex", "orchestrator"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "MP Dev",
+    "shortDescription": "Mobile dev pipeline bridge for Codex",
+    "category": "Internal"
+  }
+}

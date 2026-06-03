@@ -34,6 +34,39 @@ Measures whether the clone loop (spec → phases → build → `--fit`) actually
 3. Compare the returned `proposed_specs[]` against the 7-divergence ground truth above:
    recall on the visual subset, zero intended-deviation false positives.
 
+## Eval: dynamic-crawl coverage (Phase A.0 / `--graph`)
+Measures whether the **dynamic reference crawl** (install + drive the APK; see
+`docs/REFERENCE-CRAWLER.md`) produces a materially better reference corpus than hand-collected
+screenshots — the precondition for the fidelity checks above to be grounded in real states.
+
+Run `/mp-spec --apk <ref.apk> --graph` on a clonable fixture (a throwaway AVD, **not** a live dev
+device) and compare the bundle against a `--no-graph` (static) run of the same inputs:
+1. **State-gap reduction.** `state_gaps[]` reported by the business-analyzer should be **strictly
+   fewer** with the crawl (it observed the empty/loading/filled states first-hand) — ideally ~0 except
+   states behind a `needs_human` wall.
+2. **Observed-edge share.** In `navigation-flow-analyzer` output, the fraction of edges with
+   `source:observed` (`confidence:1.0`) should be high; inferred guesses only for uncovered screens.
+   The graph must contain **no** observed edge that contradicts a CTA in `02_business.md`.
+3. **Populated-state capture.** With consent `seed`, at least one screen reaches `data_state:"filled"`
+   and `fidelity/registry.csv` gains a per-(screen, state) row for both empty and filled — so `--fit`
+   checks each state against its own frame.
+4. **Determinism.** Two `--graph` runs on the same fixture (same synthetic fixtures, `pm clear` reset)
+   produce the same set of states/screens (allowing list-content noise) — the corpus is reproducible.
+5. **Safety.** No test credentials or synthetic secrets appear in any bundle artifact
+   (`grep` the bundle for the fixture email/password → zero hits).
+6. **Graceful degradation.** With no device (or an un-runnable APK) the run falls back to the static
+   A-clone and still produces a valid bundle (`crawl.skipped` recorded in `00_meta.yaml`).
+
+Suggested fixture: a small open-source Android app with an onboarding + a create flow (so `auth`/`seed`
+goals exercise). MyMoney↔Monefy can serve once a throwaway AVD has the Monefy reference installed.
+
 ## Status
 Fixture documented; harness automation is TODO (wire into the repo's eval runner). This README is the
 spec for that harness — it pins what "the clone loop works" means so the pipeline can't quietly lose it.
+
+> **Naming note (fidelity → fit).** This directory is still `eval/clone-fidelity/`; the earlier rename
+> was deliberately flag-only (`--fidelity` → `--fit`), so the "fidelity" *concept* (this dir,
+> `spec/fidelity/`, `fidelity-checklist-author`, `mp-fidelity-android`, `fidelity_score`) was kept. To
+> rename the concept to `fit` repo-wide (incl. this dir → `eval/clone-fit/`), do it as one deliberate
+> pass — left for the owner to apply (the workspace's never-delete rule means renames aren't done
+> automatically here).
