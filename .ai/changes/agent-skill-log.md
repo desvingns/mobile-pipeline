@@ -276,3 +276,11 @@ summary: Phase 4 of the reference-APK crawler — close the clone loop. fidelity
 reason: the dynamic crawl's payoff is only realized when its observed empty+filled frames become the fidelity contract the --fit gate checks against — otherwise the build still drifts on the empty-state class of divergence. This anchors fidelity to states the reference actually showed.
 affects: claude, codex
 by: claude
+
+## 2026-06-03T19:00-rename-fidelity-concept-to-fit
+type: update
+target: templates/spec/agents/fit-checklist-author.md (was fidelity-checklist-author.md), templates/android/agents/{{PREFIX}}-fit-android.md (was {{PREFIX}}-fidelity-android.md), templates/common/commands/{{PREFIX}}.md, templates/common/agents/{{PREFIX}}-{phase-planner,maintainer}.md, templates/common/implementation_plan/*.tmpl, templates/android/agents/{{PREFIX}}-tester-android.md, templates/spec/skills/app-spec-creator/SKILL.md, templates/dev/codex/skills/mp-dev/references/codex-agent-shims.md, install-spec.sh, docs/{CLONE-PLAYBOOK,REFERENCE-CRAWLER}.md, eval/clone-fit/ (was eval/clone-fidelity/), README.md
+summary: Completed the fidelity→fit rename repo-wide (the 1.5.0 rename was deliberately flag-only). Renamed via git mv: agents fidelity-checklist-author→fit-checklist-author and {{PREFIX}}-fidelity-android→{{PREFIX}}-fit-android, dir eval/clone-fidelity→eval/clone-fit; and the concept tokens in content: spec/fidelity→spec/fit, build/fidelity→build/fit, fidelity_score→fit_score, Fidelity-gate→Fit-gate, === FIDELITY ===→=== FIT ===. install-spec AGENTS table row updated; plugins regenerated (generated mp-fidelity-android→mp-fit-android, fidelity-checklist-author→fit-checklist-author). Released CHANGELOG [1.5.0] history + this append-only log's prior entries intentionally keep "fidelity" verbatim.
+reason: user requested the full concept rename to fit (the earlier flag-only rename left the codebase half-named); one deliberate pass keeps the vocabulary consistent.
+affects: claude, codex
+by: claude

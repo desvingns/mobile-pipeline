@@ -46,7 +46,7 @@ This skill runs under **both** Claude Code and Codex CLI. The orchestration is i
 
 **Flags** (superset of app-tdd-creator's): `--name`, `--depth {mvp|production|reference}`, `--platforms` (default `android`), `--base` (output root; default `~/AppSpecs` — a personal folder you control, kept separate from any unrelated work context), `--resume`, `--fresh`, `--dry-run`, `--skip-play`, `--skip-apk`, `--only <list>`, `--no-bridge` (stop after bundle, don't offer handoff), `--graph` / `--no-graph` (force-on / force-off the dynamic reference crawl — see Phase A.0).
 
-**Depth default:** clone mode defaults to `--depth reference` (full visual + behavioural fidelity — turns on the per-screen fidelity checklist + the downstream `/<prefix> --fit` gate); greenfield defaults to `--depth production`. Override with `--depth`.
+**Depth default:** clone mode defaults to `--depth reference` (full visual + behavioural fit — turns on the per-screen fit checklist + the downstream `/<prefix> --fit` gate); greenfield defaults to `--depth production`. Override with `--depth`.
 
 **Dynamic crawl auto-enable (clone only):** Phase A.0 runs when an `--apk` is supplied AND depth is `reference` AND a booted device is reachable — unless `--no-graph`. `--graph` forces the attempt (and asks for a device if none is found). It is always **additive**: if there is no device or the APK won't install/launch, log the reason and fall back to the static A-clone (user-provided screenshots) unchanged.
 
@@ -75,8 +75,8 @@ Base: `<BASE>\<APP>\` (where `<BASE>` = `--base` or default personal folder). La
     ├── constitution.md       product-brief.md  requirements.md  user-stories.md
     ├── acceptance\*.feature  design.md  nfr.md  a11y.md  security-privacy.md
     ├── analytics.md  i18n.md  risks.md  estimate.md  traceability.csv
-    ├── deviations.md          (clone: intended deviations from the reference — the fidelity gate suppresses these)
-    ├── fidelity\<Sxx>.md  fidelity\registry.csv   (clone, depth ≥ reference: per-screen must-match checklists + screen↔reference registry)
+    ├── deviations.md          (clone: intended deviations from the reference — the fit gate suppresses these)
+    ├── fit\<Sxx>.md  fit\registry.csv   (clone, depth ≥ reference: per-screen must-match checklists + screen↔reference registry)
     └── platform\android.md   platform\ios.md   (ios = populated stub unless --platforms includes ios)
 ```
 
@@ -193,9 +193,9 @@ Write the confirmed inventory to `pipeline/feature-inventory.json` (the neutral 
 
 One message, parallel: `nfr-analyzer`, `a11y-reviewer`, `security-privacy-reviewer`, `analytics-taxonomy-designer`, `risk-estimator` (writes both `risks.md` + `estimate.md`). Each reads `feature-inventory.json` + posture answers + relevant rubric, writes its artifact, returns JSON.
 
-**Clone mode, depth ≥ reference:** also fan out `fidelity-checklist-author` (opus, multimodal) → `spec/fidelity/<Sxx>.md` (per-screen visual + behavioural must-match checklists, each grounded in its reference screenshot), `spec/fidelity/registry.csv` (screen ↔ reference image ↔ FR/AC), and a `spec/deviations.md` stub (intended deviations from the reference). This is the contract the build-time `/<prefix> --fit` gate later checks the running app against — so the clone converges to the reference instead of drifting (the failure mode that produced the 7 MyMoney↔Monefy divergences).
+**Clone mode, depth ≥ reference:** also fan out `fit-checklist-author` (opus, multimodal) → `spec/fit/<Sxx>.md` (per-screen visual + behavioural must-match checklists, each grounded in its reference screenshot), `spec/fit/registry.csv` (screen ↔ reference image ↔ FR/AC), and a `spec/deviations.md` stub (intended deviations from the reference). This is the contract the build-time `/<prefix> --fit` gate later checks the running app against — so the clone converges to the reference instead of drifting (the failure mode that produced the 7 MyMoney↔Monefy divergences).
 
-**When A.0-crawl ran**, also pass `crawl_graph` (`input/crawl/state-graph.json`) + `crawl_states_dir` (`input/crawl/states/`) to `fidelity-checklist-author`. It then grounds the checklist in the **observed per-state frames** — including the `data_state:"filled"` states the seed goals produced — and emits a `registry.csv` row per (screen, captured state), so `--fit` drives the built app into each state (empty *and* filled) and compares it against its own real reference frame. This is the payoff of the dynamic crawl: the fidelity contract is anchored to states the reference app actually showed, not a partial hand-captured set.
+**When A.0-crawl ran**, also pass `crawl_graph` (`input/crawl/state-graph.json`) + `crawl_states_dir` (`input/crawl/states/`) to `fit-checklist-author`. It then grounds the checklist in the **observed per-state frames** — including the `data_state:"filled"` states the seed goals produced — and emits a `registry.csv` row per (screen, captured state), so `--fit` drives the built app into each state (empty *and* filled) and compares it against its own real reference frame. This is the payoff of the dynamic crawl: the fit contract is anchored to states the reference app actually showed, not a partial hand-captured set.
 
 ## Step 8 — Phase F: evaluate (evaluator-optimizer) + traceability
 
@@ -210,7 +210,7 @@ On `pass`, print the verdict summary + coverage stats + warnings, then AskUserQu
 
 Unless `--no-bridge`: tell the user the bundle is ready and how to hand it off to their dev pipeline. If the project ships a **spec-bridge** (e.g. MyMoney's `cmp-planner-android`, invoked as `/<prefix> --plan <bundle>`, which turns the bundle into the project's plan files behind a `y/d/n` gate), name it and print the command. Otherwise the **portable handoff is the bundle itself**: `traceability.csv` + `design.md` + `acceptance/*.feature` feed any coding pipeline (e.g. `/<prefix> --feature` per epic). Always print the bundle path.
 
-**Clone fidelity loop.** For a clone bundle (depth ≥ reference), tell the user that after the dev pipeline implements the screens they should run `/<prefix> --fit` to compare the built app against the reference screenshots — the bundle's `fidelity/` checklists + `deviations.md` drive that gate, and each unexplained divergence becomes a backlog SPEC to fix, closing the clone loop.
+**Clone fit loop.** For a clone bundle (depth ≥ reference), tell the user that after the dev pipeline implements the screens they should run `/<prefix> --fit` to compare the built app against the reference screenshots — the bundle's `fit/` checklists + `deviations.md` drive that gate, and each unexplained divergence becomes a backlog SPEC to fix, closing the clone loop.
 
 ## Step 11 — Report
 

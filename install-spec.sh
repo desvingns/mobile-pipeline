@@ -61,7 +61,7 @@ screenshot-style-analyzer|gpt-5.5|high|Multimodal screenshot analysis into desig
 navigation-flow-analyzer|gpt-5.4|medium|Build the navigation graph from the business analysis.
 data-model-extractor|gpt-5.4|high|Derive neutral data entities, relations, and a cache strategy.
 backend-api-extractor|gpt-5.4|high|Infer REST API contracts and third-party SDKs from UI evidence.
-fidelity-checklist-author|gpt-5.5|high|Per-screen visual+behavioural fidelity checklist + screen<->reference registry + intended-deviation ledger (clone, depth reference).
+fit-checklist-author|gpt-5.5|high|Per-screen visual+behavioural fit checklist + screen<->reference registry + intended-deviation ledger (clone, depth reference).
 crawl-executor|gpt-5.5|high|Driver of the reference-APK crawl trio; goal-scoped vision-first device driver — replay to a target state, perform one affordance, capture and dedup (clone, --graph).
 crawl-navigator|gpt-5.4|medium|Planner of the reference-APK crawl trio; read the observed state graph and pick the next affordance to explore plus its replay path (clone, --graph).
 crawl-reviewer|gpt-5.5|high|Critic of the reference-APK crawl trio; multimodal — classify each explored edge, score coverage confidence, gate accept vs retry (clone, --graph).'

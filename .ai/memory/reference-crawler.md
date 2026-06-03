@@ -8,7 +8,7 @@ metadata:
 
 The CLONE side of `/mp-spec` was fully static: hand-collected screenshots, *inferred* gestures
 (`interactions[]`), *flagged-but-uncaptured* states (`state_gaps[]`), *guessed* nav edges
-(`confidence 0.6–0.95`), and an unzip-only `apk-analyzer`. That ceilings spec depth and UI fidelity.
+(`confidence 0.6–0.95`), and an unzip-only `apk-analyzer`. That ceilings spec depth and UI fit.
 The crawler observes the **running** reference instead of guessing about it.
 
 **Why this design (not a parallel spec path):** the crawler is an *upstream producer*. It **fills
@@ -54,7 +54,7 @@ bounds and dedup signatures, never the decision). Edge identity = `(from_sig, ac
 - Phasing (de-risk first): **1** scripts + single vision-first BFS executor (DONE — `claude-004`);
   **2** navigator/executor/reviewer trio + coverage gate + wire observed edges into
   `navigation-flow-analyzer`; **3** autonomous seeding (auth/forms); **4** feed
-  `fidelity-checklist-author` real per-state frames. Each phase ships independently.
+  `fit-checklist-author` real per-state frames. Each phase ships independently.
 - Plan: `C:\Users\k.shavrin\.claude\plans\ai-steady-galaxy.md`. Task: `.ai/tasks/claude-004-reference-crawler.md`.
 - shellcheck was NOT run locally (not installed on this Windows host); `bash -n` is clean — rely on the
   `validate-plugins.yml` CI gate or run shellcheck before release.

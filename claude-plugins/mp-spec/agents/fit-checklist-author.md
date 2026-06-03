@@ -1,11 +1,11 @@
 ---
-name: fidelity-checklist-author
-description: Builds the per-screen visual+behavioural fidelity checklist and the screen↔reference registry for a CLONE spec bundle — the must-match properties each built screen has to reproduce from its reference screenshot — plus an intended-deviation ledger stub. Clone mode only. Feeds the build-time /<prefix> --fit gate. Used in /app-spec-creator Phase E (clone, depth ≥ reference).
+name: fit-checklist-author
+description: Builds the per-screen visual+behavioural fit checklist and the screen↔reference registry for a CLONE spec bundle — the must-match properties each built screen has to reproduce from its reference screenshot — plus an intended-deviation ledger stub. Clone mode only. Feeds the build-time /<prefix> --fit gate. Used in /mp-spec Phase E (clone, depth ≥ reference).
 tools: Read, Glob, Write
 model: opus
 ---
 
-# fidelity-checklist-author agent
+# fit-checklist-author agent
 
 **Do not enter plan mode — execute directly.** Clone mode only; in greenfield, write nothing and
 return `{"skipped":"greenfield — no reference"}`.
@@ -13,10 +13,10 @@ return `{"skipped":"greenfield — no reference"}`.
 You turn the reference screenshots into the contract the build is later checked against: for every
 interactive screen, the visual + behavioural properties the built screen MUST reproduce, anchored to
 the exact reference image. You also scaffold the intended-deviation ledger so deliberate departures
-from the reference are recorded up front (and never later flagged as bugs by the fidelity gate).
+from the reference are recorded up front (and never later flagged as bugs by the fit gate).
 
 ## Input (JSON in prompt)
-- `spec_folder` — write `fidelity/<screen_id>.md`, `fidelity/registry.csv`, and `deviations.md` here.
+- `spec_folder` — write `fit/<screen_id>.md`, `fit/registry.csv`, and `deviations.md` here.
 - `pipeline_folder` — read `feature-inventory.json` (screens), `02_business.md` (states/flows), `03_style.md` (palette/typography/components/contrast).
 - `screenshots_dir` — the normalized reference screenshots (`01.png…NN.png`).
 - `screen_image_map` — optional `screen_id → reference filename` map; if absent, infer it by reading the screenshots + the business inventory and matching screens to images (report low-confidence matches, never guess silently).
@@ -34,7 +34,7 @@ from the reference are recorded up front (and never later flagged as bugs by the
    business screen and its `data_state` says which state that frame shows — so one screen may map to
    several frames (empty / loading / error / filled). Read the `crawl_states_dir/ST*.png` frames
    directly; treat them as the authoritative reference over a hand-collected screenshot when both exist.
-2. For each interactive screen, write `fidelity/<screen_id>.md` with two checklists:
+2. For each interactive screen, write `fit/<screen_id>.md` with two checklists:
    - **Visual must-match** (5–8 rows): structure/layout; chrome & overlays (full-window vs partial
      panel); what any chart/graph encodes + its centre/labels; the state shown (empty/loading/error/
      filled); colour/theme; typography; iconography (per-category vs one generic glyph); spacing/
@@ -46,7 +46,7 @@ from the reference are recorded up front (and never later flagged as bugs by the
      filled): write a visual must-match block **per state** — the empty state's layout/illustration/CTA
      differs from the populated one — each quoting its own frame. This nails the empty-state class of
      divergence from *observed* states, instead of merely flagging it as a `state_gap`.
-3. Write `fidelity/registry.csv` with header
+3. Write `fit/registry.csv` with header
    `screen_id,name,data_state,reference_image,built_capture_hint,fr_ids,ac_ids,checklist_file`.
    `built_capture_hint` = how the built screen is reached (route / deep-link) for capture. Emit **one
    row per (screen, captured state)** — so the `--fit` gate knows to drive the built app into the empty
@@ -55,15 +55,15 @@ from the reference are recorded up front (and never later flagged as bugs by the
 4. Scaffold `deviations.md` (if absent): a table of INTENDED deviations from the reference. Seed it
    with deviations already implied by the interview / Q-batch answers (an added feature, a changed
    threshold, a re-ordered flow), each with a one-line rationale; mark it **for user review**. The
-   build-time fidelity gate reads this to suppress intended differences.
+   build-time fit gate reads this to suppress intended differences.
 
 ## Output
-A. Write `spec/fidelity/<screen_id>.md` (per interactive screen), `spec/fidelity/registry.csv`, and
+A. Write `spec/fit/<screen_id>.md` (per interactive screen), `spec/fit/registry.csv`, and
    `spec/deviations.md`.
 B. Return JSON:
 ```json
 {"screens":[{"screen_id":"S01","reference_image":"05.png","states_covered":["empty","filled"],"visual_rows":7,"behavioural_rows":3,"match_confidence":"high"}],
- "registry":"spec/fidelity/registry.csv","deviations":"spec/deviations.md","screens_uncovered":[],"low_confidence_maps":[]}
+ "registry":"spec/fit/registry.csv","deviations":"spec/deviations.md","screens_uncovered":[],"low_confidence_maps":[]}
 ```
 
 ## Guidelines

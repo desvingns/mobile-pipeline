@@ -24,7 +24,7 @@ an *optional* input that upgrades confidence — no breaking edits.
 - **Phase 2:** split into navigator/executor/reviewer + coverage gate + loop-until-dry; wire observed
   edges into `navigation-flow-analyzer`.
 - **Phase 3:** autonomous seeding (auth/forms) + guardrails (forbidden actions) + `needs_human`.
-- **Phase 4:** feed `fidelity-checklist-author` real per-state frames; auto-enable on `--depth reference`.
+- **Phase 4:** feed `fit-checklist-author` real per-state frames; auto-enable on `--depth reference`.
 
 ## Files (Phase 1)
 - `templates/spec/skills/app-spec-creator/scripts/crawl/_crawl-lib.sh` — shared adb resolve + json_escape + die.
@@ -88,7 +88,7 @@ APK A/B + commit pending.** Plugins regenerated with the fixed scripts.
   `bash -n` clean, dry-run roster shows all 3 crawl agents.
 - [ ] device-validate the full trio loop on an emulator with a real reference APK (throwaway AVD —
       not the user's live MyMoney device); confirm state-graph.json + coverage.md + observed edges.
-- [ ] Phase 3 (autonomous seeding: auth/forms + guardrails + needs_human), Phase 4 (fidelity frames).
+- [ ] Phase 3 (autonomous seeding: auth/forms + guardrails + needs_human), Phase 4 (fit frames).
 
 STATUS (Phase 2): **authored, builds/lints clean, 0 leaks; trio loop not yet run end-to-end on a device.**
 
@@ -106,26 +106,26 @@ STATUS (Phase 2): **authored, builds/lints clean, 0 leaks; trio loop not yet run
   goals; the loop now drives explore/auth/seed goals. No new agents/scripts; plugins regenerated, 0 leaks.
 - [ ] device-validate auth + seed end-to-end on a throwaway AVD with a real reference app (login flow +
       a create flow); confirm a `data_state:"filled"` node + credentials never landing in artifacts.
-- [ ] Phase 4 (feed `fidelity-checklist-author` the real per-state frames; auto-enable on depth reference).
+- [ ] Phase 4 (feed `fit-checklist-author` the real per-state frames; auto-enable on depth reference).
 
 STATUS (Phase 3): **authored, builds/lints clean, 0 leaks; seeding/auth not yet run on a device.**
 
 ## Phase 4 — close the clone loop (authored)
-- `fidelity-checklist-author.md` — optional `crawl_graph` + `crawl_states_dir` inputs; grounds per-screen
+- `fit-checklist-author.md` — optional `crawl_graph` + `crawl_states_dir` inputs; grounds per-screen
   must-match in the OBSERVED per-state frames (empty AND filled), one `registry.csv` row per (screen,
   state) with a `data_state` column → `--fit` checks each state vs its own real reference frame.
-- `SKILL.md` Step 7 — passes the crawl inputs to the fidelity author when A.0-crawl ran.
+- `SKILL.md` Step 7 — passes the crawl inputs to the fit author when A.0-crawl ran.
 - `docs/CLONE-PLAYBOOK.md` — Step 0 (crawl front-door) + updated loop diagram + auto-state-capture note.
 - `docs/REFERENCE-CRAWLER.md` — NEW maintainer doc consolidating the subsystem.
 - Auto-enable on `--depth reference` was already wired in Phase 1. No new agents/scripts; plugins
   regenerated, 0 leaks.
-- [ ] device-validate the full clone loop end-to-end (crawl → spec w/ per-state fidelity → build → --fit)
+- [ ] device-validate the full clone loop end-to-end (crawl → spec w/ per-state fit → build → --fit)
       on a throwaway AVD with a real reference app.
 
 STATUS (Phase 4): **authored, builds/lints clean, 0 leaks.**
 
 ## Overall — crawler feature-complete (Phases 1–4 authored)
 Phase 1 device-validated on hardware (3 bugs fixed). Phases 2–4 authored, build/lint/0-leak clean, but
-the full trio loop + auth/seed + per-state fidelity have NOT been run end-to-end on a device. Not
+the full trio loop + auth/seed + per-state fit have NOT been run end-to-end on a device. Not
 committed (codex mp-dev-bridge WIP also in the tree — commit deliberately). Next real step is a
 throwaway-AVD end-to-end run on a clonable app; expect replay/seeding rough edges like Phase 1 surfaced.

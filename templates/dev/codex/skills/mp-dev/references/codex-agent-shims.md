@@ -6,7 +6,7 @@ Use this reference when installing or auditing native `.codex/agents/mp-*.toml` 
 
 Install one TOML shim for each canonical Claude `mp-dev` agent:
 
-`mp-architect`, `mp-coverage-android`, `mp-developer-android`, `mp-docs`, `mp-fidelity-android`, `mp-improve`, `mp-intake`, `mp-knowledge`, `mp-maintainer`, `mp-phase-planner`, `mp-planner`, `mp-reflect`, `mp-reviewer-android`, `mp-runner-android`, `mp-runner-instrumented-android`, `mp-tester-android`, `mp-ui-designer-android`, `mp-verifier-android`.
+`mp-architect`, `mp-coverage-android`, `mp-developer-android`, `mp-docs`, `mp-fit-android`, `mp-improve`, `mp-intake`, `mp-knowledge`, `mp-maintainer`, `mp-phase-planner`, `mp-planner`, `mp-reflect`, `mp-reviewer-android`, `mp-runner-android`, `mp-runner-instrumented-android`, `mp-tester-android`, `mp-ui-designer-android`, `mp-verifier-android`.
 
 Each TOML must read the matching Claude body from the user's Claude plugin cache, then `.claude/mp/extras/<agent>.md` if present. Prefer the newest cache directory under:
 
@@ -23,7 +23,7 @@ For local marketplace development inside this repo, use `claude-plugins/mp-dev/a
 | `mp-coverage-android` | `gpt-5.4-mini` | `low` | `read-only` |
 | `mp-developer-android` | `gpt-5.5` | `high` | `workspace-write` |
 | `mp-docs` | `gpt-5.4` | `high` | `workspace-write` |
-| `mp-fidelity-android` | `gpt-5.5` | `high` | `read-only` |
+| `mp-fit-android` | `gpt-5.5` | `high` | `read-only` |
 | `mp-improve` | `gpt-5.4` | `high` | `workspace-write` |
 | `mp-intake` | `gpt-5.4` | `high` | `workspace-write` |
 | `mp-knowledge` | `gpt-5.4` | `high` | `workspace-write` |
@@ -38,7 +38,7 @@ For local marketplace development inside this repo, use `claude-plugins/mp-dev/a
 | `mp-ui-designer-android` | `gpt-5.4` | `high` | `workspace-write` |
 | `mp-verifier-android` | `gpt-5.4-mini` | `medium` | `read-only` |
 
-Implementation, planning, docs, improve, intake, knowledge, reflect, tester, and UI-designer roles need `workspace-write`. Reviewer, verifier, coverage, architect, and fidelity roles are read-only. Runner roles may use `workspace-write` only for build artifacts and reports.
+Implementation, planning, docs, improve, intake, knowledge, reflect, tester, and UI-designer roles need `workspace-write`. Reviewer, verifier, coverage, architect, and fit roles are read-only. Runner roles may use `workspace-write` only for build artifacts and reports.
 
 ## Extra Instructions by Role
 

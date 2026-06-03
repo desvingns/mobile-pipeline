@@ -52,7 +52,7 @@ Usage:
   /{{PREFIX}} --coverage [<scope>] [--target=N] — diagnostic JaCoCo coverage report (read-only, no code, Android only)
   /{{PREFIX}} --upgrade [<model1,model2,...>] — review model assignments; update agent files when new Claude models are released
   /{{PREFIX}} --device <screen|scope>          — one on-device instrumented-test slice: ensure a device is connected, write ONE Compose-UI test for an uncovered control, run it via connectedDebugAndroidTest, report. Android only.
-  /{{PREFIX}} --fit [<screen|scope>]      — Android clone projects: capture the built app's screens, compare each against its reference image ({{PREFIX}}-fidelity-android), and file a backlog SPEC per UNEXPLAINED visual divergence (gated). The reference-comparison gate for a clone.
+  /{{PREFIX}} --fit [<screen|scope>]      — Android clone projects: capture the built app's screens, compare each against its reference image ({{PREFIX}}-fit-android), and file a backlog SPEC per UNEXPLAINED visual divergence (gated). The reference-comparison gate for a clone.
   /{{PREFIX}} --plan <epic-slug> [--from <bundle|tdd>] — turn an /mp-spec `spec/` bundle (or a TDD/design doc) into ordered SPECs on the `.claude/specs/backlog/` board (via {{PREFIX}}-planner, gated). Then implement with `--feature --next`.
   /{{PREFIX}} --plan --phases [--bootstrap|--sync|--phase NN] [--from <bundle|tdd>] — clone/large builds: turn the design into a numbered PHASE_NN plan under docs/implementation_plan/ (via {{PREFIX}}-phase-planner, gated). The HEAVY phase model; the backlog board stays for ad-hoc features.
   /{{PREFIX}} --phase                          — assisted progression: take the next unchecked task in the active PHASE_NN, synthesise a SPEC, run the --feature pipeline, tick it, log to PROGRESS.md. Pairs with --plan --phases.
@@ -73,7 +73,7 @@ When this project has **multiple** platforms, every SPEC must include an explici
 
 Run this hard gate before implementation/test execution for Android tasks that are explicitly visual
 and require visual/device autotests. Do not apply it to every presentation-layer change; apply it when
-the SPEC/task/phase mentions visual, layout, theme, animation, screenshot, fidelity, reference
+the SPEC/task/phase mentions visual, layout, theme, animation, screenshot, fit, reference
 comparison, visual QA, `screenshot`, `instrumented-compose-ui`, `--device`, `--fit`, or a phase
 done-criterion that requires device-rendered visual autotests.
 
@@ -842,7 +842,7 @@ silently drifting away from its reference.
 ### Phase 1 — Resolve references + ensure a device
 
 1. **Reference set + screen mapping.** Resolve, in priority order:
-   a. `spec/fidelity/registry.csv` (screen_id → reference image → built-capture hint), if present;
+   a. `spec/fit/registry.csv` (screen_id → reference image → built-capture hint), if present;
    b. else `.claude/mp/config.json` `referenceScreenshotsDir` (+ optional `referenceScreenshotMap`);
    c. else ASK the user for the reference screenshots directory and how its images map to screens.
    Build the `screens[]` list of `{screen_id, name, reference}` pairs.
@@ -854,37 +854,37 @@ silently drifting away from its reference.
 
 ### Phase 2 — Capture the built screens
 
-Populate `build/fidelity/built/<screen_id>.png` for each screen, using the first available source:
+Populate `build/fit/built/<screen_id>.png` for each screen, using the first available source:
 - **Roborazzi/Paparazzi output** — if the project records Compose screenshots covering these screens,
   copy those PNGs (no device needed for that part).
 - **Instrumented screen-tour** — if a screen-tour instrumented test exists, run it via
   `{{PREFIX}}-runner-instrumented-android` and `adb pull` its PNGs.
 - **adb fallback** — for each screen, navigate to it (deep-link if available, else drive the UI) and
-  capture: `adb exec-out screencap -p > build/fidelity/built/<screen_id>.png`.
+  capture: `adb exec-out screencap -p > build/fit/built/<screen_id>.png`.
 Record `built:null` for any screen you could not capture (the comparator marks it `captured:false`).
 
 ### Phase 3 — Compare
 
-Spawn agent `{{PREFIX}}-fidelity-android` with:
+Spawn agent `{{PREFIX}}-fit-android` with:
 ```
-Compare the built screens against their reference images and return one === FIDELITY === block per your output spec.
+Compare the built screens against their reference images and return one === FIT === block per your output spec.
 
 screens: [ {screen_id, name, reference, built} ... ]
 deviations: spec/deviations.md   (omit the line if absent)
 design_notes: spec/design.md     (omit the line if absent)
-epic_slug: fidelity
+epic_slug: fit
 date: <today YYYY-MM-DD>
 ```
-Parse the `=== FIDELITY ===` block (retry ONCE with a "block only, no prose" preface on parse
+Parse the `=== FIT ===` block (retry ONCE with a "block only, no prose" preface on parse
 failure; a second failure → stop and show the response).
 
 ### Phase 4 — Report + gated write
 
-Print the per-screen `fidelity_score` table, the `divergences`, the `acknowledged_deviations`, and
+Print the per-screen `fit_score` table, the `divergences`, the `acknowledged_deviations`, and
 the `behavioural_unverified` pointers. If `proposed_specs` is non-empty, ask:
 "Write N divergence SPEC(s) to `.claude/specs/backlog/`? (y / d — show bodies / n)".
 - **y** → write each `proposed_specs[].rendered_markdown` to `.claude/specs/backlog/<filename>`
-  verbatim; add/update a `fidelity-00-overview.md` index. (These are `Status: draft` board SPECs.)
+  verbatim; add/update a `fit-00-overview.md` index. (These are `Status: draft` board SPECs.)
 - **d** → dump each body, then re-ask.
 - **n** → write nothing.
 Never write outside `.claude/specs/`.
@@ -892,8 +892,8 @@ Never write outside `.claude/specs/`.
 ### Phase 5 — Report
 
 ```
-fidelity: <N screens compared> — overall <overall_score>/100
-   Filed: <M> divergence SPEC(s) → .claude/specs/backlog/ (epic: fidelity)
+fit: <N screens compared> — overall <overall_score>/100
+   Filed: <M> divergence SPEC(s) → .claude/specs/backlog/ (epic: fit)
    Behavioural to verify: <K> (run the acceptance/feature arm / --device)
    Next: /{{PREFIX}} --feature --next  (fix the top divergence), then re-run /{{PREFIX}} --fit
 ```
@@ -932,11 +932,11 @@ until the score converges and only intended deviations remain.
 - `{{PREFIX}}-verifier-<platform>` runs after Runner pass on `--feature` only. A static_checks failure blocks the chain; on pass, push waits for explicit user `y` after the manual checklist is shown. (`--bugfix` skips Verifier — bugfixes rarely touch wiring.)
 - `--tdd` flag (only on `--feature`) reorders Phase 2: Tester writes failing unit tests first (`red_phase=true`), Runner verifies the red, then Developer implements until green (`green_phase=true`). Opt-in only; default order remains developer-first. `--bugfix` is unchanged — regression tests are written inline by the developer there.
 - `{{PREFIX}}-runner-instrumented-android` runs the on-device suite (`connectedDebugAndroidTest`) for ONE test class and trusts the parsed connected report, not "BUILD SUCCESSFUL". `{{PREFIX}}-runner-android` (JVM unit tests) is unchanged and is NOT the device runner.
-- Visual/device autotest work has a hard Android pre-flight gate before implementation/test execution. Trigger it only for explicitly visual tasks (visual/layout/theme/animation/screenshot/fidelity/reference comparison/visual QA, `screenshot`, `instrumented-compose-ui`, `--device`, `--fit`, or visual device done-criteria). If no usable required device/emulator is connected, stop and ask the user to connect it; correct development cannot proceed without visual testing. Never continue blind or claim visual tests ran.
+- Visual/device autotest work has a hard Android pre-flight gate before implementation/test execution. Trigger it only for explicitly visual tasks (visual/layout/theme/animation/screenshot/fit/reference comparison/visual QA, `screenshot`, `instrumented-compose-ui`, `--device`, `--fit`, or visual device done-criteria). If no usable required device/emulator is connected, stop and ask the user to connect it; correct development cannot proceed without visual testing. Never continue blind or claim visual tests ran.
 - `--device` is Android-only, runs one control per invocation, and never pushes. A connected device/emulator is mandatory: if none is present the orchestrator asks the user and records the answer to the `device-connection` memo (the runner agent cannot prompt). On-device test seams are restricted to `testTag` / `contentDescription` / `<Name>Content` visibility — a `--device` diff must never add new UI, events, or behaviour.
-- `--fit` is Android + clone-only: it captures built screens, compares them against reference images via `{{PREFIX}}-fidelity-android` (read-only, multimodal), and writes divergence SPECs to `.claude/specs/backlog/` ONLY behind a y/d/n gate (same write-boundary as `--plan`). It honours `spec/deviations.md` — intended deviations are acknowledged, not filed — and flags behavioural divergences (gestures, entry order, transitions) as `behavioural_unverified` for the acceptance/feature arm rather than asserting them from a static image. Never weakens a comparison; never pushes.
+- `--fit` is Android + clone-only: it captures built screens, compares them against reference images via `{{PREFIX}}-fit-android` (read-only, multimodal), and writes divergence SPECs to `.claude/specs/backlog/` ONLY behind a y/d/n gate (same write-boundary as `--plan`). It honours `spec/deviations.md` — intended deviations are acknowledged, not filed — and flags behavioural divergences (gestures, entry order, transitions) as `behavioural_unverified` for the acceptance/feature arm rather than asserting them from a static image. Never weakens a comparison; never pushes.
 - `--plan` spawns `{{PREFIX}}-planner` (read-only) and writes ONLY under `.claude/specs/` behind a y/d/n gate; it is the `/mp-spec` bundle → backlog bridge and pairs with `--feature --next`.
-- `--plan --phases` / `--phase` / `--check` are the HEAVY phase model for clone/large builds (numbered PHASE_NN + PROGRESS + content-addressed `slug:+h:` anchors), bridged read-only by `{{PREFIX}}-phase-planner`. They coexist with the lightweight `--plan` backlog board — pick the phase model for a full clone, the backlog for a one-off feature. The phase-planner writes ONLY `phases/PHASE_NN_*.md`, `PROGRESS.md` (append-only), `00_overview.md`, behind a y/d/n gate; it never touches `## Notes for next session`, auto-emits a per-screen "Visual QA vs reference" task, and (for a clone) appends a final Fidelity-gate phase whose done-criteria is a clean `/{{PREFIX}} --fit`.
+- `--plan --phases` / `--phase` / `--check` are the HEAVY phase model for clone/large builds (numbered PHASE_NN + PROGRESS + content-addressed `slug:+h:` anchors), bridged read-only by `{{PREFIX}}-phase-planner`. They coexist with the lightweight `--plan` backlog board — pick the phase model for a full clone, the backlog for a one-off feature. The phase-planner writes ONLY `phases/PHASE_NN_*.md`, `PROGRESS.md` (append-only), `00_overview.md`, behind a y/d/n gate; it never touches `## Notes for next session`, auto-emits a per-screen "Visual QA vs reference" task, and (for a clone) appends a final Fit-gate phase whose done-criteria is a clean `/{{PREFIX}} --fit`.
 - `--improve` is the ONLY path that changes the mobile-pipeline marketplace, ALWAYS via a gated PR. Two modes: `--improve "<note>"` (direct → its OWN PR via `propose-improvement.sh`) and `--improve --drain` (batch the `.ai/proposals/` queue → ONE PR via `improve-drain.sh`). Patches edit only `templates/`; never a direct push; never this project's source. Project-local lessons go to memory / `.claude/mp/extras/`, not here.
 - `--reflect` is cross-project + maintainer-level: runs `{{PREFIX}}-cross-reflect.sh` (aggregates lessons across `~/.config/mobile-pipeline/projects.txt`) then `{{PREFIX}}-reflect`, which QUEUES proposals only for patterns seen in >=2 projects. Opens no PRs — drain with `--improve --drain`.
 - `{{PREFIX}}-knowledge` runs at most once post-ship and is usually a no-op. It classifies each lesson PROJECT-LOCAL (→ memory/extras) vs PLUGIN-LEVEL (→ STAGE to the `.ai/proposals/` queue via `{{PREFIX}}-improve`, then suggest `--improve --drain`). It never edits source or the live plugin copy.

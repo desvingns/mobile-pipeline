@@ -17,7 +17,7 @@ read — and writes one new file, `input/crawl/state-graph.json`. Downstream age
 an *optional* input that upgrades confidence:
 - `navigation-flow-analyzer` converts walked transitions to `source:observed` / `confidence:1.0` edges
   (mapping crawl `ST*` → business `S*` via the shared `screenshot_file`), inferring only the rest.
-- `fidelity-checklist-author` grounds per-screen, **per-state** must-match checklists in the real
+- `fit-checklist-author` grounds per-screen, **per-state** must-match checklists in the real
   empty/filled frames and emits a `registry.csv` row per (screen, state) for the `--fit` gate.
 
 ## The trio (separate sessions — state lives in files, never a shared context)
@@ -69,6 +69,6 @@ held in the orchestrator session, passed to the executor for auth goals, and **n
 1. Device primitives + single vision-first BFS executor (device-validated; MSYS/Compose/launch bugs fixed).
 2. The trio + coverage gate + observed edges into `navigation-flow-analyzer`.
 3. Autonomous seeding + auth + guardrails + `needs_human` degradation.
-4. Real per-state frames → `fidelity-checklist-author`; auto-enable on `--depth reference` (this doc).
+4. Real per-state frames → `fit-checklist-author`; auto-enable on `--depth reference` (this doc).
 
 Status & open items: `.ai/tasks/claude-004-reference-crawler.md`.

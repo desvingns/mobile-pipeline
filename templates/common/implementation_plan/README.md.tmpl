@@ -27,7 +27,7 @@ backlog board under `.claude/specs/` instead.
 Stack / architecture / module map: see the repo-root `CLAUDE.md`. Anchors are content-addressed
 (`slug:` + `h:` hash) so they survive design edits; `/{{PREFIX}} --check` reports drift.
 
-## 5. Fidelity (clone projects)
-The last phase is a **Fidelity gate**: `/{{PREFIX}} --fit` compares every built screen against
+## 5. Fit (clone projects)
+The last phase is a **Fit gate**: `/{{PREFIX}} --fit` compares every built screen against
 its reference image; each unexplained divergence becomes a backlog SPEC. The plan is done when the
-fidelity score meets the clone-done threshold and only `spec/deviations.md` entries remain.
+fit score meets the clone-done threshold and only `spec/deviations.md` entries remain.

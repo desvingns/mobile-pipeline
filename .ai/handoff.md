@@ -2,6 +2,22 @@
 
 UPDATED: 2026-06-03 by claude
 
+## LATEST (2026-06-03, claude) — full `fidelity` → `fit` concept rename + flag `--crawl` → `--graph`
+Two user-requested renames, then pushed to main.
+- **`--crawl`/`--no-crawl` → `--graph`/`--no-graph`** (the dynamic-crawl flag) across live artifacts +
+  regenerated plugins. Committed + pushed earlier as `8b8a6ba`.
+- **`fidelity` concept → `fit` repo-wide** (completing the 1.5.0 flag-only rename). `git mv`:
+  `fidelity-checklist-author`→`fit-checklist-author`, `{{PREFIX}}-fidelity-android`→`{{PREFIX}}-fit-android`,
+  `eval/clone-fidelity`→`eval/clone-fit`, + generated `mp-fidelity-android`→`mp-fit-android`. Content
+  tokens: `spec/fidelity`→`spec/fit`, `build/fidelity`→`build/fit`, `fidelity_score`→`fit_score`,
+  Fidelity-gate→Fit-gate, `=== FIDELITY ===`→`=== FIT ===`. install-spec AGENTS row updated; plugins
+  regenerated. **Released CHANGELOG [1.5.0] + the append-only change-log's prior entries keep "fidelity"
+  verbatim** (history); `graphify-out/*` is generated (refreshes on the graphify hook). Change-log:
+  `2026-06-03T19:00-rename-fidelity-concept-to-fit`.
+- **Breaking for downstream:** projects referencing `mp-fidelity-android` / `fidelity-checklist-author`
+  or `spec/fidelity/` paths must update (MyMoney_app, diet_helper — not touched here).
+- Crawler itself remains feature-complete (Phases 1–4); full loop still not run end-to-end on a device.
+
 ## LATEST (2026-06-03, claude) — reference-APK crawler, Phase 4 (closes the clone loop) — FEATURE-COMPLETE
 `fidelity-checklist-author` now consumes the crawl's observed per-state frames (`crawl_graph` +
 `crawl_states_dir`): per-screen must-match grounded in the real **empty AND filled** states (the

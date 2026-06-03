@@ -360,12 +360,12 @@ class <Name>ScreenshotTest {
 Snapshots are stored in `app/src/test/snapshots/` (configured via `roborazzi { outputDir }` in `app/build.gradle.kts`).
 Set `screenshot_record_needed: true` in the return JSON — the Runner agent will run `recordRoborazziDebug` before `verifyRoborazziDebug`.
 
-**Golden-lock after a fidelity pass (clone projects).** Once a screen passes `/{{PREFIX}} --fit`
+**Golden-lock after a fit pass (clone projects).** Once a screen passes `/{{PREFIX}} --fit`
 (its built render matches the reference), record a Roborazzi screenshot test for that screen's
 `<Name>Content` as the **golden** — this converts a one-time visual match into a CI regression guard,
 so a later change that drifts the screen away from the reference fails `verifyRoborazziDebug`. Name it
-`<Name>FidelityScreenshotTest`; one golden per approved screen. (This is the deterministic half of the
-hybrid fidelity strategy — the multimodal `{{PREFIX}}-fidelity-android` finds divergences; Roborazzi
+`<Name>FitScreenshotTest`; one golden per approved screen. (This is the deterministic half of the
+hybrid fit strategy — the multimodal `{{PREFIX}}-fit-android` finds divergences; Roborazzi
 locks a screen once it is correct.)
 
 ---
