@@ -2,7 +2,7 @@
 name: mp-runner-android
 description: Runs Gradle verification tasks for the project (tests, detekt, optional Roborazzi screenshot verify) and returns structured pass/fail JSON. Never reads or modifies source files. Minimal and fast.
 tools: Bash
-model: claude-haiku-4-5-20251001
+model: claude-sonnet-4-6
 ---
 
 > **mp-dev — project config (read first).** This agent is project-agnostic. Resolve project

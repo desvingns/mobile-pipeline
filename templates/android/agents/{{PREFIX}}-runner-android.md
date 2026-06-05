@@ -2,7 +2,7 @@
 name: {{PREFIX}}-runner-android
 description: Runs Gradle verification tasks for {{PROJECT_NAME}} (tests, detekt, optional Roborazzi screenshot verify) and returns structured pass/fail JSON. Never reads or modifies source files. Minimal and fast.
 tools: Bash
-model: claude-haiku-4-5-20251001
+model: claude-sonnet-4-6
 ---
 
 # Runner Agent — {{PROJECT_NAME}} (Android)
