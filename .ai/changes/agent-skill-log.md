@@ -284,3 +284,11 @@ summary: Completed the fidelity→fit rename repo-wide (the 1.5.0 rename was del
 reason: user requested the full concept rename to fit (the earlier flag-only rename left the codebase half-named); one deliberate pass keeps the vocabulary consistent.
 affects: claude, codex
 by: claude
+
+## 2026-06-05T10:30-grill-me-design-tree
+type: add
+target: templates/spec/skills/app-spec-creator/prompts/techniques/grill-me.md, templates/spec/skills/app-spec-creator/SKILL.md, templates/spec/skills/app-spec-creator/prompts/questions/greenfield.stage1-vision.md, templates/spec/skills/app-spec-creator/prompts/README.md, docs/SPEC-PIPELINE.md
+summary: Ported the grill-me technique (design-tree interrogation — "walk down each branch", one adversarial question at a time, a recommended answer each, actively poking holes) into /mp-spec intake as a reusable orchestrator technique (NOT an agent; model n/a). New prompt prompts/techniques/grill-me.md encodes the rule (roots before branches), ask-one-at-a-time funnel, recommended-answer convention, hole-poking (assumptions/contradictions/unhandled states/scope creep), stop conditions/budgets, and a decisions-ledger output. Greenfield gets a mandatory Stage 0 grill (escape hatch --no-grill) writing input/interview/grill.md, run right after the idea paragraph; the 5 stages + GATE 1 read the ledger (trace every row to a decision, honour Out-of-scope, carry deferred items as (assumption)). Clone grills the analyzers' ambiguities[]/state_gaps[] (upstream-first, one at a time) instead of a flat dynamic batch B, writing pipeline/grill.md. SKILL gains --no-grill, the A-green Stage 0 block, the A-clone ambiguity-grill block, GATE 1 ledger reconciliation, and the two bundle-layout slots. prompts/README + docs/SPEC-PIPELINE updated. Plugins regenerated; 0 leaks.
+reason: user asked to add the grill-me skill to complement spec creation; greenfield's known weak spot is a thin idea answered by guessing — the grill establishes upstream decisions first (anti-hallucination), and clone ambiguities are better resolved as a dependency-ordered tree than a flat batch. Kept as a technique (no new agent) so it needs no installer/roster/openai.yaml change and propagates via the raw prompt-library copy. Authored marker-free because prompt-library files are not rendered (only SKILL.md is).
+affects: claude, codex
+by: claude

@@ -1,6 +1,34 @@
 # Handoff
 
-UPDATED: 2026-06-03 by claude
+UPDATED: 2026-06-05 by claude
+
+## LATEST (2026-06-05, claude) — grill-me design-tree interrogation in /mp-spec intake
+User asked to add Matt Pocock's **grill-me** skill to complement spec creation. Ported it as a
+**reusable orchestrator technique** (NOT an agent), wired into both intake modes.
+- **Decided with user:** scope = **both modes**; activation = **always in greenfield** (escape
+  hatch `--no-grill`).
+- NEW `templates/spec/skills/app-spec-creator/prompts/techniques/grill-me.md` (id
+  `techniques/grill-me`, v1.0.0, neutral) — design-tree rule (roots before branches),
+  ask-one-at-a-time funnel, recommended-answer convention, adversarial hole-poking
+  (assumptions/contradictions/unhandled states/scope creep), stop conditions/budgets, decisions
+  ledger output. **Marker-free on purpose:** prompt-library files are copied raw (only SKILL.md is
+  rendered) — I first authored it with `tool:` blocks, the leak check caught them in the generated
+  plugin, rewrote the harness note as neutral prose. grill-me was the only prompt that ever used
+  markers; convention is now confirmed clean.
+- `SKILL.md`: `--no-grill` flag; A-green **Stage 0 grill** (mandatory, after the idea paragraph,
+  writes `input/interview/grill.md`); A-clone grills `ambiguities[]`/`state_gaps[]`
+  (dependency-ordered, one at a time → `pipeline/grill.md`) replacing the flat dynamic batch B when
+  ambiguities exist; GATE 1 reconciles against the ledger; two bundle-layout slots added.
+  `greenfield.stage1-vision.md` runs the grill after capturing the idea. `prompts/README.md` +
+  `docs/SPEC-PIPELINE.md` updated.
+- No new agent ⇒ no `install-spec.sh` / `openai.yaml` / AGENTS-roster change (both installers copy
+  `prompts/` raw, so it propagates). Regenerated **both** plugin trees (`lib/build-marketplace.sh`);
+  **0 leaks** in the new prompt + SKILL + stage1 across claude & codex.
+- CHANGELOG `[Unreleased]` + change-log `2026-06-05T10:30-grill-me-design-tree` (affects claude,
+  codex) + task `.ai/tasks/claude-005-grill-me.md`. VERSION left at 1.5.0 ([Unreleased] still open).
+- STATUS: **authored + builds clean + 0-leak verified; NOT committed; not yet run end-to-end** in a
+  live `/mp-spec --greenfield` session. NEXT: run one greenfield session to validate the grill UX,
+  then commit. [codex] pick up the log entry on next sync (no codex-owned file changed).
 
 ## LATEST (2026-06-03, claude) — full `fidelity` → `fit` concept rename + flag `--crawl` → `--graph`
 Two user-requested renames, then pushed to main.

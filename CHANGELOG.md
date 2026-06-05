@@ -8,6 +8,16 @@ This repo uses [Semantic Versioning](https://semver.org/) — see `README.md` �
 
 ### Added
 
+- **Grill-me design-tree interrogation** in `/mp-spec` intake — a reusable orchestrator technique
+  (`prompts/techniques/grill-me.md`; not an agent) that interviews **one adversarial question at a
+  time**, resolving the app as a *tree of decisions* (roots before branches), offering a
+  recommended answer for each, and actively poking holes (hidden assumptions, contradictions,
+  unhandled states, scope creep). **Greenfield** runs it as a mandatory **Stage 0** (escape hatch
+  `--no-grill`) right after the idea paragraph, writing a decisions ledger
+  (`input/interview/grill.md`) that grounds the 5 interview stages + GATE 1 — so a thin idea is no
+  longer answered by guessing. **Clone** grills the analyzers' `ambiguities[]` / `state_gaps[]`
+  (dependency-ordered, one at a time) instead of a flat dynamic batch, writing `pipeline/grill.md`.
+  Additive: no new agent (no installer/roster change), propagates via the prompt-library copy.
 - **Dynamic reference-APK crawler (Phase 1)** for `/mp-spec` clone intake — a new optional Phase A.0
   that installs the reference APK on a connected device and drives it **vision-first** to build a
   state graph with screenshots, dedup states, and fill `input/screenshots/` with an *observed* corpus

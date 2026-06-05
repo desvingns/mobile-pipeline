@@ -21,6 +21,8 @@ If the user invoked `/mp-spec --greenfield` without a description, ask first:
 
 Wait for the reply. Save the raw text to `input/interview/idea_paragraph.txt` and record `app_working_title` in `pipeline/00_meta.yaml` (slugify the first noun phrase).
 
+**Then run the Grill (Stage 0) — unless `--no-grill`.** Before this question batch, run the design-tree interrogation over the idea paragraph: `Read prompt techniques/grill-me.md` and follow it literally (one question at a time, recommended answer each, roots before branches, poke holes). Write `input/interview/grill.md` and append `grill` to `phases_completed`. The batch below — and stages 2–5 — then read that ledger: motivate every answer/proposal from a grilled decision or the idea paragraph, never re-introduce an "Out of scope" item, and carry deferred open-questions into the owning stage.
+
 Only then proceed to the question batch below.
 
 ---

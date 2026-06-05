@@ -80,11 +80,17 @@ Full flag reference is in `templates/spec/skills/app-spec-creator/SKILL.md`.
 
 Both modes converge on the same `spec/` bundle. Everything downstream is mode-agnostic.
 
-### Greenfield (5-stage interview)
+### Greenfield (Stage 0 grill + 5-stage interview)
 
-For a brand-new app concept. The skill interviews the user in 5 progressive batches (≤4
-questions each), each batch's answers constraining the next (anti-hallucination via
-propose-then-confirm):
+For a brand-new app concept. The skill first runs a **Stage 0 grill** — a design-tree
+interrogation (`prompts/techniques/grill-me.md`): one adversarial question at a time, roots
+before branches, a recommended answer offered for each, actively poking holes (hidden
+assumptions, contradictions, unhandled states, scope creep). It writes a resolved-decisions
+ledger (`input/interview/grill.md`) that grounds the structured stages so a thin idea is no
+longer answered by guessing. Mandatory in greenfield; `--no-grill` is the escape hatch.
+
+Then it interviews the user in 5 progressive batches (≤4 questions each), each batch's answers
+constraining the next (anti-hallucination via propose-then-confirm):
 
 1. **Vision** — idea, audience, platform(s), monetization.
 2. **Inventory** — JTBD; skill proposes candidate screen list, user confirms/edits.
@@ -100,7 +106,10 @@ For reverse-engineering an existing app. Reuses the `app-tdd-creator` analyzer f
   `screenshot-style-analyzer`, `apk-analyzer` (if APK provided). APK is ground-truth for
   palette/strings/manifest/permissions/SDKs/locales — wins on conflicts.
 - **Sequential**: `navigation-flow-analyzer` → `data-model-extractor`.
-- Then 5 question batches interleaved with analysis, same as app-tdd-creator.
+- Then 5 question batches interleaved with analysis, same as app-tdd-creator. When the analyzers
+  surface `ambiguities[]` / `state_gaps[]`, those are resolved with the same **grill** technique
+  (design-tree, one-at-a-time, recommended answers) instead of a flat batch, writing
+  `pipeline/grill.md`; `--no-grill` falls back to the flat batches.
 
 ## Two human gates
 

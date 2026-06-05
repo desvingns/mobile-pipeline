@@ -45,7 +45,7 @@ This skill runs under **both** Claude Code and Codex CLI. The orchestration is i
 - None present, or `--greenfield` → **greenfield** mode.
 - `--mode greenfield|clone` overrides detection.
 
-**Flags** (superset of app-tdd-creator's): `--name`, `--depth {mvp|production|reference}`, `--platforms` (default `android`), `--base` (output root; default `~/AppSpecs` — a personal folder you control, kept separate from any unrelated work context), `--resume`, `--fresh`, `--dry-run`, `--skip-play`, `--skip-apk`, `--only <list>`, `--no-bridge` (stop after bundle, don't offer handoff), `--graph` / `--no-graph` (force-on / force-off the dynamic reference crawl — see Phase A.0).
+**Flags** (superset of app-tdd-creator's): `--name`, `--depth {mvp|production|reference}`, `--platforms` (default `android`), `--base` (output root; default `~/AppSpecs` — a personal folder you control, kept separate from any unrelated work context), `--resume`, `--fresh`, `--dry-run`, `--skip-play`, `--skip-apk`, `--only <list>`, `--no-bridge` (stop after bundle, don't offer handoff), `--graph` / `--no-graph` (force-on / force-off the dynamic reference crawl — see Phase A.0), `--no-grill` (escape hatch: skip the design-tree interrogation that otherwise runs in greenfield and over clone ambiguities — see Phase A).
 
 **Depth default:** clone mode defaults to `--depth reference` (full visual + behavioural fit — turns on the per-screen fit checklist + the downstream `/<prefix> --fit` gate); greenfield defaults to `--depth production`. Override with `--depth`.
 
@@ -67,8 +67,8 @@ Base: `<BASE>\<APP>\` (where `<BASE>` = `--base` or default personal folder). La
 │   ├── screenshots\        (clone: normalized 01.png…NN.png — filled by the crawler when it runs)
 │   ├── crawl\              (clone, --graph: trace.jsonl, states\STxx.png+xml, state-graph.json+.mmd, session.md)
 │   ├── apk\ apk_decoded\ play_html\   (clone, as app-tdd-creator)
-│   └── interview\          (greenfield: stage1.yaml … stage5.yaml)
-├── pipeline\               (raw agent outputs 01..07 + elicitation.md, eval_report.md)
+│   └── interview\          (greenfield: grill.md + stage1.yaml … stage5.yaml)
+├── pipeline\               (raw agent outputs 01..07 + elicitation.md, grill.md (clone), eval_report.md)
 │   ├── 00_meta.yaml
 │   └── user_answers_q*.yaml
 └── spec\                   ← the shared bundle (what the bridge consumes)
@@ -152,12 +152,18 @@ Run the app-tdd-creator fan-out **unchanged**:
 2. Sequential: `navigation-flow-analyzer` (sonnet) → `data-model-extractor` (sonnet).
 Question batches A–E interleave exactly as app-tdd-creator does — `Read prompt questions/clone.batchA.md` … `clone.batchE.md`. Dynamic batch B from `ambiguities[]`.
 
+**Grill the ambiguities (unless `--no-grill`).** When the analyzers return a non-empty `ambiguities[]` and/or `state_gaps[]`, resolve them with the design-tree interrogation instead of one flat batch: `Read prompt techniques/grill-me.md` (clone variant — input is the draft inventory + `ambiguities[]` + `state_gaps[]`). Walk them upstream-first (an ambiguity about a screen's purpose before one about a field on it), one question at a time, each with a recommended answer drawn from the analyzer evidence, and poke for unhandled states the screenshots never showed. Write the ledger to `pipeline/grill.md`; its resolved decisions close the ambiguities, and any deferred items flow into GATE 1 inventory notes + `risks.md` tagged `(assumption)`. This replaces the flat dynamic batch B when ambiguities exist; with none, the static batches run unchanged.
+
 The business-analyzer also returns a per-screen `interactions[]` map (gestures / entry order / partial-vs-full overlays) and `state_gaps[]` (states the app has but that were not screenshotted). **Surface `state_gaps[]` in intake** and ask the user to capture the missing states (empty/loading/error) — a clone that never sees a state ships a wrong one (the empty-state class of divergence). The `interactions[]` map feeds the per-screen behaviour spec in `design.md` and the behavioural arm of `/<prefix> --fit`.
 
 When **A.0-crawl ran**, `input/screenshots/` already holds the observed states, so `state_gaps[]` is typically near-empty — only ask the user for states the crawl could not reach (e.g. behind an auth wall it flagged `needs_human`). `input/crawl/state-graph.json` records the observed transitions; later phases consume it to upgrade `navigation-flow-analyzer` edges from inferred to `source:observed` (Phase 2 of the crawler work).
 
 ### A-green (staged interview elicitation)
-Funnel: broad → narrow, each stage's answers constrain the next (anti-hallucination via propose-then-confirm). Five batches via AskUserQuestion (≤4 Qs each), saved to `input/interview/stageN.yaml`:
+Funnel: broad → narrow, each stage's answers constrain the next (anti-hallucination via propose-then-confirm).
+
+**Stage 0 — Grill (design-tree interrogation, runs first; mandatory unless `--no-grill`).** Before the structured batches, run an adversarial **one-question-at-a-time** pass that resolves the idea as a *tree of decisions* — roots (audience / single core job / explicit out-of-scope) before the branches they constrain — and actively pokes holes (hidden assumptions, contradictions, unhandled states, scope creep). `Read prompt techniques/grill-me.md` and follow it literally; offer a recommended answer for every question. Run it **after** the idea paragraph is captured (the stage-1 pre-step) and write the resolved-decisions ledger to `input/interview/grill.md`. The five stages below then read that ledger: every candidate JTBD / screen / entity must trace to a grilled decision or the idea paragraph, deferred open-questions seed the owning stage, and "Out of scope" items are never proposed. Append `grill` to `phases_completed`. This is why greenfield no longer guesses on a thin idea — the grill establishes the upstream decisions first.
+
+Then five batches via AskUserQuestion (≤4 Qs each), saved to `input/interview/stageN.yaml`:
 1. `Read prompt questions/greenfield.stage1-vision.md` — idea, audience, platform(s), monetization.
 2. `…stage2-inventory.md` — JTBD; model **proposes** a candidate screen list as options (each citing the stage-1 answer that drove it), user edits; user roles.
 3. `…stage3-flows.md` — per top-3 screens: key actions, validation rules, empty/error states (dynamic, ≤3 batches).
@@ -167,6 +173,8 @@ Funnel: broad → narrow, each stage's answers constrain the next (anti-hallucin
 ## Step 3 — GATE 1: confirm inventory (human, hard stop)
 
 Both modes produce a **feature inventory** (screens, features, roles, entities, integrations + per-item source & confidence). Validate against `prompts/schemas/feature-inventory.schema.json`. Print a compact table (low-confidence rows flagged) and call AskUserQuestion: всё верно / убрать лишнее / добавить недостающее / объединить дубликаты. **Nothing downstream runs until this is confirmed** — the locked inventory is the grounding for every artifact, so a wrong screen never propagates into 14 files.
+
+If a grill ledger exists (`input/interview/grill.md` or `pipeline/grill.md`), reconcile against it before printing: every inventory row should trace to a resolved decision (or analyzer/interview answer), no row may contradict an "Out of scope" entry, and carry the ledger's deferred open-questions into the table as flagged `(assumption)` rows so the user decides them here.
 
 ## Step 4 — Phase B: normalize to neutral inventory
 
