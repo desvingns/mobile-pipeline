@@ -37,14 +37,15 @@ This skill runs under **both** Claude Code and Codex CLI. The orchestration is i
 
 ## Step 0 — Parse input & detect mode
 
-**Slash form:** `/mp-spec [<screenshots_dir>] [--apk <path>] [--play <url>] [--greenfield] [--name <APP>] [--platforms android[,ios]] [--depth mvp|production|reference] [--base <dir>] [flags]`
+**Slash form:** `/mp-spec [<screenshots_dir>] [--apk <path>] [--play <url>] [--greenfield] [--feature] [--board <dir>] [--epic <slug>] [--name <APP>] [--platforms android[,ios]] [--depth mvp|production|reference] [--base <dir>] [flags]`
 
 **Mode detection:**
+- `--feature` present, OR (invoked from inside an existing project that has a `.claude/specs/` board AND the input is a feature description, with no clone inputs) → **feature** mode (brownfield: spec a feature into the project's backlog board — NOT a whole-app `spec/` bundle).
 - Any of `<screenshots_dir>` / `--apk` / `--play` present → **clone** mode.
-- None present, or `--greenfield` → **greenfield** mode.
-- `--mode greenfield|clone` overrides detection.
+- None of the above, or `--greenfield` → **greenfield** mode.
+- `--mode feature|greenfield|clone` overrides detection.
 
-**Flags** (superset of app-tdd-creator's): `--name`, `--depth {mvp|production|reference}`, `--platforms` (default `android`), `--base` (output root; default `~/AppSpecs` — a personal folder you control, kept separate from any unrelated work context), `--resume`, `--fresh`, `--dry-run`, `--skip-play`, `--skip-apk`, `--only <list>`, `--no-bridge` (stop after bundle, don't offer handoff), `--graph` / `--no-graph` (force-on / force-off the dynamic reference crawl — see Phase A.0), `--no-grill` (escape hatch: skip the design-tree interrogation that otherwise runs in greenfield and over clone ambiguities — see Phase A).
+**Flags** (superset of app-tdd-creator's): `--name`, `--depth {mvp|production|reference}`, `--platforms` (default `android`), `--base` (output root; default `~/AppSpecs` — a personal folder you control, kept separate from any unrelated work context), `--resume`, `--fresh`, `--dry-run`, `--skip-play`, `--skip-apk`, `--only <list>`, `--no-bridge` (stop after bundle, don't offer handoff), `--graph` / `--no-graph` (force-on / force-off the dynamic reference crawl — see Phase A.0), `--no-grill` (escape hatch: skip the design-tree interrogation that otherwise runs in greenfield and over clone ambiguities — see Phase A). **Feature-mode flags:** `--feature` (force brownfield mode), `--board <dir>` (target SPEC board; default the project's auto-detected `.claude/specs/backlog/`), `--epic <slug>` (epic name; else derived from the feature title).
 
 **Depth default:** clone mode defaults to `--depth reference` (full visual + behavioural fit — turns on the per-screen fit checklist + the downstream `/<prefix> --fit` gate); greenfield defaults to `--depth production`. Override with `--depth`.
 
@@ -83,6 +84,8 @@ Base: `<BASE>\<APP>\` (where `<BASE>` = `--base` or default personal folder). La
 Existence handling (`--fresh` / `--resume` / ask) — same as app-tdd-creator Step 1. Init `pipeline/00_meta.yaml` (app, mode, platforms, base, schema_version, phases_completed[], started_utc) and `spec/00_manifest.yaml` (see `prompts/templates/00_manifest.tmpl.yaml`).
 
 If `--dry-run` — print planned phases + gates, stop.
+
+**Feature mode** builds **no** `spec/` bundle. It keeps working files under `<BASE>\<feature-slug>\pipeline\` (`grounding.md`, `grill.md`, `decomposition.json`) for resumability, and **emits the epic into the target project's board** (`--board`, default the grounded `.claude/specs/backlog/`). See Step F.
 
 ## Step 2 — Phase A: intake (mode-specific)
 
@@ -169,9 +172,16 @@ Then five batches via AskUserQuestion (≤4 Qs each), saved to `input/interview/
 4. `…stage4-data.md` — model proposes entities/relations, user prunes; auth; integrations; offline.
 5. `…stage5-posture.md` — a11y target, locales, data sensitivity/consent, analytics goals.
 
+### A-feature (brownfield — ground, grill, decompose)
+For a feature added to an **existing** project. No analyzers and no interview stages — three sub-steps, then straight to Step F:
+1. **Ground.** `Read prompt techniques/grounding.md` — fan out read-only over the target repo → `pipeline/grounding.md` (verified `file:line` facts + the project's SPEC-board format). Every later `CHANGED_HINT` must cite a fact from here.
+2. **Grill.** `Read prompt techniques/grill-me.md` (feature variant — input is the feature description + the grounding ledger) → `pipeline/grill.md`. Resolve the feature as a decision tree (ambiguity-scaled budget); the locked decisions become the epic's locked decisions.
+3. **Decompose.** `Read prompt questions/feature.decompose.md` — propose the ordered, dependency-aware SPEC set (with same-file clash flags) and confirm it (**this is the feature-mode GATE 1**) → `pipeline/decomposition.json`.
+Feature mode then SKIPS Steps 4–9 (the whole-app artifact pipeline + GATE 2) and goes to **Step F**.
+
 ## Step 3 — GATE 1: confirm inventory (human, hard stop)
 
-Both modes produce a **feature inventory** (screens, features, roles, entities, integrations + per-item source & confidence). Validate against `prompts/schemas/feature-inventory.schema.json`. Print a compact table (low-confidence rows flagged) and call AskUserQuestion: всё верно / убрать лишнее / добавить недостающее / объединить дубликаты. **Nothing downstream runs until this is confirmed** — the locked inventory is the grounding for every artifact, so a wrong screen never propagates into 14 files.
+Both modes produce a **feature inventory** (screens, features, roles, entities, integrations + per-item source & confidence). Validate against `prompts/schemas/feature-inventory.schema.json`. Print a compact table (low-confidence rows flagged) and call AskUserQuestion: всё верно / убрать лишнее / добавить недостающее / объединить дубликаты. **Nothing downstream runs until this is confirmed** — the locked inventory is the grounding for every artifact, so a wrong screen never propagates into 14 files. **Feature mode** uses the decomposition confirmation (`questions/feature.decompose.md`) as its GATE 1 — confirm the ordered SPEC set there, then branch to **Step F** (skipping Steps 4–9).
 
 If a grill ledger exists (`input/interview/grill.md` or `pipeline/grill.md`), reconcile against it before printing: every inventory row should trace to a resolved decision (or analyzer/interview answer), no row may contradict an "Out of scope" entry, and carry the ledger's deferred open-questions into the table as flagged `(assumption)` rows so the user decides them here.
 
@@ -214,9 +224,21 @@ One message, parallel: `nfr-analyzer`, `a11y-reviewer`, `security-privacy-review
 
 On `pass`, print the verdict summary + coverage stats + warnings, then AskUserQuestion: принять и передать в разработку / внести правки / принять с зафиксированными рисками. Only on accept set `00_manifest.yaml: evaluator_verdict: pass` and continue.
 
+## Step F — Feature mode: emit the backlog epic (replaces Steps 4–9)
+
+Reached from A-feature once the decomposition is confirmed. Emit, into `--board` (default the grounded `.claude/specs/backlog/`), the epic as **project-native** SPEC files — main session, **no sub-agent** (portable across Claude/Codex):
+
+1. **Overview** — `Read prompt templates/feature-epic-overview.tmpl.md` → `<board>/<epic>-00-overview.md` (goal, locked decisions from `grill.md`, the SPEC table from `decomposition.json`, key verified facts from `grounding.md`). **Match the project's house format** captured in `grounding.md`.
+2. **Numbered SPECs** — for each entry in `decomposition.json`, `Read prompt templates/feature-spec.tmpl.md` → `<board>/<epic>-NN-<slug>.md`. Every `CHANGED_HINT` cites a grounding `G#` (or `(assumption)`); add per-SPEC Gherkin acceptance (`rubrics/gherkin-acceptance`); for a `domain_math` SPEC include a Calculation block (`rubrics/domain-math`); record same-file clashes in CONSTRAINTS.
+3. **Light eval (reuse `spec-evaluator`, read-only, adapted).** Check cross-SPEC consistency, grounding (no ungrounded `CHANGED_HINT`), and same-file-clash sequencing. On a `blocker`, fix the owning SPEC (**max 2 retries**), then proceed; `warn`/`info` → `(assumption)`-tagged notes in the overview.
+
+Feature mode writes **no** `spec/` bundle and has **no** GATE 2. Then continue to Step 10 (handoff).
+
 ## Step 10 — Handoff (auto-bridge)
 
 Unless `--no-bridge`: tell the user the bundle is ready and how to hand it off to their dev pipeline. If the project ships a **spec-bridge** (e.g. MyMoney's `cmp-planner-android`, invoked as `/<prefix> --plan <bundle>`, which turns the bundle into the project's plan files behind a `y/d/n` gate), name it and print the command. Otherwise the **portable handoff is the bundle itself**: `traceability.csv` + `design.md` + `acceptance/*.feature` feed any coding pipeline (e.g. `/<prefix> --feature` per epic). Always print the bundle path.
+
+**Feature mode handoff.** Print the epic path + the SPEC count, and the board command — `/<prefix> --feature --next` (implements the backlog SPECs in Order; e.g. MyMoney's `/mp --feature --next`). No bundle, no fit-loop.
 
 **Clone fit loop.** For a clone bundle (depth ≥ reference), tell the user that after the dev pipeline implements the screens they should run `/<prefix> --fit` to compare the built app against the reference screenshots — the bundle's `fit/` checklists + `deviations.md` drive that gate, and each unexplained divergence becomes a backlog SPEC to fix, closing the clone loop.
 
@@ -224,9 +246,11 @@ Unless `--no-bridge`: tell the user the bundle is ready and how to hand it off t
 
 Open the bundle folder (`Start-Process explorer.exe "<BASE>\<APP>"`). Final Russian summary: bundle path, mode, screen/feature/entity counts, artifact list with line counts, evaluator verdict + coverage, per-agent token totals (keep app-tdd-creator's token-cost table), and the handoff command.
 
+**Feature mode:** no bundle folder to open — summarise the epic instead: board path, epic slug, SPEC count + titles, grounding-fact count, residual `(assumption)` items, and the `/<prefix> --feature --next` command.
+
 ## Edge cases
 
-- Never write outside `<BASE>\<APP>\`. Never write code/tests. Never delete user files (list paths instead).
+- Never write code/tests. Never delete user files (list paths instead). Clone/greenfield write only under `<BASE>\<APP>\`. **Feature mode** additionally writes SPEC files into the target project's `--board` (its whole purpose) + working files under `<BASE>\<feature-slug>\pipeline\` — but it must never overwrite or delete an existing SPEC (new files only; on a name collision, ask).
 - Any agent fails 3× → note in meta, continue if possible.
 - `screenshots_count == 1` → MVP depth. `> 50` → warn (opus cost) before business-analyzer, offer subset.
 - Play/Chrome MCP unavailable, APK undecodable, invalid APK → same fallbacks as app-tdd-creator Step 0/3.

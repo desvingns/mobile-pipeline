@@ -25,10 +25,10 @@ platform: <neutral|android|ios>  # neutral fragments must contain NO Compose/Kot
 
 | Dir | Holds |
 |---|---|
-| `questions/` | AskUserQuestion banks: `clone.*` (5 batches A–E + input), `greenfield.*` (5 stages) |
-| `techniques/` | Reusable elicitation methods invoked by the orchestrator (not an agent): `grill-me` — design-tree, one-question-at-a-time interrogation run in greenfield (Stage 0) and over clone ambiguities |
-| `rubrics/` | Authoring rules: `ears-requirements`, `gherkin-acceptance`, `nfr-categories`, `a11y-wcag22`, `security-privacy-checklist`, `analytics-taxonomy`, `evaluator-rubric` |
-| `templates/` | Output skeletons: `constitution`, `product-brief`, `design` (neutral), `platform.android`, `platform.ios`, `00_manifest` |
+| `questions/` | AskUserQuestion banks: `clone.*` (5 batches A–E + input), `greenfield.*` (5 stages), `feature.decompose` (brownfield epic decomposition = feature-mode GATE 1) |
+| `techniques/` | Reusable elicitation methods invoked by the orchestrator (not an agent): `grill-me` — design-tree, one-question-at-a-time interrogation run in greenfield (Stage 0), over clone ambiguities, and in feature mode; `grounding` — verified `file:line` facts pass over an existing repo (feature mode) |
+| `rubrics/` | Authoring rules: `ears-requirements`, `gherkin-acceptance`, `nfr-categories`, `a11y-wcag22`, `security-privacy-checklist`, `analytics-taxonomy`, `evaluator-rubric`, `domain-math` (formula + worked-example fixtures for calculation-bearing features) |
+| `templates/` | Output skeletons: `constitution`, `product-brief`, `design` (neutral), `platform.android`, `platform.ios`, `00_manifest`, `feature-epic-overview` + `feature-spec` (brownfield backlog epic) |
 | `schemas/` | `feature-inventory.schema.json` — the neutral merge format both modes converge on |
 
 ## Extraction priority (when populating from the old monolith)

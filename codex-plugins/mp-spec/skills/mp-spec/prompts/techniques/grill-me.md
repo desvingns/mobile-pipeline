@@ -1,11 +1,11 @@
 ---
 id: techniques/grill-me
-version: 1.0.0
-inputs: [idea_paragraph, feature-inventory-draft, ambiguities, state_gaps]
+version: 1.1.0
+inputs: [idea_paragraph, feature-inventory-draft, ambiguities, state_gaps, feature_description, grounding_ledger]
 outputs: [input/interview/grill.md, pipeline/grill.md]
 model: n/a
 owner_agent: orchestrator
-tags: [technique, elicitation, interrogation, anti-hallucination, greenfield, clone]
+tags: [technique, elicitation, interrogation, anti-hallucination, greenfield, clone, feature]
 platform: neutral
 ---
 
@@ -29,8 +29,9 @@ not write Kotlin/Swift or any `spec/` artifact — only the ledger below.
 
 > **Walk down each branch of the design tree. Resolve a parent decision before its children.**
 
-1. From the available input — the idea paragraph (greenfield) or the draft inventory +
-   `ambiguities[]` / `state_gaps[]` (clone) — sketch (internally) the **decision tree**: the
+1. From the available input — the idea paragraph (greenfield), the draft inventory +
+   `ambiguities[]` / `state_gaps[]` (clone), or the feature description + grounding ledger
+   (feature) — sketch (internally) the **decision tree**: the
    small set of choices that, once made, determine everything downstream. Roots first:
    *who is this for / what is the single core job / what is explicitly out of scope* →
    then the branches each root opens (entities, flows, states, integrations, constraints).
@@ -54,14 +55,23 @@ remaining tree (prunes dead branches, opens new ones, re-orders priority). Ask �
 re-plan → ask the next. A small **coherent cluster** (2–3 tightly-coupled sub-choices of the
 same parent) in one turn is fine; an unrelated grab-bag is not.
 
+### Budget — scale to the ambiguity, don't grill on rails
+
+Before the first question, **list the open decisions** you can see (internally) and rank them by
+**leverage** — how much downstream each one determines. Grill the high-leverage ones first. A feature
+with two real unknowns deserves two questions, not eight; a genuinely tangled one may need more than a
+small fixed cap. So the budget **scales with the count of open decisions**, and the numeric cap below is
+a backstop, not a target.
+
 ### Stop conditions
 
 Stop the grill when **any** holds, then write the ledger:
-- All root decisions are settled and no open branch has unresolved holes; **or**
+- All root / high-leverage decisions are settled and no open branch has an unresolved hole; **or**
 - The user says "достаточно" / "хватит" / "дальше" (accept remaining open items as
   `(assumption)` with your recommended defaults, logged as such); **or**
-- A turn budget is hit — **≤ 8 questions** (greenfield) / **≤ 1 per ambiguity, max 6** (clone).
-  Surface what is still open rather than grilling indefinitely.
+- A turn budget is hit — **≤ 8** (greenfield) / **≤ 8, scaled to the open-decision count** (feature) /
+  **≤ 1 per ambiguity, max 6** (clone) — with a **hard ceiling of ≤ 12** in any mode. Surface what is
+  still open rather than grilling indefinitely.
 
 Never let the grill block forever. Unresolved branches become logged assumptions + open
 questions, not a stall.
@@ -93,6 +103,9 @@ This ledger is **grounding**, not a spec artifact. Downstream consumers:
   owns them; "Out of scope" items must never be proposed.
 - **Clone** — the resolved decisions close `ambiguities[]` / `state_gaps[]`; remaining open items
   flow into GATE 1 inventory notes and `risks.md` (tagged `(assumption)`).
+- **Feature (brownfield)** — the resolved decisions become the epic's **locked decisions**; the
+  decomposition step reads them so every proposed SPEC traces to one; deferred open-questions become
+  `(assumption)`-tagged rows in the epic overview + per-SPEC CONSTRAINTS.
 
 ### Harness note
 
