@@ -45,9 +45,11 @@ not raw file dumps. Cap at ~3 parallel explorers, one focus each (e.g. "nav + en
 "domain/data signatures + conventions", "SPEC-board format + test gotchas"). Read excerpts; cite
 `file:line`. Stop when every fact a SPEC will need is captured.
 
-> **Harness note.** Claude → spawn `Explore` subagents in parallel, keep their conclusions. Codex →
-> native read-only subagents, or targeted main-session reads. Either way the orchestrator owns the
-> ledger file; workers return facts, not file contents.
+> **Harness note.** Prefer the dedicated **`grounding-scout`** subagent (cheap, read-only, one `focus`
+> per spawn) so grounding never runs on the orchestrator's expensive model — spawn ≤3 in parallel.
+> Claude → `grounding-scout` (or generic `Explore`) subagents; Codex → the `grounding-scout` `.toml`
+> shim (or native read-only subagents); no-subagent harness → targeted main-session reads. Either way
+> the orchestrator owns the ledger file; workers return facts (JSON), not file contents.
 
 ### Output — the grounding ledger (write this, then return)
 

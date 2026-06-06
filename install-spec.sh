@@ -45,6 +45,7 @@ done
 # Canonical Codex agent table: name|model|reasoning_effort|short_description
 # (no '#' or '/' in description).
 AGENTS='constitution-author|gpt-5.4-mini|medium|Generate the spec bundle constitution.md (standards layer) from project conventions.
+grounding-scout|gpt-5.4-mini|medium|Read-only brownfield grounding scout; fan out over the target repo and return verified file:line facts plus the project SPEC-board format. No writes.
 requirements-author|gpt-5.4|high|Author EARS functional requirements from analyzer outputs or interview answers; ground every FR.
 user-story-writer|gpt-5.4|high|Derive user stories (US-NNN) from requirements, linked to FR IDs, reporting coverage gaps.
 acceptance-criteria-writer|gpt-5.4|high|Write UI-agnostic Gherkin acceptance criteria per epic, covering the state matrix.
