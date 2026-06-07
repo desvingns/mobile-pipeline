@@ -6,10 +6,10 @@ workflow (`/discuss`, `/feature`, `/bugfix`, `/tdd`) and platform-specific speci
 Battle-tested origin: extracted from a 6-iteration `diet_helper` Android project (Kotlin +
 Compose + Hilt + Room) where the pattern was refined through real shipped features.
 
-## The four main pipelines
+## The main pipelines
 
 Everyday work runs through **two plugin commands** — `/mp-spec` (build the spec) and `/mp`
-(build the app). They compose into four end-to-end pipelines. Both come from the
+(build the app). They compose into five end-to-end pipelines. Both come from the
 `mobile-pipeline` marketplace below; enable it in your project first, then:
 
 | # | Pipeline | How to run | Output |
@@ -18,11 +18,22 @@ Everyday work runs through **two plugin commands** — `/mp-spec` (build the spe
 | **2** | **Execute the phases, one task at a time** | `/mp --phase` (repeat) · `/mp --check` to validate · `/mp --fit` (clone gate) | One task per run: SPEC → develop → review → test → verify, ticked in `PROGRESS.md` |
 | **3** | **Spec from a brief (ТЗ) + fill the backlog** | `/mp-spec --greenfield` → `/mp --plan <epic-slug> --from <bundle>/spec` | `spec/` bundle from interview, then ordered SPECs on the `.claude/specs/backlog/` board |
 | **4** | **Execute the backlog SPECs, one at a time** | `/mp --feature --next` (repeat) · or `/mp --feature --backlog <slug>` | Each SPEC promoted `backlog → active → done` through the full develop→verify→push chain |
+| **5** | **Spec a feature into an existing app's backlog** (brownfield, one step) | `/mp-spec --feature "<feature>"` → `/mp --feature --next` | Grounds in the live codebase, grills the ambiguities, decomposes → an epic of ordered SPECs straight onto `.claude/specs/backlog/` — **no** `spec/` bundle, **no** `/mp --plan` bridge |
 
 **1 → 2** is the heavy *clone* loop (reference fit is a verifiable gate — see
 `docs/CLONE-PLAYBOOK.md`). **3 → 4** is the lighter *greenfield* loop (a resumable backlog
-board for ad-hoc, independently-shippable features). The two coexist — pick the phase model
-for a full app build, the backlog for individual features.
+board for ad-hoc, independently-shippable features). **5 → 4** is the *brownfield* loop: it
+skips the heavyweight `spec/` bundle and authors backlog SPECs directly from a feature
+description against an existing project — the fastest front-door to the same row-4 executor.
+The three coexist — pick the phase model for a full app build, the backlog (greenfield bundle
+*or* brownfield direct) for individual features.
+
+> **Two different `--feature` flags — don't confuse them.** `/mp-spec --feature` *authors*
+> backlog SPECs (pipeline 5, the spec tool); `/mp --feature` *executes* a SPEC already on the
+> board (pipeline 4, the dev orchestrator). They share the word but live on different commands.
+> `/mp-spec --feature` also auto-engages when you invoke the spec tool from inside a project
+> that already has a `.claude/specs/` board and pass a feature description with no clone inputs
+> (`--board <dir>` / `--epic <slug>` override the target board and epic slug).
 
 > `/mp-spec` and `/mp` are the marketplace-plugin commands. If you bootstrapped a per-project
 > pipeline with a custom `--prefix` instead (see Quick start), the dev command is `/<prefix>`
