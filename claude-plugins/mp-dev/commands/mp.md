@@ -228,15 +228,22 @@ If **y** → spawn `mp-architect` (same prompt as `--discuss` Phase 1), show the
 
 If no trigger fires, or user answers **N** → proceed directly to Phase 1.
 
-### Phase 1 — Spec
+### Phase 1 — Spec (grill-first elicitation)
 
-Explore the relevant codebase area. Then ask ≤3 questions to close ambiguities:
-- Affected screen(s)? New screen or extension?
-- New use case or extend existing?
-- New persistence? (Storage layer: Room entity / DataStore key / Core Data entity / etc.)
-- UI validation rules? Edge states (loading/empty/error)?
+Explore the relevant codebase area. Then **grill the feature into a tree of decisions** before emitting any SPEC — do not jump straight to a flat question list, and do **not** cap the number of questions.
 
-When answers are clear, output SPEC block and wait for user approval:
+**Grill protocol (always run; ambiguity-scaled).**
+1. From the feature description + what the exploration found, sketch (internally) the **decision tree**: the small set of choices that, once made, determine everything downstream. Roots first — which screen/flow, new screen vs. extension, the single core behaviour, what is explicitly **out of scope** — then the branches each root opens: new-vs-existing use case, persistence (Room entity / DataStore key / Core Data entity / …), validation rules, empty/loading/error states, integrations.
+2. **Rank the open decisions by leverage** (how much downstream each one determines). Enumerate them internally before asking anything.
+3. Ask **one decision at a time** (a tight 2–3 sub-choice cluster of the *same* parent may share one call), resolving a **parent before its children**. Always offer a **recommended answer** drawn from the codebase/exploration, marked as the recommended option (in the project's configured UI language), so the user can accept with one tap or correct you. **Re-plan the tree from each answer before the next question.**
+4. Be a skeptic, not a stenographer. On every answer hunt for a hidden **assumption**, a **contradiction** with an earlier answer, an unhandled **state** (empty / loading / error / offline / first-run / unauthenticated), **scope creep** (a sub-feature with no traceable root in the core behaviour), or a **new dependency** the answer just created. A found hole becomes the next question — follow that branch before returning to breadth.
+5. **Budget scales with ambiguity — there is NO fixed question cap.** A trivial change (e.g. "new button → navigate to X") surfaces ~0 high-leverage unknowns → ask nothing (or a single confirm) and proceed straight to the SPEC. A genuinely tangled feature may need many. **Stop** when all root/high-leverage decisions are settled and no open branch has an unresolved hole, OR the user says "enough / proceed" (log remaining items as `(assumption)` with your recommended defaults), with a **hard ceiling of ≤12** as a backstop, not a target.
+
+**Harness note.** Ask via the harness's question mechanism: Claude → `AskUserQuestion`, one decision per call, the recommended option **first**; Codex → ask the one question in chat and **STOP** until the user replies (state the recommended answer in the text). Never batch the tree; never proceed on an unanswered question.
+
+Carry the resolved decisions into the SPEC: every `WHAT` / `CONSTRAINTS` line must trace to a grilled decision, the exploration, or an explicit `(assumption)`; never put an "out of scope" item into the SPEC.
+
+When the decisions are settled, output SPEC block and wait for user approval:
 
 ```
 === SPEC ===
@@ -461,7 +468,7 @@ feat: [description]
 Spec-authoring only — **fills the backlog, writes no code, runs no agents.** Use it to groom a large feature into ready-to-run SPECs ahead of time.
 
 ### Phase 1 — Draft
-Explore the relevant codebase area (same as `--feature` Phase 1). Ask ≤3 questions ONLY if a choice is genuinely blocking (a strategy or scope fork). Then decide single vs. split:
+Explore the relevant codebase area, then run the **same grill-first elicitation as `--feature` Phase 1** (ambiguity-scaled decision tree, no fixed question cap, one decision at a time with a recommended answer). Since `--spec` is backlog grooming with no approval gate at write time, lean toward your recommended defaults and grill only the genuinely blocking forks (strategy / scope) — log the rest as `(assumption)`. Then decide single vs. split:
 - **Single SPEC** → one self-contained `=== SPEC === … === END SPEC ===` block.
 - **Large feature** → the full ordered set (SPEC 1..N), each its own block, + an epic overview.
 
@@ -930,7 +937,7 @@ until the score converges and only intended deviations remain.
 - All code changes happen inside spawned agents.
 - If a spawned agent fails — stop the chain and report immediately.
 - LLM agent output is validated as JSON (or BRAINSTORM block for architect). On parse failure, retry the same agent ONCE with an explicit "JSON only, no prose" preface. Second failure → stop.
-- Maximum 3 clarifying questions before generating SPEC.
+- Phase 1 elicitation is **grill-first**: a decision-tree interrogation with **no fixed question cap** (ambiguity-scaled; hard ceiling ≤12 as a backstop, not a target). Resolve parents before children, one decision at a time, each with a recommended answer; a trivial feature surfaces ~0 questions and proceeds straight to the SPEC. (Backlog-consume mode — `--feature --next`/`--backlog` — still skips Phase 1 entirely.)
 - Reviewer step runs after every Developer pass, before Tester (deterministic script `${CLAUDE_PLUGIN_ROOT}/scripts/mp-reviewer-<platform>.sh`; agent fallback on script error). A violation blocks the chain.
 - Runner step is the deterministic script `${CLAUDE_PLUGIN_ROOT}/scripts/mp-runner-<platform>.sh` (agent fallback on script error). Runner gets at most 2 runs per task (1 main + 1 retry after auto-fix). Never loop more than once.
 - `mp-verifier-<platform>` runs after Runner pass on `--feature` only. A static_checks failure blocks the chain; on pass, push waits for explicit user `y` after the manual checklist is shown. (`--bugfix` skips Verifier — bugfixes rarely touch wiring.)

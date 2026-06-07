@@ -6,6 +6,19 @@ This repo uses [Semantic Versioning](https://semver.org/) — see `README.md` �
 
 ## [Unreleased]
 
+### Changed
+
+- **`/mp --feature` Phase 1 is now grill-first** (mp-dev). The flat "ask ≤3 questions" step and the
+  hard "Maximum 3 clarifying questions" rule are **removed**; Phase 1 now runs the same design-tree
+  interrogation as `/mp-spec` — **always-on, ambiguity-scaled, no fixed question cap** (hard ceiling
+  ≤12 as a backstop). Roots before branches, one decision at a time, each with a recommended answer,
+  actively poking holes (assumptions / contradictions / unhandled states / scope creep). A trivial
+  change (e.g. "new button → navigate to X") surfaces ~0 high-leverage unknowns and proceeds straight
+  to the SPEC, so the fast path is preserved. `--spec` Phase 1 aligned to the same grill (lean to
+  recommended defaults, grill only blocking forks). Backlog-consume mode (`--feature --next` /
+  `--backlog`) still skips Phase 1 entirely. The grill protocol is inlined natively in
+  `templates/common/commands/{{PREFIX}}.md` (no cross-plugin dependency on the mp-spec prompt copy).
+
 ### Added
 
 - **Grill-me design-tree interrogation** in `/mp-spec` intake — a reusable orchestrator technique
