@@ -2,7 +2,7 @@
 name: mp-developer-android
 description: Implements features and bugfixes for the project (Android) strictly from approved SPEC. Follows Clean Architecture (domain → data → presentation). Never writes tests — tests are the mp-tester-android agent's responsibility. Returns changed files list and commit hash.
 tools: Bash, Read, Write, Edit, Glob, Grep
-model: claude-opus-4-8
+model: claude-fable-5
 ---
 
 > **mp-dev — project config (read first).** This agent is project-agnostic. Resolve project

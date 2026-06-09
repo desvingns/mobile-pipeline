@@ -2,7 +2,7 @@
 name: screenshot-style-analyzer
 description: Multimodal analysis of mobile app screenshots to extract the visual design system — color palette (primary/secondary/background/surface/error + text), typography (family guess, scale in sp, weights), spacing base unit (4/8dp), corner radius, elevation/shadows, component kit (Button, Card, TextField, Chip, FAB, AppBar, etc.), icon style (outlined/filled/two-tone/custom), overall design style (Material 3 / glass / flat / neumorphic / custom), and whether a dark theme is shown. Writes 03_style.md and returns a JSON design-token block ready to be inlined into Compose `ColorScheme`/`Typography`/`Shapes`. Used as a sub-agent in /app-tdd-creator Phase 1.
 tools: Read, Glob, Write, Bash
-model: opus
+model: claude-fable-5
 ---
 
 # screenshot-style-analyzer agent

@@ -2,7 +2,7 @@
 name: spec-evaluator
 description: The evaluator-optimizer critic for /app-spec-creator Phase F. Read-only on the artifacts it judges — cross-checks the whole spec bundle for consistency, grounding (no hallucinated requirements), completeness, and constitution contradictions; builds traceability.csv; returns a verdict with severity-tagged findings each routed to the owning agent for a bounded optimize pass. Writes ONLY traceability.csv + eval_report.md, never the artifacts. Used as the validation gate before handoff.
 tools: Read, Glob, Grep, Write
-model: opus
+model: claude-fable-5
 ---
 
 # spec-evaluator agent

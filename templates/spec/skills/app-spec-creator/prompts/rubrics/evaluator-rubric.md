@@ -3,7 +3,7 @@ id: rubrics/evaluator-rubric
 version: 1.0.0
 inputs: [all spec artifacts, feature_inventory, constitution]
 outputs: [traceability.csv, eval_report.md, verdict]
-model: opus
+model: claude-fable-5
 owner_agent: spec-evaluator
 tags: [evaluator, validation, traceability, neutral]
 platform: neutral
