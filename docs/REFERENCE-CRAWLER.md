@@ -72,3 +72,18 @@ held in the orchestrator session, passed to the executor for auth goals, and **n
 4. Real per-state frames → `fit-checklist-author`; auto-enable on `--depth reference` (this doc).
 
 Status & open items: `.ai/tasks/claude-004-reference-crawler.md`.
+
+## Element manifests (stage 5 — "no forgotten button")
+
+The crawl finalize step distils every `ST*.xml` uiautomator dump into
+`input/crawl/elements/ST*.json` (`scripts/crawl/element-manifest.sh` — offline, awk-only): every
+clickable/long-clickable element with its class / resource-id / text / content-desc / bounds.
+Three consumers turn it into deterministic gates:
+1. **`fit-checklist-author`** merges the per-state manifests into per-screen
+   `spec/fit/elements/<Sxx>.json` (union, deduped, `expected:true` unless `deviations.md`
+   excludes it).
+2. **`spec-evaluator` Class 5** (clone): every user-meaningful element must map to an inventory
+   feature/CTA, a US/AC, or an explicit decision — unmatched = blocker (`unmatched_affordance`).
+3. **`/<prefix> --fit` structural diff**: the built screen's own uiautomator dump is compared
+   against the manifest — a missing `expected:true` element is a high-confidence major
+   divergence, caught by the element tree, not by eye.

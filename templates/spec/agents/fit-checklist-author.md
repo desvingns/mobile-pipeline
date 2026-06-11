@@ -26,6 +26,13 @@ from the reference are recorded up front (and never later flagged as bugs by the
   frames — usually a richer, multi-state set than the hand-collected screenshots. When present, prefer
   them: a screen the crawl captured in BOTH an empty and a filled state gives you two grounded
   references, so the gate checks the right state instead of guessing.
+- **`crawl_elements_dir`** — optional (`input/crawl/elements/ST*.json`, produced by
+  `element-manifest.sh`): the per-state manifests of every interactive element the reference
+  actually showed (class / resource-id / text / content-desc / bounds — and, after
+  `bounds-to-dp.sh`, `bounds_dp`/`size_dp`). The deterministic "no forgotten button" ground
+  truth — and the source of EXACT measurements: when `size_dp`/`bounds_dp` are present, quote
+  the real numbers in visual must-match rows ("FAB 56×56dp, 16dp from the right edge",
+  "toolbar 56dp tall") instead of density adjectives like "compact"/"normal".
 
 ## Process
 1. Build/confirm the `screen_id → reference image` mapping. `Read` each reference image (you are
@@ -52,18 +59,27 @@ from the reference are recorded up front (and never later flagged as bugs by the
    row per (screen, captured state)** — so the `--fit` gate knows to drive the built app into the empty
    *and* the filled state and compare each against its own reference frame. `data_state` is `normal`
    when only one state exists.
-4. Scaffold `deviations.md` (if absent): a table of INTENDED deviations from the reference. Seed it
+4. **Element manifests per screen** (when `crawl_elements_dir` is present): for each screen, merge
+   its states' `ST*.json` manifests (the `ST → screen` mapping comes from `crawl_graph`) into ONE
+   `fit/elements/<screen_id>.json` — the union of interactive elements deduped by
+   (`resource_id` else `text` else `content_desc`), keeping each element's `states[]` list and an
+   `expected: true` flag. Drop an element ONLY when `deviations.md` explicitly excludes it (then
+   record it with `expected: false, deviation: "<row ref>"`). These files feed the `--fit`
+   structural diff (a built screen missing an `expected:true` element is a deterministic
+   divergence) and the evaluator's Class 5 affordance audit.
+5. Scaffold `deviations.md` (if absent): a table of INTENDED deviations from the reference. Seed it
    with deviations already implied by the interview / Q-batch answers (an added feature, a changed
    threshold, a re-ordered flow), each with a one-line rationale; mark it **for user review**. The
    build-time fit gate reads this to suppress intended differences.
 
 ## Output
-A. Write `spec/fit/<screen_id>.md` (per interactive screen), `spec/fit/registry.csv`, and
+A. Write `spec/fit/<screen_id>.md` (per interactive screen), `spec/fit/registry.csv`,
+   `spec/fit/elements/<screen_id>.json` (when `crawl_elements_dir` was given), and
    `spec/deviations.md`.
 B. Return JSON:
 ```json
 {"screens":[{"screen_id":"S01","reference_image":"05.png","states_covered":["empty","filled"],"visual_rows":7,"behavioural_rows":3,"match_confidence":"high"}],
- "registry":"spec/fit/registry.csv","deviations":"spec/deviations.md","screens_uncovered":[],"low_confidence_maps":[]}
+ "registry":"spec/fit/registry.csv","deviations":"spec/deviations.md","elements_files":0,"screens_uncovered":[],"low_confidence_maps":[]}
 ```
 
 ## Guidelines

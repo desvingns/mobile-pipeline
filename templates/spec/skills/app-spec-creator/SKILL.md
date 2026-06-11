@@ -121,6 +121,15 @@ resumes from them.
    Then `app-control.sh install <apk>` → `app-control.sh clear <package>` (once — deterministic
    first-run) → `app-control.sh launch <package>` (`package` from the apk-analyzer; run it first if
    needed). If install/launch fails → note `crawl.skipped:"<reason>"`, fall through to static A-clone.
+   **Normalize the capture environment first** (so reference frames and the later `--fit` captures
+   are pixel-comparable): fix the status bar via demo mode —
+   `adb shell settings put global sysui_demo_allowed 1`, then
+   `adb shell am broadcast -a com.android.systemui.demo -e command enter`,
+   `… -e command clock -e hhmm 1000`, `… -e command battery -e level 100 -e plugged false`,
+   `… -e command network -e wifi show -e level 4`, `… -e command notifications -e visible false`;
+   plus `adb shell settings put system font_scale 1.0`. Record the AVD profile + density in
+   `00_meta.yaml` (`crawl.device.density` via `adb shell wm density`) so `--fit` captures on the
+   SAME profile. On finish: `… -e command exit` (best-effort — never block the crawl on demo mode).
    Capture the launch state (`screencap` + `ui-dump`), make it node `ST01` (`launch_state`), enumerate
    its frontier, and write the initial `input/crawl/state-graph.json`.
 4. **The trio loop** (you drive it; persist after every step so `--resume` works). Repeat until a stop
@@ -152,7 +161,16 @@ resumes from them.
 5. **Finalize + cleanup.** For each unique node, copy its representative frame to `input/screenshots/`
    (`NN.png`, in node order) **and record `screenshot_file:"NN.png"` on the node** (this filename is the
    bridge that lets `navigation-flow-analyzer` map crawl `ST*` ids onto business `S*` screens — both
-   reference the same image). Write `state-graph.mmd`. `app-control.sh stop <package>`. Set
+   reference the same image). **Distil the element manifests:**
+   `bash "$CRAWL/element-manifest.sh" --states-dir input/crawl/states --out-dir input/crawl/elements`
+   → one `ST*.json` per dump listing every interactive element (class / resource-id / text /
+   content-desc / bounds). This is the deterministic "every button" ground truth: the evaluator's
+   Class 5 audits the inventory against it and `--fit` later diffs the built app's element tree
+   against it. **Then add exact dp metrics:** read the density recorded at capture
+   (`crawl.device.density`, else `adb shell wm density` now) and run
+   `bash "$CRAWL/bounds-to-dp.sh" --elements-dir input/crawl/elements --density <dpi>` — each
+   element gains `bounds_dp`/`size_dp`, so the fit checklists can quote real numbers
+   ("FAB 56×56dp") instead of density adjectives. Write `state-graph.mmd`. `app-control.sh stop <package>`. Set
    `crawl.completed:true` + coverage in `00_meta.yaml`. The observed corpus now feeds A-clone (below);
    `state-graph.json` feeds `navigation-flow-analyzer` (observed edges override its guesses).
 
@@ -171,7 +189,7 @@ When **A.0-crawl ran**, `input/screenshots/` already holds the observed states, 
 ### A-green (staged interview elicitation)
 Funnel: broad → narrow, each stage's answers constrain the next (anti-hallucination via propose-then-confirm).
 
-**Stage 0 — Grill (design-tree interrogation, runs first; mandatory unless `--no-grill`).** Before the structured batches, run an adversarial **one-question-at-a-time** pass that resolves the idea as a *tree of decisions* — roots (audience / single core job / explicit out-of-scope) before the branches they constrain — and actively pokes holes (hidden assumptions, contradictions, unhandled states, scope creep). `Read prompt techniques/grill-me.md` and follow it literally; offer a recommended answer for every question. Run it **after** the idea paragraph is captured (the stage-1 pre-step) and write the resolved-decisions ledger to `input/interview/grill.md`. The five stages below then read that ledger: every candidate JTBD / screen / entity must trace to a grilled decision or the idea paragraph, deferred open-questions seed the owning stage, and "Out of scope" items are never proposed. Append `grill` to `phases_completed`. This is why greenfield no longer guesses on a thin idea — the grill establishes the upstream decisions first.
+**Stage 0 — Grill (design-tree interrogation, runs first; mandatory unless `--no-grill`).** Before the structured batches, run an adversarial **one-question-at-a-time** pass that resolves the idea as a *tree of decisions* — roots (audience / single core job / explicit out-of-scope) before the branches they constrain — and actively pokes holes (hidden assumptions, contradictions, unhandled states, scope creep). `Read prompt techniques/grill-me.md` and follow it literally; offer a recommended answer for every question. Run it **after** the idea paragraph is captured (the stage-1 pre-step) and write the resolved-decisions ledger to `input/interview/grill.md`. The five stages below then read that ledger: every candidate JTBD / screen / entity must trace to a grilled decision or the idea paragraph, deferred open-questions seed the owning stage, and "Out of scope" items are never proposed. Append `grill` to `phases_completed`. This is why greenfield no longer guesses on a thin idea — the grill establishes the upstream decisions first. The grill — and the five stages' recommended defaults after it — also reads the **cross-project user profile** (`$MP_USER_PROFILE` or `~/.config/mobile-pipeline/user-profile.md`) when it exists: profile facts (taste, language, process preferences accumulated across the user's projects) bias recommended answers and stage defaults but never auto-decide. The prompt's user-profile rule applies in every grill mode, including the clone ambiguity walk and the feature variant.
 
 Then five batches via AskUserQuestion (≤4 Qs each), saved to `input/interview/stageN.yaml`:
 1. `Read prompt questions/greenfield.stage1-vision.md` — idea, audience, platform(s), monetization.
@@ -213,6 +231,12 @@ Write the confirmed inventory to `pipeline/feature-inventory.json` (the neutral 
 - `spec/design.md` — **platform-neutral** body: overview, architecture, navigation graph, data model (neutral types), per-screen behaviour, business rules. `Read prompt templates/design.tmpl.md`.
 - `spec/platform/android.md` — the **only** place Compose/Hilt/Room/gradle/minSdk/permissions appear. `Read prompt templates/platform.android.tmpl.md`.
 - `spec/i18n.md` — via i18n sub-prompt (no separate agent).
+- `spec/design-tokens.json` — **machine-readable design tokens** for direct theme generation
+  downstream: the style-analyzer's JSON (palette, dark_palette, typography, spacing,
+  corner_radius, elevation, icon_style) with apk-analyzer exact values overriding guesses
+  (`exact_palette_*`, `exact_dimensions`, extracted font families) and a `provenance` field per
+  group (`apk` | `screenshot-estimate`). The dev pipeline's ui-designer consumes this file
+  verbatim — no manual Material Theme Builder seam for clones.
 - `spec/platform/ios.md` — populated stub unless `--platforms` includes `ios`.
 
 ## Step 7 — Phase E: quality artifacts (parallel fan-out)
@@ -221,16 +245,25 @@ One message, parallel: `nfr-analyzer`, `a11y-reviewer`, `security-privacy-review
 
 **Clone mode, depth ≥ reference:** also fan out `fit-checklist-author` (opus, multimodal) → `spec/fit/<Sxx>.md` (per-screen visual + behavioural must-match checklists, each grounded in its reference screenshot), `spec/fit/registry.csv` (screen ↔ reference image ↔ FR/AC), and a `spec/deviations.md` stub (intended deviations from the reference). This is the contract the build-time `/<prefix> --fit` gate later checks the running app against — so the clone converges to the reference instead of drifting (the failure mode that produced the 7 MyMoney↔Monefy divergences).
 
-**When A.0-crawl ran**, also pass `crawl_graph` (`input/crawl/state-graph.json`) + `crawl_states_dir` (`input/crawl/states/`) to `fit-checklist-author`. It then grounds the checklist in the **observed per-state frames** — including the `data_state:"filled"` states the seed goals produced — and emits a `registry.csv` row per (screen, captured state), so `--fit` drives the built app into each state (empty *and* filled) and compares it against its own real reference frame. This is the payoff of the dynamic crawl: the fit contract is anchored to states the reference app actually showed, not a partial hand-captured set.
+**When A.0-crawl ran**, also pass `crawl_graph` (`input/crawl/state-graph.json`) + `crawl_states_dir` (`input/crawl/states/`) + `crawl_elements_dir` (`input/crawl/elements/`, when present) to `fit-checklist-author`. It then grounds the checklist in the **observed per-state frames** — including the `data_state:"filled"` states the seed goals produced — emits a `registry.csv` row per (screen, captured state), and merges the per-state element manifests into `spec/fit/elements/<Sxx>.json` (one per screen — the union of its states' interactive elements), so `--fit` drives the built app into each state (empty *and* filled), compares it against its own real reference frame, AND diffs the built element tree against the screen's manifest (a missing button is caught deterministically). This is the payoff of the dynamic crawl: the fit contract is anchored to states the reference app actually showed, not a partial hand-captured set.
 
 ## Step 8 — Phase F: evaluate (evaluator-optimizer) + traceability
 
-1. `spec-evaluator` (opus, **read-only**) → `spec/traceability.csv` + `pipeline/eval_report.md`. `Read prompt rubrics/evaluator-rubric.md`. Four check classes: cross-artifact consistency / grounding (no ungrounded requirement) / completeness / constitution contradictions. Returns `{verdict, findings[], coverage}`.
+1. `spec-evaluator` (opus, **read-only**) → `spec/traceability.csv` + `pipeline/eval_report.md`. `Read prompt rubrics/evaluator-rubric.md`. Five check classes: cross-artifact consistency / grounding (no ungrounded requirement) / completeness / constitution contradictions / **affordance coverage** (clone, when `input/crawl/elements/` or `spec/fit/elements/` exists — every interactive element observed in the reference maps to an inventory feature/CTA or an explicit decision; unmatched = blocker). In **clone mode** the evaluator runs clone-strict: `orphan_screen` and `state_coverage_gap` escalate warn → blocker. Returns `{verdict, findings[], coverage}`.
 2. **Optimize loop:** on any `blocker` finding, re-invoke **only the owning agent(s)** (parsed from `finding.artifact`) with the findings as input. **Max 2 retries.** Still failing → stop, show residual blockers, ask the user for guidance (mirror `/cmp` Step 4 behaviour). `warn`/`info` never block — they land in `risks.md` / design open-questions tagged `(assumption)`.
 
 ## Step 9 — GATE 2: final acceptance (human)
 
-On `pass`, print the verdict summary + coverage stats + warnings, then AskUserQuestion: принять и передать в разработку / внести правки / принять с зафиксированными рисками. Only on accept set `00_manifest.yaml: evaluator_verdict: pass` and continue.
+On `pass`, print the verdict summary + coverage stats + warnings — **and, as explicit numbered
+lists the user must see (never leave them buried in agent JSON):** `coverage.fr_without_coverage`
++ `story_without_scenario` + `state_coverage_gaps` (evaluator), `coverage_gaps[]`
+(user-story-writer), `stories_without_scenario[]` / `untestable_stories[]`
+(acceptance-criteria-writer), and `screens_uncovered[]` + `low_confidence_maps[]`
+(fit-checklist-author, clone). Empty lists → one line "покрытие полное". Then AskUserQuestion:
+принять и передать в разработку / внести правки / принять с зафиксированными рисками —
+acceptance explicitly covers the printed gaps (they are the items most likely to become a
+forgotten feature downstream). Only on accept set `00_manifest.yaml: evaluator_verdict: pass`
+and continue.
 
 ## Step F — Feature mode: emit the backlog epic (replaces Steps 4–9)
 
@@ -248,7 +281,7 @@ Unless `--no-bridge`: tell the user the bundle is ready and how to hand it off t
 
 **Feature mode handoff.** Print the epic path + the SPEC count, and the board command — `/<prefix> --feature --next` (implements the backlog SPECs in Order; e.g. MyMoney's `/mp --feature --next`). No bundle, no fit-loop.
 
-**Clone fit loop.** For a clone bundle (depth ≥ reference), tell the user that after the dev pipeline implements the screens they should run `/<prefix> --fit` to compare the built app against the reference screenshots — the bundle's `fit/` checklists + `deviations.md` drive that gate, and each unexplained divergence becomes a backlog SPEC to fix, closing the clone loop.
+**Clone fit loop.** For a clone bundle (depth ≥ reference), tell the user that after the dev pipeline implements the screens they should run `/<prefix> --fit` to compare the built app against the reference screenshots — the bundle's `fit/` checklists + `deviations.md` drive that gate, and each unexplained divergence becomes a backlog SPEC to fix, closing the clone loop. **Also print the token handoff step:** copy `spec/design-tokens.json` into the dev project as `.claude/mp/design-tokens.json` — the project's ui-designer then generates `Color.kt`/`Type.kt` from the exact reference tokens instead of a Theme Builder guess (and `spec/assets/`, when the apk-analyzer extracted them, can be reused per its manifest's legal note).
 
 ## Step 11 — Report
 

@@ -1,6 +1,106 @@
 # Handoff
 
-UPDATED: 2026-06-05 by claude
+UPDATED: 2026-06-11 by claude
+
+## LATEST (2026-06-11, claude) — pipeline audit → 46-item roadmap, ALL 6 STAGES AUTHORED
+- **DONE (stage 6, claude-011 — D1 D2 D3 D4+D7 D5 D9):** fidelity instrumentation. NEW
+  `bounds-to-dp.sh` (exact dp into element manifests; checklists quote numbers) + NEW
+  `{{PREFIX}}-pixel-diff.sh` (ImageMagick RMSE→similarity + heatmaps; `--fit` Phase 2.5
+  objective pixel pass; agent anchors `fit_score` to it). Demo-mode capture normalization on
+  BOTH sides (crawl + `--fit`), AVD profile/density recorded. `apk-analyzer` Pass 7.5 extracts
+  fonts/icon/drawables → `spec/assets/` (+ legal caveat). Phase D emits
+  `spec/design-tokens.json` → project `.claude/mp/design-tokens.json` → ui-designer generates
+  Color.kt/Type.kt directly (Theme Builder = greenfield fallback only). Fit agent walks every
+  checklist row → `checklist_rows[]` verdicts. Both scripts fixture-tested; plugins
+  regenerated, 0 leaks. Change-log: `2026-06-11T10:30-clone-fidelity-instrumentation`. STATUS:
+  authored; **NOT committed**. Task: `.ai/tasks/claude-011-clone-fidelity.md`.
+- **DONE (stage 5, claude-010 — C1 C2 C3 C5 C6 C7 authored; C10 pending):** three deterministic
+  clone-completeness gates. NEW `scripts/crawl/element-manifest.sh` (ST*.xml → per-state
+  interactive-element JSON; fixture-tested) wired into A.0 finalize; `fit-checklist-author`
+  merges them into `spec/fit/elements/<Sxx>.json`; `spec-evaluator` rubric v1.1.0 gains
+  **Class 5 affordance coverage** (unmatched element = blocker) + **clone-strict**
+  (orphan/state-gap → blocker); GATE 2 prints all coverage-gap lists explicitly; `--plan
+  --phases` gains a **plan-coverage audit** (registry screens + FR/US ids → ≥1 task, else
+  blocked); `--fit` captures built ui-dumps and `{{PREFIX}}-fit-android` runs a **structural
+  element diff** before the visual pass. Docs updated (REFERENCE-CRAWLER, CLONE-PLAYBOOK).
+  Plugins regenerated, 0 leaks. Change-log: `2026-06-11T09:30-clone-completeness-gates`.
+  **C10 (device run of crawl Phases 2–4 + these gates) still needs the throwaway-AVD session**
+  (claude-004 NEXT). STATUS: authored; **NOT committed**. Task:
+  `.ai/tasks/claude-010-clone-completeness.md`.
+- **DONE (stage 4, claude-009 — A11 E5 A12):** CI propagation. NEW
+  `.github/workflows/regen-plugins.yml` (push to main touching templates/** or the generator →
+  auto-regen + commit the plugin trees; loop-guarded via paths filter; safety net — PRs stay
+  gated by the drift check). `validate-plugins.yml` extended: bash -n over
+  templates/selfimprove/eval/installers + NEW `shellcheck -S error` step (**watch the first CI
+  run** — legacy scripts may surface error-level findings). A12: `selfimprove/README.md`
+  "Scheduling the loop" (weekly host-side `/mp --reflect`, projects.txt upkeep) +
+  docs/MARKETPLACE.md propagation chain. Change-log: `2026-06-11T08:30-ci-propagation`. STATUS:
+  authored; **NOT committed**; workflows validate for real on first push. Task:
+  `.ai/tasks/claude-009-ci-propagation.md`.
+- **DONE (stage 3, claude-008 — A5 A6 A7 A8 E1):** conveyor continuity. Intent **echo-back**
+  ahead of the SPEC at the same gate; new **`--continue`** workflow (read-only state inspection →
+  ONE recommended next command behind y/N); **phase-exit hook** (auto `--check`, clone → `--fit`
+  offer); **Stale-Test Update Rule** (orchestrator passes MODIFIED_EXISTING; tester reconciles
+  old tests, returns `stale_tests_reviewed[]`; verifier **Check 6 `stale_tests`**, six-check
+  pass logic); **`fitThreshold`** (config, default 85) now ENFORCED by `--fit` (PASS|FAIL +
+  "clone not done" on FAIL). build-marketplace argument-hint gains `--continue`. Plugins
+  regenerated, 0 leaks. Change-log: `2026-06-11T07:30-orchestrator-continuity`. STATUS:
+  authored; **NOT committed**. Task: `.ai/tasks/claude-008-orchestrator-continuity.md`.
+- **DONE (stage 2, claude-007 — B1 B2 B3 B4):** cross-project USER profile
+  (`$MP_USER_PROFILE` / `~/.config/mobile-pipeline/user-profile.md`). `{{PREFIX}}-knowledge`
+  gains the `user_preference` routing category + owns the skeleton/merge rules; `/mp` Startup +
+  grill and `/mp-spec` grill (grill-me v1.2.0, neutral/marker-free) + greenfield stage defaults
+  READ it (bias recommended answers only — never auto-decide, absence changes nothing);
+  `{{PREFIX}}-fit-android` emits optional `taste_signals[]` (from INTENDED deviations only) that
+  `--fit` records behind a y/N gate; post-ship feedback notes flag "always/never" statements as
+  profile candidates. docs/ARCHITECTURE.md gains the profile layer. Plugins regenerated, 0
+  leaks. Change-log: `2026-06-11T06:30-cross-project-user-profile`. STATUS: authored; **NOT
+  committed**; not yet exercised live. Task: `.ai/tasks/claude-007-user-profile.md`.
+Deep audit of the repo against the two user goals (closed dev loop; Play-Store clone with max
+similarity), triggered by the last clone iteration's failures (design mismatch + forgotten
+buttons). Then the user said "start implementing" → **stage 1 (claude-006) is authored + validated
+in the same session.**
+- **DONE (stage 1, claude-006 — A1 A2 A3 A4 E8):** the self-improvement loop now feeds itself.
+  NEW pipeline scripts `templates/common/scripts/{{PREFIX}}-record-run.sh` (L1 capture → one JSON
+  event per step into `<repo>/selfimprove/runs/`, `--tokens-in/--tokens-out/--cost` fields,
+  `retro_due` after ≥`$REFLECT_AFTER` (10) unreflected events) and `{{PREFIX}}-retro.sh` (L2
+  per-project retro: pass-rate, feedback scores, token totals, failure tail). Orchestrator:
+  new "Run telemetry (fire-and-forget)" section + record points (reviewer / final-runner /
+  verifier / fit), retro offer on `retro_due`, and "Knowledge capture" expanded into
+  "Post-ship: feedback → knowledge → nudges" (ONE mandatory score-1–5 feedback question →
+  `agent=feedback` event; ≤3 → bullet in `selfimprove/lessons.md` + into SESSION_RECAP; drain
+  nudge at ≥3 queued proposals). `{{PREFIX}}-knowledge` contract reads the score. Root
+  `selfimprove/` kit parity-updated. Scripts `bash -n` clean + functionally tested in a temp
+  root (threshold fires at 11, counter resets after retro, error paths emit `ok:false` exit 0);
+  **plugins regenerated, 0 leaks** (new `mp-record-run.sh`/`mp-retro.sh` shipped). Change-log:
+  `2026-06-11T05:30-loop-telemetry-feedback`. STATUS: authored + validated; **NOT committed**;
+  not yet observed in a live `/mp` session. Task: `.ai/tasks/claude-006-loop-telemetry.md`.
+- **DONE:** `docs/IMPROVEMENT-ROADMAP.md` — canonical catalog of **46 improvements** (A loop /
+  B user-memory / C clone-completeness / D design-fidelity / E infra) with evidence pointers
+  into `templates/`, staged into 6 queued task briefs **`.ai/tasks/claude-006…011`**
+  (loop-telemetry, user-profile, orchestrator-continuity, ci-propagation, clone-completeness,
+  clone-fidelity). CHANGELOG `[Unreleased]` noted. Plan:
+  `C:\Users\k.shavrin\.claude\plans\generic-jumping-flame.md` (user-approved).
+- **DECISIONS (with user):** loop-first priority — stages 1–4 (telemetry/auto-reflection,
+  user profile, echo-back + `--continue` + stale-test rule, CI auto-regen) before clone stages
+  5–6. Approved new tooling: ImageMagick/SSIM pixel diff, apktool/aapt2 asset extraction,
+  GitHub Actions, scheduled auto-runs.
+- **KEY FINDINGS:** learning loop only ~30 % closed (`selfimprove/record-run.sh` never invoked;
+  reflect/drain are manual flags; **no cross-project USER memory**; tester never updates stale
+  tests of changed behaviour). Clone: **5 non-blocking loss points** let visible affordances
+  vanish (planners never audit FR/screen/registry→task coverage; `coverage_gaps[]` never
+  surfaced; orphan/state findings warn-only). Fidelity: crawl ui-dump pixel bounds unused, no
+  asset extraction, manual Theme Builder seam, `--fit` has no pixel diff / enforced threshold /
+  capture normalization; crawl Phases 2–4 still not device-proven (see claude-004).
+- **NEXT:** 1) user go-ahead → commit ALL six stages + the roadmap artifacts (one commit per
+  stage or one batch — user's call); 2) live validation pass: one `/mp --feature` run on a
+  wired project (006/007/008), first CI push (009 — watch the new shellcheck step), and the
+  C10 throwaway-AVD clone run exercising the completeness + fidelity gates (010/011,
+  claude-004 NEXT); 3) backlog items (16) stay in `docs/IMPROVEMENT-ROADMAP.md` for later
+  promotion.
+- **OWNER:** claude (stages 1–6). **[codex] FYI:** stage 4 will add CI that auto-regenerates
+  plugin trees on main — pull before regenerating locally; `lib/sync.sh` remains codex-001.
+- **BLOCKERS:** none.
 
 ## LATEST (2026-06-05, claude) — grill-me design-tree interrogation in /mp-spec intake
 User asked to add Matt Pocock's **grill-me** skill to complement spec creation. Ported it as a

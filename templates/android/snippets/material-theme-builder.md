@@ -11,6 +11,10 @@ URL: <https://m3.material.io/theme-builder>
 - New brand color → regenerate light + dark schemes that satisfy WCAG contrast.
 - Adding a tertiary/error accent that needs to feel coherent with the existing primary.
 
+**NOT for clones:** when `.claude/mp/design-tokens.json` exists (copied from the spec bundle's
+`spec/design-tokens.json`), the ui-designer generates `Color.kt`/`Type.kt` from the reference
+app's exact tokens directly — Theme Builder would replace ground truth with a derived guess.
+
 ## Workflow (3 minutes)
 
 1. **Open the tool**, switch to **Custom** in the left panel.

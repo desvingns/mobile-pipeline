@@ -22,7 +22,22 @@ jobs:
       - name: Shell scripts parse (bash -n)
         run: |
           set -e
-          find lib claude-plugins -name '*.sh' -print0 | while IFS= read -r -d '' s; do echo "bash -n $s"; bash -n "$s"; done
+          for d in lib claude-plugins templates selfimprove eval; do
+            [ -d "$d" ] || continue
+            find "$d" -name '*.sh' -print0 | while IFS= read -r -d '' s; do echo "bash -n $s"; bash -n "$s"; done
+          done
+          for s in bootstrap.sh install-spec.sh; do [ -f "$s" ] && { echo "bash -n $s"; bash -n "$s"; }; done
+
+      - name: shellcheck (error severity)
+        run: |
+          set -e
+          command -v shellcheck >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck; }
+          # -S error: retrofit gate — block on real errors, not legacy style warnings
+          for d in lib claude-plugins templates selfimprove eval; do
+            [ -d "$d" ] || continue
+            find "$d" -name '*.sh' -print0 | while IFS= read -r -d '' s; do echo "shellcheck $s"; shellcheck -S error "$s"; done
+          done
+          for s in bootstrap.sh install-spec.sh; do [ -f "$s" ] && { echo "shellcheck $s"; shellcheck -S error "$s"; }; done
 
       - name: No template-placeholder or marker leaks
         run: |

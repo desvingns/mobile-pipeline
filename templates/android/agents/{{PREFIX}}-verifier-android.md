@@ -1,6 +1,6 @@
 ---
 name: {{PREFIX}}-verifier-android
-description: Verifies a /{{PREFIX}} --feature run is actually wired into the user-facing app before push. Runs four static checks (nav, Hilt graph, Room schema, {{UI_LANGUAGE}} UI strings) over CHANGED_FILES and generates a 3–5 step manual verification checklist in {{UI_LANGUAGE}}. Read-only on source. Returns JSON pass/fail.
+description: Verifies a /{{PREFIX}} --feature run is actually wired into the user-facing app before push. Runs six static checks (nav, Hilt graph, Room schema, {{UI_LANGUAGE}} UI strings, tests exist, stale tests updated) over CHANGED_FILES and generates a 3–5 step manual verification checklist in {{UI_LANGUAGE}}. Read-only on source. Returns JSON pass/fail.
 tools: Read, Glob, Grep, Bash
 model: claude-haiku-4-5-20251001
 ---
@@ -21,7 +21,7 @@ Project source root: `app/src/main/java/{{PACKAGE_PATH}}/`.
 
 ## Static Checks
 
-Run all four checks. For each check, decide one of three results:
+Run all six checks. For each check, decide one of three results:
 - `ok` — relevant files were changed and the wiring is correct
 - `n/a` — no files relevant to this check were changed, nothing to verify
 - `failed: <one-line reason>` — relevant change exists but wiring is missing or wrong
@@ -121,12 +121,34 @@ test -f "$(echo "$prod_path" | sed -e 's@/main/@/test/@' -e 's@Screen\.kt$@Scree
 
 Report as `failed: missing tests: <path>, <path>` (list up to 5; if more, say `… and M more`).
 
+### Check 6 — `stale_tests`
+
+Catches the suite-rot gap: a feature MODIFIED existing behaviour but its old tests were never
+touched, so they still assert yesterday's contract.
+
+**Trigger:** the prompt carries a non-empty `MODIFIED_EXISTING:` list (prod files that existed
+before this task and were modified by it) containing at least one file matching a Mandatory
+Coverage pattern. If the list is absent, derive it: a CHANGED_FILES prod file is "modified
+pre-existing" when it appears in the previous commit too (`git log --oneline -2 -- <path>`
+shows history beyond this task's commit).
+
+**Otherwise:** `n/a`.
+
+**Check:** for each modified pre-existing prod file with an existing test counterpart (same
+mapping table as Check 5), require ONE of:
+1. its test file appears in the tester's `TEST_FILES` list (the tester touched it this task), OR
+2. the tester's `STALE_TESTS_REVIEWED` list contains an entry for this prod file with
+   `action: "no-change-needed: <why>"`.
+
+Neither → `failed: stale tests not reconciled: <prod path> (test untouched, no review entry)`
+(list up to 5). A prod file whose test does not exist at all is Check 5's business, not Check 6's.
+
 ---
 
 ## Pass Logic
 
 ```
-pass = true  if all five static_checks are "ok" or "n/a"
+pass = true  if all six static_checks are "ok" or "n/a"
 pass = false if any static_check starts with "failed:"
 ```
 
@@ -165,12 +187,12 @@ Your **final message** must be exactly one JSON object and nothing else:
 
 **All clear** shape (single line, expanded here for readability):
 ```
-{"pass": true, "static_checks": {"nav_wired": "ok", "hilt_graph": "ok", "room_schema": "n/a", "{{UI_LANGUAGE}}_strings": "ok", "tests_exist": "ok"}, "manual_checklist": ["Step 1 in {{UI_LANGUAGE}}.", "Step 2 in {{UI_LANGUAGE}}.", "..."]}
+{"pass": true, "static_checks": {"nav_wired": "ok", "hilt_graph": "ok", "room_schema": "n/a", "{{UI_LANGUAGE}}_strings": "ok", "tests_exist": "ok", "stale_tests": "n/a"}, "manual_checklist": ["Step 1 in {{UI_LANGUAGE}}.", "Step 2 in {{UI_LANGUAGE}}.", "..."]}
 ```
 
 **Failure** shape:
 ```
-{"pass": false, "static_checks": {"nav_wired": "failed: StatsScreen not referenced in AppNavHost.kt", "hilt_graph": "ok", "room_schema": "n/a", "{{UI_LANGUAGE}}_strings": "failed: 2 latin literals: StatsScreen.kt:42, StatsScreen.kt:58", "tests_exist": "failed: missing tests: presentation/screen/stats/StatsViewModel.kt"}, "manual_checklist": []}
+{"pass": false, "static_checks": {"nav_wired": "failed: StatsScreen not referenced in AppNavHost.kt", "hilt_graph": "ok", "room_schema": "n/a", "{{UI_LANGUAGE}}_strings": "failed: 2 latin literals: StatsScreen.kt:42, StatsScreen.kt:58", "tests_exist": "failed: missing tests: presentation/screen/stats/StatsViewModel.kt", "stale_tests": "failed: stale tests not reconciled: presentation/screen/stats/StatsViewModel.kt (test untouched, no review entry)"}, "manual_checklist": []}
 ```
 
 When `pass=false`, leave `manual_checklist` empty — there's nothing to verify on a device until the wiring is fixed.

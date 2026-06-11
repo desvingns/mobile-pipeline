@@ -1,0 +1,46 @@
+name: regen-plugins
+
+# Roadmap stage 4 (A11): close the PROPAGATION half of the self-improvement loop.
+# When canonical sources land on main, regenerate the committed plugin trees and push the
+# result back — projects consuming the git-source marketplace pick improvements up on their
+# next `/plugin marketplace update`, and no human has to remember ./lib/build-marketplace.sh.
+#
+# Normally a no-op: the validate-plugins drift gate forces PRs to land in sync. This is the
+# safety net for direct pushes to main (or a merge that slipped past the gate).
+#
+# Loop guard: the bot commit touches only claude-plugins/ + codex-plugins/, which do not match
+# the paths filter below — it cannot re-trigger this workflow.
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'templates/**'
+      - 'lib/build-marketplace.sh'
+      - 'lib/render.sh'
+
+permissions:
+  contents: write
+
+jobs:
+  regen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Regenerate plugin trees from templates
+        run: bash lib/build-marketplace.sh
+
+      - name: Commit and push if drifted
+        run: |
+          set -e
+          if git diff --quiet --ignore-cr-at-eol -- claude-plugins codex-plugins; then
+            echo "plugin trees already in sync — nothing to do"
+            exit 0
+          fi
+          git config user.name  "mp-regen-bot"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add claude-plugins codex-plugins
+          git commit -m "chore: regenerate plugin trees from templates [auto]"
+          git push
+          echo "::notice::plugin trees regenerated and pushed"

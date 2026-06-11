@@ -82,3 +82,38 @@ correct screen with a Roborazzi golden (CI then catches future drift).
 The pipeline used to capture business logic but never anchored each screen to a reference image and
 never compared the built app to the reference — so a clone drifted silently. This loop makes
 reference fit a first-class, verifiable gate. See `eval/clone-fit/` for the regression eval.
+
+## Completeness gates (stage 5 — what stops a button being forgotten)
+
+Three deterministic gates, one per pipeline stage:
+- **Spec-time** — `spec-evaluator` Class 5 audits the crawl's element manifests against the
+  inventory (unmatched affordance = blocker) and clone-strict escalates `orphan_screen` /
+  `state_coverage_gap` to blockers; GATE 2 prints every coverage-gap list explicitly.
+- **Plan-time** — `/mp --plan --phases` cross-checks that every `registry.csv` screen and every
+  `FR-`/`US-` id from `traceability.csv` appears in ≥1 task; uncovered ids block the write until
+  re-planned or explicitly deferred.
+- **Build-time** — `/mp --fit` adds a structural element diff (built ui-dump vs
+  `spec/fit/elements/<Sxx>.json`) ahead of the visual pass, and enforces `fitThreshold`
+  (config, default 85) — below it, or with unexplained divergences, the clone is NOT done.
+
+## Fidelity instrumentation (stage 6 — design that measures, not guesses)
+
+- **Exact metrics** — `bounds-to-dp.sh` converts the crawl's element bounds into real dp
+  (`bounds_dp`/`size_dp` per element, density from `adb shell wm density`); fit checklists quote
+  numbers ("FAB 56×56dp"), not adjectives.
+- **Objective pixel score** — `/mp --fit` Phase 2.5 runs `mp-pixel-diff.sh` (ImageMagick RMSE +
+  heatmap into `build/fit/diff/`); the multimodal agent anchors `fit_score` to it and must
+  justify big deviations. Graceful `tool_missing` when ImageMagick is absent.
+- **Normalized captures** — both the crawl and `--fit` enable Android demo mode (fixed clock
+  10:00, battery 100, wifi 4, no notifications) + `font_scale 1.0`, and record the AVD
+  profile/density so both sides of the comparison shoot on the same canvas.
+- **Real assets & fonts** — `apk-analyzer` Pass 7.5 extracts fonts (always) + launcher icon +
+  notable raster drawables into `spec/assets/` with an extraction manifest. ⚠ Личное/учебное
+  использование: ассеты принадлежат владельцу приложения — для публикации замените на свои.
+- **Theme from ground truth** — Phase D writes `spec/design-tokens.json` (style analysis + APK
+  exact overrides); copy it into the dev project as `.claude/mp/design-tokens.json` and the
+  ui-designer generates `Color.kt`/`Type.kt` from it directly (Material Theme Builder remains
+  the greenfield fallback only).
+- **Row-by-row verdicts** — the fit agent walks every visual must-match row of
+  `spec/fit/<Sxx>.md` and returns an explicit pass/fail/uncheckable per row; every fail maps to
+  a divergence.

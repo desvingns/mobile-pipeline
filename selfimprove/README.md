@@ -36,6 +36,25 @@ cmp already emits structured JSON (runner/reviewer) and has a change-log → `li
 durable `.ai/memory/`. The loop just closes the open ends: persist the JSON we were throwing away,
 reflect on it, and feed the rail. No external memory product required.
 
+## Scheduling the loop (so nobody has to remember it)
+
+Capture is automatic (the orchestrator records events fire-and-forget and offers a retro when
+`retro_due` fires — roadmap stage 1). The two remaining manual seams can run on a schedule:
+
+- **Per-project retro** — already nudged in-session (`retro_due` after ≥ `$REFLECT_AFTER`
+  events). No scheduler needed.
+- **Cross-project reflection (weekly)** — `/mp --reflect` needs a local harness + the projects
+  on this machine, so it runs host-side, not in cloud CI. Examples:
+  - Linux/macOS cron: `0 9 * * 1  cd <any-mp-project> && claude -p "/mp --reflect"`
+  - Windows Task Scheduler:
+    `schtasks /Create /SC WEEKLY /D MON /ST 09:00 /TN mp-reflect /TR "wsl-or-gitbash -c 'cd <any-mp-project> && claude -p \"/mp --reflect\"'"`
+  - Or simply a recurring reminder to run `/mp --reflect` in any wired project; it ends by
+    suggesting `/mp --improve --drain` when proposals queued up.
+- **Keep the projects list fresh** — `~/.config/mobile-pipeline/projects.txt` (one repo root
+  per line, Git-Bash style paths) is what cross-reflect scans. Append every newly wired/
+  bootstrapped project to it as part of project setup (see docs/MARKETPLACE.md → Enable in a
+  project); a stale list silently shrinks the loop.
+
 ## Relation to `eval/`
 `eval/` is for **regression cases** (expected vs actual on fixed inputs). `selfimprove/` is for
 **live telemetry + reflection** across real runs. The retro can nominate new `eval/` cases; the

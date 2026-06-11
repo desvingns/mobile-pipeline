@@ -164,6 +164,24 @@ record `**why**`-facts, not `**what**`-facts: rules, traps, preferences. `**What
 (file paths, function names) are derivable from reading the repo — don't waste memory
 on them.
 
+### Cross-project user profile
+
+One memory layer sits ABOVE projects: `$MP_USER_PROFILE` or
+`~/.config/mobile-pipeline/user-profile.md` (same root as `projects.txt`) — durable facts about
+the **user**, not about any app: UI/design taste, language, naming style, process tolerance.
+Sections: `UI & design taste` / `Process preferences` / `Tech defaults` / `Anti-patterns`; one
+fact per bullet with provenance `(project, date, source)`; append-mostly with merge rules (the
+skeleton + rules live in the `knowledge` agent).
+
+- **Writers:** the `knowledge` agent (`user_preference` lessons, post-ship) and the `--fit`
+  taste journal (gated y/N — preference candidates inferred from *intended* deviations).
+- **Readers:** the `/<prefix> --feature` grill (Startup) and the `/mp-spec` grill + greenfield
+  stages — profile facts bias **recommended answers and defaults only**; they never auto-decide,
+  and a missing profile changes nothing.
+
+This is how the pipeline gets better at understanding the user across pet projects instead of
+re-learning them from zero each time.
+
 ## Why 3 docs files instead of 1
 
 Three different cadences. A single file would force every update to touch the whole

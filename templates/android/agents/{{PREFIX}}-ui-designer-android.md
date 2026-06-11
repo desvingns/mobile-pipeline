@@ -62,17 +62,35 @@ Theme package: `{{PACKAGE}}.ui.theme`
 - **Spacing:** Always reference via `LocalSpacing.current.X` (`xxs`, `xs`, `s`, `m`, `l`, `xl`, `xxl`). Only 4dp multiples: 2/4/8/12/16/24/32/48/64. Never raw `.dp` integers outside `Spacing.kt` (allowlist: `0.dp`, `1.dp` for hairlines).
 - **Motion:** Always reference via `LocalMotion.current.X` (`durationShort`, `durationMedium`, `durationLong`, `easeStandard`, `easeEmphasized`). No raw `tween(300)` outside `Motion.kt`.
 
-## Theme Builder Workflow
+## Token source resolution (in priority order)
 
-When SPEC mentions a brand color, seed color, or "primary color X":
+**1. `design-tokens.json` (clone projects — generate, no manual seam).** If
+`.claude/mp/design-tokens.json` exists (copied from a `/mp-spec` clone bundle's
+`spec/design-tokens.json`), generate `Color.kt` and `Type.kt` **directly from it** — these are
+the reference app's EXACT tokens, not a guess:
+- `palette` / `dark_palette` → `lightColorScheme()` / `darkColorScheme()` slots. Map by role
+  name (`primary`, `secondary`, `background`, `surface`, `error`, `outline`,
+  `text_primary`→`onSurface`, `text_secondary`→`onSurfaceVariant`); fill M3 roles the JSON
+  lacks (containers, inverse*) by deriving from the given roles with M3 tonal logic — never
+  leave them at defaults that clash. No `dark_palette` → derive dark from light conservatively.
+- `typography` → `Type.kt`: the scale's sp values onto the matching M3 styles; when the bundle
+  extracted real font files (`spec/assets/font/`, see `fonts_extracted`), tell the user to drop
+  them into `res/font/` and reference the `FontFamily` — else closest Google-Fonts match with a
+  `// TODO closest match for <family>` note.
+- `spacing.base_unit` / `corner_radius` / `elevation` → `Spacing.kt` / `Shape.kt` values.
+- Record `provenance` per group in the commit message (`apk` = exact, `screenshot-estimate` =
+  approximate; the user may want to revisit estimates after the first `--fit`).
 
-1. Open [m3.material.io/theme-builder](https://m3.material.io/theme-builder) (this is a manual step — surface the URL to the user via the orchestrator if a fresh palette is needed).
-2. Enter the seed color → export `lightColorScheme()` and `darkColorScheme()` blocks.
-3. Drop the exported values into `Color.kt`. Do NOT invent palette by hand — Theme Builder enforces M3 contrast ratios.
+**2. Theme Builder (greenfield / brand seed).** When there is no tokens file and SPEC mentions a
+brand/seed color: open [m3.material.io/theme-builder](https://m3.material.io/theme-builder)
+(manual step — surface the URL via the orchestrator), export `lightColorScheme()` /
+`darkColorScheme()`, drop into `Color.kt`. Do NOT invent a palette by hand.
 
-If SPEC does **not** mention a seed color, default to **Indigo** seed (`#6750A4`, the M3 reference baseline). Note this in your commit message so the user knows to revisit if they want a brand color.
+**3. Default.** Neither → **Indigo** seed (`#6750A4`, the M3 reference baseline); note it in the
+commit message so the user knows to revisit.
 
-See snippet `.claude/snippets/material-theme-builder.md` for the exact exported-block shape.
+See snippet `.claude/snippets/material-theme-builder.md` for the exported-block shape (also
+documents the tokens-file path).
 
 ## Dynamic Color (Android 12+)
 

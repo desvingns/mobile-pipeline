@@ -183,6 +183,28 @@ Build:
 
 Don't list every asset. Top-20 by name salience is enough.
 
+### Pass 7.5 — Asset extraction (for personal-reuse fidelity)
+
+Raster drawables and font files are stored **as-is** inside the APK (no decode needed), so they
+can be copied out for maximum design fidelity. Extract into `<task_folder>\spec\assets\`:
+
+- **Fonts (always, all of them):** `res/font/*.{ttf,otf}` + `assets/fonts/**` + `assets/**.{ttf,otf}`
+  → `spec\assets\font\`. Record the family names in `fonts_extracted[]` — this replaces the
+  style-analyzer's "Roboto (guess)" with the REAL typeface.
+- **Launcher icon:** the largest `mipmap-*/ic_launcher*.{png,webp}` → `spec\assets\drawable\`.
+- **Notable raster drawables (cap ~100 files / 20 MB):** logos, illustrations, onboarding/empty-state
+  art, per-category icons from `res/drawable*/*.{png,webp,jpg}` — prefer the highest-density bucket of
+  each name; skip 9-patches and tiny artifacts (<24px). Vector XML drawables only when strategy A
+  decoded them (apktool) — copy the decoded `.xml` as-is.
+- Write `spec\assets\extraction-manifest.md`: per file — source path in the APK, kind, density
+  bucket; plus this verbatim caveat at the top:
+  > ⚠ Извлечено из reference-APK для личного/учебного использования. Эти ассеты защищены
+  > авторским правом владельца приложения — не публикуйте и не распространяйте клон с ними;
+  > для публикации замените на собственные или свободные аналоги.
+
+Record `assets_extracted_count` + `fonts_extracted[]` in the final JSON. If extraction is not
+possible (strategy C oddities, zero matches) — set them to `0`/`[]`, never fail the pass.
+
 ### Pass 8 — UI framework detection
 
 How is the UI built?
@@ -425,6 +447,8 @@ Soft cap: 700 lines.
   "drawable_total": 312,
   "vector_drawables_count": 256,
   "raster_drawables_count": 56,
+  "assets_extracted_count": 84,
+  "fonts_extracted": ["Manrope-Regular.ttf", "Manrope-Bold.ttf"],
   "density_buckets": ["mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi", "anydpi-v26"],
   "launcher_icon_path": "res/mipmap-anydpi-v26/ic_launcher.xml",
   "ui_framework_guess": "xml",

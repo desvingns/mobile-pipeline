@@ -26,7 +26,8 @@ Read SPEC and CHANGED_FILES from the prompt.
 2. Read existing test files for the same layer to match exact patterns and naming.
 3. Check `app/src/test/.../data/Fake*.kt` for available fakes.
 4. **Apply Mandatory Coverage Rules below** — they override `SPEC.TEST_TYPES` for files Verifier will check.
-5. Write tests for each type listed in `SPEC.TEST_TYPES`, plus any additional types required by Mandatory Coverage.
+5. **Apply the Stale-Test Update Rule below** for every MODIFIED pre-existing file in CHANGED_FILES — new tests for new code is only half the job; old tests must tell the new truth.
+6. Write tests for each type listed in `SPEC.TEST_TYPES`, plus any additional types required by Mandatory Coverage.
 
 ---
 
@@ -52,6 +53,28 @@ For every prod file in CHANGED_FILES that matches one of these patterns, a dedic
 **Screen Content extraction is the developer's job — but you depend on it.** If a new `*Screen.kt` lacks a public `<Name>Content(state, onXxx...)` composable, do NOT silently skip the compose-ui test. Add `missing_content_extraction: ["<file>"]` to your return JSON so the orchestrator surfaces it.
 
 If a Mandatory Coverage test is **not** possible (e.g. file is platform-only glue with no testable surface), add `coverage_exceptions: [{"file": "...", "reason": "..."}]` to your return JSON so the human reviewer sees the deliberate skip.
+
+---
+
+## Stale-Test Update Rule (modified files)
+
+The prompt may carry `MODIFIED_EXISTING:` — the subset of CHANGED_FILES that existed BEFORE this
+task (the orchestrator derives it from the developer's commit). For EVERY file in it that has an
+existing test file (per the Mandatory Coverage table), open that test and reconcile it with the
+new behaviour:
+
+- **Behaviour changed** → update the assertions/fixtures so the test pins the NEW contract, and
+  add tests for the new branches. Never weaken an assertion just to keep it green; never delete
+  a test (if one is now genuinely meaningless, rewrite it for the new behaviour instead).
+- **Pure refactor / behaviour unchanged** → leave the test alone and record why no update is
+  needed.
+
+Record every file you reconciled in `stale_tests_reviewed` (see Return). Skipping this silently
+is a Verifier Check 6 failure: a feature that changes existing behaviour must leave that
+behaviour's old tests updated, or the suite silently rots into asserting yesterday's contract.
+
+If `MODIFIED_EXISTING` is absent or `unknown`, infer it yourself: a CHANGED_FILES entry whose
+expected test file ALREADY exists on disk is almost certainly a modified file — reconcile those.
 
 ---
 
@@ -387,11 +410,12 @@ Your **final message** must be exactly one JSON object and nothing else:
 
 **Default mode** shape:
 ```
-{"test_files": ["app/src/test/.../Test1.kt", "..."], "screenshot_record_needed": false, "missing_content_extraction": [], "coverage_exceptions": []}
+{"test_files": ["app/src/test/.../Test1.kt", "..."], "screenshot_record_needed": false, "missing_content_extraction": [], "coverage_exceptions": [], "stale_tests_reviewed": []}
 ```
 
 - `missing_content_extraction` — list of `*Screen.kt` paths in CHANGED_FILES that did NOT expose a public `<Name>Content(...)` composable. Empty array on clean run.
 - `coverage_exceptions` — list of `{"file": "...", "reason": "..."}` entries for Mandatory Coverage rules you deliberately skipped (e.g. platform-only glue). Empty array on clean run.
+- `stale_tests_reviewed` — one `{"prod": "...", "test": "...", "action": "updated" | "no-change-needed: <why>"}` entry per MODIFIED pre-existing prod file reconciled under the Stale-Test Update Rule. Empty array when nothing pre-existing was modified.
 
 **RED phase mode** (when `red_phase=true` was in your prompt) shape:
 ```

@@ -1,6 +1,6 @@
 ---
 id: techniques/grill-me
-version: 1.1.0
+version: 1.2.0
 inputs: [idea_paragraph, feature-inventory-draft, ambiguities, state_gaps, feature_description, grounding_ledger]
 outputs: [input/interview/grill.md, pipeline/grill.md]
 model: n/a
@@ -47,6 +47,18 @@ not write Kotlin/Swift or any `spec/` artifact — only the ledger below.
    find one, that becomes the next question — follow the new branch before returning to breadth.
 5. Recommend an answer to your own hole when you have a defensible default; mark it
    `(assumption)` in the ledger if the user defers to your recommendation rather than deciding.
+
+### The user profile (bias recommendations, never decide)
+
+Before the first question, read the **cross-project user profile** once if it exists —
+`$MP_USER_PROFILE` or `~/.config/mobile-pipeline/user-profile.md` (durable facts about the
+user's taste, language, and process preferences, accumulated across all their projects). Use it
+to pick better **recommended answers** and to skip questions whose answer the profile makes
+obvious — when a profile fact informs a recommendation, say so in a short parenthetical (e.g.
+«рекоменд.: тёмная тема — ваш обычный выбор»). The profile **never auto-decides**: every
+profile-informed choice still goes through the user (as the recommended option) or into the
+ledger as an explicit `(assumption)` citing the profile. No profile file → proceed exactly as
+before.
 
 ### Ask-one-at-a-time (hard)
 

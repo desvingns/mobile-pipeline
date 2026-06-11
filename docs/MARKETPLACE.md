@@ -107,6 +107,13 @@ Transforms applied for `mp-dev`: `{{PREFIX}}`→`mp`; `{{PACKAGE}}`/`{{PACKAGE_P
 after each agent's frontmatter. `bootstrap.sh` and `templates/**/scripts/*.sh` are never edited
 (codex-owned; legacy bootstrap stays byte-compatible). Validate: `claude plugin validate .`.
 
+**CI safety net (stage 4):** `.github/workflows/regen-plugins.yml` regenerates + commits the
+plugin trees automatically when `templates/` (or the generator/render engine) changes on `main`
+— so a merged improvement propagates to every git-source consumer without anyone remembering
+this step. PRs are still gated by the validate-plugins drift check, so the bot commit is
+normally a no-op; it exists for direct pushes. Loop-guarded via the workflow's `paths` filter
+(the bot commit touches only the generated trees).
+
 ## Manual cleanup of superseded local copies (do AFTER confirming `/mp` + `/mp-spec` work)
 
 Per the never-delete rule these were left in place; remove them yourself once the plugins are
@@ -170,9 +177,16 @@ mobile-pipeline changes only through a reviewed PR (never a silent push); patche
   into a digest flagging keywords recurring in **≥2 projects**; the `mp-reflect` agent then queues
   proposals only for genuinely general patterns. Drain them with `--improve --drain`.
 - **CI gate** — `.github/workflows/validate-plugins.yml` runs on every PR (incl. the auto-opened
-  `improve/*` PRs): JSON-manifest validity, `bash -n` on all scripts, placeholder/marker leak check, and
-  a **regeneration-drift** check (`./lib/build-marketplace.sh` then `git diff` must be empty — enforces
-  the one-source discipline so nobody hand-edits the generated trees or forgets to regenerate).
+  `improve/*` PRs): JSON-manifest validity, `bash -n` over lib/templates/plugins/selfimprove/eval +
+  the installers, `shellcheck -S error`, placeholder/marker leak check, and a **regeneration-drift**
+  check (`./lib/build-marketplace.sh` then `git diff` must be empty — enforces the one-source
+  discipline so nobody hand-edits the generated trees or forgets to regenerate). On `main`,
+  `regen-plugins.yml` additionally auto-regenerates + commits the trees when templates change
+  (the propagation safety net).
+- **Projects list** — when wiring a NEW project to the marketplace, also append its repo root to
+  `~/.config/mobile-pipeline/projects.txt` (Git-Bash style path, one per line) so `/mp --reflect`
+  sees it; a weekly scheduled `/mp --reflect` is recommended (see `selfimprove/README.md` →
+  "Scheduling the loop").
 - **gh** — the auto-PR step needs the GitHub CLI (`gh`), authenticated (it reads `GITHUB_TOKEN`). Without
   it the scripts still push the `improve/*` branch and print the URL to open the PR manually.
 

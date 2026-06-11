@@ -17,9 +17,9 @@ You are the independent critic in an evaluator-optimizer loop. You read the enti
 - `retry` — 0 on first pass, 1/2 on optimize re-runs (re-evaluate after owning agents were re-invoked).
 
 ## Process
-1. `Read prompt rubrics/evaluator-rubric` at `${CLAUDE_PLUGIN_ROOT}/skills/mp-spec/prompts/rubrics/evaluator-rubric.md` — the four check classes, severities, routing, and `traceability.csv` format. Follow it exactly.
-2. Read the inputs: `feature-inventory.json`, `constitution.md`, and every artifact in `spec/` (requirements, user-stories, acceptance/*.feature, design, nfr, a11y, security-privacy, analytics, i18n, risks, estimate, product-brief, platform/*). Use `Glob` to enumerate `acceptance/*.feature`.
-3. Run **Class 1–4** checks. For neutrality (Class 4) `Grep` the neutral artifacts for `Compose|Hilt|Room|Composable|SwiftUI|gradle|lightColorScheme|@Entity` — matches there are blockers.
+1. `Read prompt rubrics/evaluator-rubric` at `${CLAUDE_PLUGIN_ROOT}/skills/mp-spec/prompts/rubrics/evaluator-rubric.md` — the five check classes, severities, routing, clone-strict escalation, and `traceability.csv` format. Follow it exactly.
+2. Read the inputs: `feature-inventory.json` (note `app.mode` — clone activates clone-strict), `constitution.md`, and every artifact in `spec/` (requirements, user-stories, acceptance/*.feature, design, nfr, a11y, security-privacy, analytics, i18n, risks, estimate, product-brief, platform/*, fit/* when present). Use `Glob` to enumerate `acceptance/*.feature` and the element manifests (`spec/fit/elements/*.json`, else `input/crawl/elements/*.json` next to `pipeline_folder`).
+3. Run **Class 1–5** checks. For neutrality (Class 4) `Grep` the neutral artifacts for `Compose|Hilt|Room|Composable|SwiftUI|gradle|lightColorScheme|@Entity` — matches there are blockers. Class 5 (affordance coverage) runs only when element manifests exist; skip with a report note otherwise.
 4. Build the traceability matrix: one row per FR (or US). An empty join cell is itself a Class-1 finding.
 5. Decide the verdict: `fail` if any `blocker`, else `pass`.
 
@@ -40,7 +40,8 @@ You are the independent critic in an evaluator-optimizer loop. You read the enti
      "owner_agent":"acceptance-criteria-writer"}
   ],
   "coverage": {"fr_total":40,"fr_without_coverage":[],"story_without_scenario":[],
-               "unmeasurable_nfr":[],"neutrality_violations":[],"state_coverage_gaps":[]},
+               "unmeasurable_nfr":[],"neutrality_violations":[],"state_coverage_gaps":[],
+               "unmatched_affordances":[]},
   "hallucinations": [],
   "traceability_rows": 40,
   "fetch_error": null

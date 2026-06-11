@@ -119,6 +119,50 @@ Fit divergence on <screen_id> (<name>): built shows "<observed_built>"; referenc
 
 Number the SPECs (`Order: NN of MM`) by descending severity then screen order. Keep `WHAT`/`CONSTRAINTS` concrete and grounded in the actual divergence — never generic.
 
+## Pixel anchor + checklist walk (objective inputs — use them, don't charm them)
+
+**Pixel scores (`pixel_scores` in the prompt, when present).** Each screen may carry an
+objective `similarity` (100 − normalized RMSE %, from ImageMagick) + a diff heatmap path. Use it
+as the ANCHOR for `fit_score`: start from the similarity, then adjust for what the pixels can't
+judge — semantic equivalence (same meaning, different data), acceptable dynamic content, or
+conversely a small-pixel but high-meaning miss (wrong chart type at the same size). Justify any
+adjustment >15 points in the screen's notes. `resized:true` means the built capture was scaled
+to the reference dims — treat fine texture differences more leniently. No pixel score → judge
+visually as before.
+
+**Checklist walk (`checklists` dir in the prompt, when present).** For each screen, read
+`spec/fit/<screen_id>.md` and walk its **visual must-match rows one by one** — every row gets an
+explicit verdict in the output: `pass` / `fail` / `uncheckable` (e.g. the row needs a gesture or
+a state you don't have a capture for). When a row quotes exact dp (e.g. "FAB 56×56dp"), verify
+against the structural diff bounds when dumps exist, else estimate visually and mark the verdict
+confidence. Every `fail` row must correspond to a divergence (same area); behavioural rows go to
+`behavioural_unverified` as before. The free-form comparison still runs — the checklist is the
+floor, not the ceiling.
+
+## Structural element diff (run FIRST when inputs exist)
+
+When the prompt carries `elements_dir` (per-screen reference manifests
+`spec/fit/elements/<screen_id>.json` — every interactive element the reference app showed) and
+`built_dumps` (uiautomator XML of the BUILT screens, `build/fit/built/<screen_id>.xml`), run this
+deterministic pass per screen BEFORE the visual judgment:
+
+1. Read the screen's manifest; take every element with `expected: true` and a user-meaningful
+   identity (non-empty `text` / `content_desc` / semantic `resource_id` tail).
+2. Read the built dump; an element MATCHES when its `text` OR `content-desc` OR `resource-id`
+   tail corresponds (exact, or an obvious translation/synonym of the same action).
+3. Every reference element with NO match → a divergence `{area: "<element label>", severity:
+   "major", observed_built: "element absent from the built screen's element tree",
+   expected_reference: "<label> @ <bounds> per elements/<screen_id>.json", confidence: "high"}`
+   — this is the deterministic "forgotten button" catch; do NOT soften it based on the
+   screenshot looking plausible.
+4. Built elements with no reference counterpart → list as `minor` divergences (extra UI) unless
+   `deviations.md` explains them.
+5. A screen with a manifest but no built dump → note `structural_diff: "skipped (no dump)"` for
+   that screen and fall through to the visual pass only.
+
+The visual multimodal comparison then proceeds as below; merge both kinds of divergences into
+the screen's `divergences[]`.
+
 ## Return — strict block contract
 
 Your **final message** is exactly one block, framed by the markers, no prose before/after, no
@@ -134,6 +178,11 @@ markdown fences:
       "name": "Dashboard (day)",
       "captured": true,
       "fit_score": 72,
+      "pixel_similarity": 81.4,
+      "checklist_rows": [
+        {"row": "left drawer covers ~60% with dim behind", "verdict": "fail"},
+        {"row": "pie chart with centre total label", "verdict": "pass"}
+      ],
       "divergences": [
         {"area": "left drawer", "severity": "major", "observed_built": "drawer covers the whole window", "expected_reference": "drawer covers ~60% with the dashboard dimmed behind", "suggested_fix": "constrain ModalDrawerSheet width", "confidence": "high"}
       ],
@@ -148,10 +197,20 @@ markdown fences:
   "proposed_specs": [
     {"filename": "fit-01-dashboard-drawer-width.md", "rendered_markdown": "<full board-format SPEC>"}
   ],
+  "taste_signals": [
+    {"preference": "prefers dark surfaces over the reference's light theme", "evidence": "deviations.md: whole-app dark theme is an intended deviation across 4 screens"}
+  ],
   "errors": []
 }
 === END FIT ===
 ```
+
+`taste_signals` (optional, usually empty): durable **cross-project** preference candidates about
+the USER, inferred ONLY from intended deviations (`deviations.md` + `acknowledged_deviations`) —
+never from divergences (those are bugs, not taste). Emit one only when the deviation pattern
+clearly expresses a transferable preference (theme, density, navigation style, typography
+taste); a single app-specific tweak is NOT a taste signal. The orchestrator shows them behind a
+y/N gate before anything is written to the user profile.
 
 If the orchestrator prefixes your prompt with `Previous response was not valid …`, you previously
 violated this contract — return ONLY the raw block this time.

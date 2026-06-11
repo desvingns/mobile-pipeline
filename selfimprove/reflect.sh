@@ -49,6 +49,32 @@ total="$(cat "${logs[@]}" | grep -c '"agent"' || true)"
     }
   ' | sort
   echo
+  echo "## User feedback (post-ship, agent=feedback)"
+  echo
+  cat "${logs[@]}" | awk '
+    /"agent":"feedback"/ {
+      n++;
+      if (match($0, /score=[0-9]+/)) { s=substr($0, RSTART+6, RLENGTH-6)+0; sum+=s; if (s<=3) low++ }
+    }
+    END {
+      if (n>0) printf "Events: %d · avg score: %.1f · low (<=3): %d\n", n, sum/n, low+0;
+      else print "_none recorded yet_";
+    }
+  '
+  echo
+  echo "## Recorded token/cost estimates"
+  echo
+  cat "${logs[@]}" | awk '
+    {
+      if (match($0, /"tokens_in":[0-9]+/))  { ti += substr($0, RSTART+12, RLENGTH-12)+0; n++ }
+      if (match($0, /"tokens_out":[0-9]+/)) { to += substr($0, RSTART+13, RLENGTH-13)+0 }
+    }
+    END {
+      if (n>0) printf "Events with estimates: %d · tokens_in total: %d · tokens_out total: %d\n", n, ti, to;
+      else print "_no token estimates recorded_";
+    }
+  '
+  echo
   echo "## Recent fail/partial events (latest 20)"
   echo
   if grep -hE '"verdict":"(fail|partial)"' "${logs[@]}" >/dev/null 2>&1; then

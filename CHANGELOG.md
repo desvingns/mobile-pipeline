@@ -33,6 +33,77 @@ This repo uses [Semantic Versioning](https://semver.org/) — see `README.md` �
 
 ### Added
 
+- **Clone fidelity instrumentation (roadmap stage 6)** — design copying becomes
+  measurement-driven. New `bounds-to-dp.sh` turns crawl element bounds into exact dp
+  (checklists quote "FAB 56×56dp", not "density: normal"). New `{{PREFIX}}-pixel-diff.sh`
+  (ImageMagick RMSE + heatmap, graceful `tool_missing`) powers a `--fit` **objective pixel
+  pass**; the fit agent anchors `fit_score` to the pixel similarity and walks every checklist
+  row with an explicit **pass/fail/uncheckable verdict**. Captures on BOTH sides (crawl and
+  `--fit`) are normalized via Android demo mode + fixed font scale, with the AVD
+  profile/density recorded. `apk-analyzer` Pass 7.5 **extracts real assets** (all fonts,
+  launcher icon, notable drawables → `spec/assets/` with a personal-use legal caveat). Phase D
+  writes machine-readable `spec/design-tokens.json`; the project's ui-designer **generates
+  `Color.kt`/`Type.kt` directly from it** — the manual Material Theme Builder seam is gone for
+  clones (kept as the greenfield fallback).
+- **Clone completeness gates (roadmap stage 5)** — three deterministic gates so a visible
+  button can no longer vanish silently. **Spec-time:** new crawl script `element-manifest.sh`
+  distils uiautomator dumps into per-state interactive-element manifests; `fit-checklist-author`
+  merges them into per-screen `spec/fit/elements/<Sxx>.json`; `spec-evaluator` gains **Class 5
+  affordance coverage** (unmatched element = blocker) and a **clone-strict** profile
+  (`orphan_screen`/`state_coverage_gap` escalate to blockers); GATE 2 prints every coverage-gap
+  list explicitly. **Plan-time:** `--plan --phases` audits that every `registry.csv` screen and
+  every `FR-`/`US-` id landed in ≥1 task — uncovered ids block the write until re-planned or
+  explicitly deferred. **Build-time:** `--fit` captures the built screens' element trees and
+  `{{PREFIX}}-fit-android` runs a structural element diff ahead of the visual pass (a missing
+  expected element is a high-confidence major divergence). Crawl Phases 2–4 device validation
+  (C10) still pending — tracked in claude-004/claude-010.
+- **CI propagation + extended validation (roadmap stage 4)** — merged improvements now reach
+  projects without manual steps. New `.github/workflows/regen-plugins.yml`: pushes to `main`
+  touching `templates/**` (or the generator/render engine) regenerate the plugin trees and
+  auto-commit them (loop-guarded via the paths filter; the PR drift gate makes it normally a
+  no-op — it is the direct-push safety net). `validate-plugins.yml` extended: `bash -n` sweeps
+  templates/selfimprove/eval/installers too, plus a new `shellcheck -S error` step.
+  `selfimprove/README.md` gains "Scheduling the loop" (weekly host-side `/mp --reflect` via
+  cron/Task Scheduler; keep `projects.txt` fresh) and `docs/MARKETPLACE.md` documents the
+  propagation chain end-to-end.
+- **Conveyor continuity + stale-test integrity (roadmap stage 3)** — `/{{PREFIX}}` (mp-dev).
+  Phase 1 now ends with an **intent echo-back** ("Как я понял задачу" — goal, the one behaviour
+  that must become true, out of scope) at the SPEC gate, catching a misread idea before any
+  code. New **`--continue`** workflow: one re-entry point that inspects active SPEC → phase
+  plan → backlog → clone fit state and proposes the single next command behind a y/N gate.
+  **Phase-exit hook:** completing a phase auto-runs `--check`; on clones it offers `--fit`.
+  **Stale-Test Update Rule:** the tester must reconcile old tests of MODIFIED pre-existing
+  files (`stale_tests_reviewed[]` in its JSON, fed by an orchestrator-derived
+  `MODIFIED_EXISTING` list) and the verifier gains **Check 6 `stale_tests`** blocking a push
+  when changed behaviour left its old tests untouched and unreviewed. **`--fit` now enforces
+  `fitThreshold`** from `.claude/mp/config.json` (default 85): below it — or with any
+  unexplained divergence — the gate FAILs and the clone may not be declared done.
+- **Cross-project user profile (roadmap stage 2)** — the pipeline now learns the USER across
+  pet projects. New profile file `$MP_USER_PROFILE` / `~/.config/mobile-pipeline/user-profile.md`
+  (taste / process / tech-default / anti-pattern facts, one bullet each with provenance,
+  merge-not-duplicate rules) owned by `{{PREFIX}}-knowledge` via a new `user_preference` routing
+  category. Both grills read it — `/{{PREFIX}} --feature` Phase 1 (Startup step 3) and the
+  `/mp-spec` grill + greenfield stage defaults (grill-me v1.2.0) — to bias **recommended
+  answers only** (cited in a short parenthetical; never auto-decides; absence changes nothing).
+  `{{PREFIX}}-fit-android` gains optional `taste_signals[]` (preference candidates inferred from
+  *intended* deviations) which `--fit` offers to record behind a y/N gate; the post-ship
+  feedback note flags durable "always/never" statements as profile candidates.
+- **Self-improvement loop now feeds itself (roadmap stage 1)** — run telemetry, retro nudges,
+  and a post-ship feedback question in `/{{PREFIX}}` (mp-dev). New pipeline scripts
+  `{{PREFIX}}-record-run.sh` (appends one JSON event per pipeline step to
+  `<repo>/selfimprove/runs/`, accepts `--tokens-in/--tokens-out/--cost` estimates, reports
+  `retro_due` after ≥10 unreflected events) and `{{PREFIX}}-retro.sh` (deterministic per-project
+  retro: per-agent pass-rate, user-feedback scores, token/cost totals, failure tail). The
+  orchestrator records fire-and-forget events after reviewer / final-runner / verifier / fit,
+  offers the retro when due, asks ONE post-ship feedback question (score 1–5 + note; ≤3 appends
+  a lesson to `selfimprove/lessons.md` and feeds `mp-knowledge`'s SESSION_RECAP), and nudges
+  `--improve --drain` when ≥3 proposals are queued. Telemetry never blocks a run. Root
+  `selfimprove/` kit updated for parity.
+- **Improvement roadmap from the goals audit** — new `docs/IMPROVEMENT-ROADMAP.md`: a 46-item
+  catalog (self-improvement loop, cross-project user memory, clone completeness, design
+  fidelity, infra) graded against the two project goals, with evidence pointers into
+  `templates/` and six queued task briefs (`.ai/tasks/claude-006…011`) staging the work
+  loop-first. Docs-only — no agent behaviour changed.
 - **Grill-me design-tree interrogation** in `/mp-spec` intake — a reusable orchestrator technique
   (`prompts/techniques/grill-me.md`; not an agent) that interviews **one adversarial question at a
   time**, resolving the app as a *tree of decisions* (roots before branches), offering a

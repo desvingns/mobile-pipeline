@@ -42,6 +42,36 @@ After every LLM agent call:
    (For `{{PREFIX}}-architect`, replace "JSON" with "BRAINSTORM block".)
 3. If the retry still fails → stop the pipeline and show both responses to the user.
 
+## Run telemetry (fire-and-forget)
+
+The pipeline records one structured event per significant step so the self-improvement loop
+(`selfimprove/`) has real data to reflect on. After each record point below, run (via `Bash`):
+
+```bash
+bash .claude/scripts/{{PREFIX}}-record-run.sh --agent <step> --verdict pass|fail|partial \
+  [--model <model>] [--metric "<k=v;...>"] [--retry <N>] [--note "<one line>"] \
+  [--tokens-in <est>] [--tokens-out <est>] [--cost "<est>"]
+```
+
+Record points (one call each, regardless of verdict):
+
+| step (`--agent`) | when | verdict / metric |
+|---|---|---|
+| `reviewer` | after the reviewer step resolves (script or agent fallback) | from `pass`; `violations=<N>` |
+| `runner`   | after the runner outcome is FINAL (first pass, or after the one auto-fix retry) | from final `pass`; `tests=<...>;lint=<ok\|fail>`; `--retry 1` when the retry ran |
+| `verifier` | after the verifier step resolves | from `pass`; `checks=<N failed or ok>` |
+| `fit`      | after `--fit` Phase 3 parses the `=== FIT ===` block | `pass` when no unexplained divergences, else `partial`; `fit=<overall_score>` |
+| `feedback` | the post-ship feedback question (see **Post-ship** below) | `score=<1-5>` |
+
+Pass `--tokens-in` / `--tokens-out` / `--cost` when you can estimate them (rough is fine — e.g.
+from the size of the prompt + payload you exchanged with the step's agent; omit when unknown).
+
+Telemetry is **fire-and-forget**: it must never block, fail, or retry the pipeline. If the script
+is missing or errors, continue silently. Parse its single JSON line only to read `retro_due`:
+when any call returns `"retro_due":true`, after the current workflow finishes offer ONCE —
+"N runs since the last retro — run `bash .claude/scripts/{{PREFIX}}-retro.sh` now? (y/N)".
+On `y`, run it and show the retro path + the per-agent pass-rate table from the file.
+
 Usage:
   /{{PREFIX}} --feature <description>         — new functionality (default: developer-first order)
   /{{PREFIX}} --feature --tdd <description>   — new functionality, TDD red-green order (tester writes failing tests first)
@@ -57,6 +87,7 @@ Usage:
   /{{PREFIX}} --plan --phases [--bootstrap|--sync|--phase NN] [--from <bundle|tdd>] — clone/large builds: turn the design into a numbered PHASE_NN plan under docs/implementation_plan/ (via {{PREFIX}}-phase-planner, gated). The HEAVY phase model; the backlog board stays for ad-hoc features.
   /{{PREFIX}} --phase                          — assisted progression: take the next unchecked task in the active PHASE_NN, synthesise a SPEC, run the --feature pipeline, tick it, log to PROGRESS.md. Pairs with --plan --phases.
   /{{PREFIX}} --check                           — read-only validator: PROGRESS ↔ PHASE_NN ↔ design-anchor consistency (content-addressed-anchor drift). Makes no changes.
+  /{{PREFIX}} --continue                        — "what's next?": inspect the project's conveyor state (active SPEC, phase plan, backlog, fit gate) and propose the SINGLE recommended next command, gated y/N. Re-entry point so the user never has to remember the command chain.
   /{{PREFIX}} --improve "<note>"               — propose ONE plugin-level fix from your note → its OWN gated PR to mobile-pipeline (via {{PREFIX}}-improve). Separate from the batch.
   /{{PREFIX}} --improve --drain                — aggregate ALL queued proposals (auto-staged by {{PREFIX}}-knowledge / {{PREFIX}}-reflect) into ONE gated batch PR.
   /{{PREFIX}} --reflect                        — cross-project: aggregate self-improvement lessons across all projects ({{PREFIX}}-cross-reflect.sh) + queue plugin improvements for patterns seen in >=2 projects ({{PREFIX}}-reflect).
@@ -96,7 +127,11 @@ baselines, and never claim visual tests ran or passed without the connected-devi
 
 1. Read `CLAUDE.md` (at the repository root) for tech stack and architecture.
 2. Read `STATE.md` to know current iteration and what's in flight.
-3. Confirm task type. If flag missing → ask: "Это новая фича / баг / brainstorm?" (or the equivalent in {{UI_LANGUAGE}}).
+3. Read the **cross-project user profile** if it exists — `$MP_USER_PROFILE` or
+   `~/.config/mobile-pipeline/user-profile.md`. Use it ONLY to bias recommended answers and
+   defaults in elicitation (taste, language, process preferences); it never auto-decides
+   anything and its absence changes nothing.
+4. Confirm task type. If flag missing → ask: "Это новая фича / баг / brainstorm?" (or the equivalent in {{UI_LANGUAGE}}).
 
 ---
 
@@ -231,7 +266,7 @@ Explore the relevant codebase area. Then **grill the feature into a tree of deci
 **Grill protocol (always run; ambiguity-scaled).**
 1. From the feature description + what the exploration found, sketch (internally) the **decision tree**: the small set of choices that, once made, determine everything downstream. Roots first — which screen/flow, new screen vs. extension, the single core behaviour, what is explicitly **out of scope** — then the branches each root opens: new-vs-existing use case, persistence (Room entity / DataStore key / Core Data entity / …), validation rules, empty/loading/error states, integrations.
 2. **Rank the open decisions by leverage** (how much downstream each one determines). Enumerate them internally before asking anything.
-3. Ask **one decision at a time** (a tight 2–3 sub-choice cluster of the *same* parent may share one call), resolving a **parent before its children**. Always offer a **recommended answer** drawn from the codebase/exploration, marked as the recommended option (in the project's configured UI language), so the user can accept with one tap or correct you. **Re-plan the tree from each answer before the next question.**
+3. Ask **one decision at a time** (a tight 2–3 sub-choice cluster of the *same* parent may share one call), resolving a **parent before its children**. Always offer a **recommended answer** drawn from the codebase/exploration **and the cross-project user profile** (Startup step 3) — when a profile fact informs the recommendation, say so in a short parenthetical (e.g. "recommended: dark theme — your usual choice across projects"); the profile biases recommendations, it never decides. Mark the recommended option as such (in the project's configured UI language), so the user can accept with one tap or correct you. **Re-plan the tree from each answer before the next question.**
 4. Be a skeptic, not a stenographer. On every answer hunt for a hidden **assumption**, a **contradiction** with an earlier answer, an unhandled **state** (empty / loading / error / offline / first-run / unauthenticated), **scope creep** (a sub-feature with no traceable root in the core behaviour), or a **new dependency** the answer just created. A found hole becomes the next question — follow that branch before returning to breadth.
 5. **Budget scales with ambiguity — there is NO fixed question cap.** A trivial change (e.g. "new button → navigate to X") surfaces ~0 high-leverage unknowns → ask nothing (or a single confirm) and proceed straight to the SPEC. A genuinely tangled feature may need many. **Stop** when all root/high-leverage decisions are settled and no open branch has an unresolved hole, OR the user says "enough / proceed" (log remaining items as `(assumption)` with your recommended defaults), with a **hard ceiling of ≤12** as a backstop, not a target.
 
@@ -239,7 +274,15 @@ Explore the relevant codebase area. Then **grill the feature into a tree of deci
 
 Carry the resolved decisions into the SPEC: every `WHAT` / `CONSTRAINTS` line must trace to a grilled decision, the exploration, or an explicit `(assumption)`; never put an "out of scope" item into the SPEC.
 
-When the decisions are settled, output SPEC block and wait for user approval:
+When the decisions are settled, output — at the SAME approval gate, in this order:
+
+1. **Intent echo-back** (2–3 sentences, in {{UI_LANGUAGE}}, titled "Как я понял задачу" or the
+   equivalent): a plain-language reconstruction of what the user actually WANTS — the goal, the
+   one behaviour that must become true, and what is explicitly out of scope. This is NOT a
+   paraphrase of the SPEC fields — it is your understanding of the intent, so a misread idea is
+   caught here, before any code. If the user corrects the echo-back, re-plan (and re-grill the
+   affected branch) before re-emitting.
+2. The SPEC block:
 
 ```
 === SPEC ===
@@ -318,17 +361,27 @@ Fallback: if the script's exit code is non-zero or its output is not valid JSON,
 
 If `pass=false` → stop immediately, show violations to user. Do NOT proceed to Tester.
 
+Record telemetry for this step either way (see **Run telemetry**): `--agent reviewer`.
+
 **Step 2 — Tester** (write comprehensive tests):
+First derive `MODIFIED_EXISTING` — the subset of the developer's changed files that existed
+BEFORE this task (modified, not added). Use the developer's commit:
+`git show --name-status --format= <commit>` → lines starting with `M`. If the commit is
+unavailable, pass `unknown` (the tester will infer).
+
 Spawn agent `{{PREFIX}}-tester-<platform>` with prompt:
 ```
-Write tests per SPEC and for CHANGED_FILES below.
-Return JSON: {"test_files":[...], "screenshot_record_needed": bool}
+Write tests per SPEC and for CHANGED_FILES below. Apply the Stale-Test Update Rule to MODIFIED_EXISTING.
+Return JSON: {"test_files":[...], "screenshot_record_needed": bool, "stale_tests_reviewed":[...]}
 
 SPEC:
 [paste SPEC block]
 
 CHANGED_FILES:
 [output from developer agent]
+
+MODIFIED_EXISTING:
+[M-status files from the developer's commit, or "unknown"]
 ```
 
 **Step 3 — Runner** (verify everything passes) — **deterministic script**:
@@ -360,6 +413,10 @@ errors: [errors array from Runner]
 Then re-run `.claude/scripts/{{PREFIX}}-runner-<platform>.sh` (same arguments as Step 3) and parse its JSON.
 If the second run still returns `pass=false` → stop, show both failure reports to user and ask for guidance.
 
+Once the runner outcome is FINAL (Step 3 passed, or the Step 4 retry resolved either way), record
+telemetry (see **Run telemetry**): `--agent runner`, verdict from the final `pass`, metric
+`tests=<...>;lint=<ok|fail>`, `--retry 1` when Step 4 ran.
+
 **Step 4.5 — Verifier** (static wiring checks + manual checklist gate before push):
 Spawn agent `{{PREFIX}}-verifier-<platform>` with prompt:
 ```
@@ -371,6 +428,18 @@ SPEC:
 
 CHANGED_FILES:
 [union of all changed files from Developer step(s)]
+
+MODIFIED_EXISTING:
+[same list passed to the Tester in Step 2]
+
+TEST_FILES:
+[test_files from the Tester's JSON]
+
+COVERAGE_EXCEPTIONS:
+[coverage_exceptions from the Tester's JSON, or []]
+
+STALE_TESTS_REVIEWED:
+[stale_tests_reviewed from the Tester's JSON, or []]
 ```
 
 If Verifier returns `pass=false` → stop. Show `static_checks` failures to user and ask:
@@ -381,6 +450,8 @@ If Verifier returns `pass=true` → print `manual_checklist` verbatim to the use
 
 - If user answers **y** → proceed to Step 5 (Push).
 - If user answers **N** → stop. Do NOT push. Wait for user feedback before doing anything else.
+
+Record telemetry once the verifier resolves (see **Run telemetry**): `--agent verifier`.
 
 **Step 5** — Push to remote (via the `Bash` tool):
 ```bash
@@ -527,8 +598,22 @@ If `docs/implementation_plan/` is absent and `--bootstrap`, first scaffold it fr
 `{mode, design_source: "<--from path or empty>", repo_root: $(git rev-parse --show-toplevel), generated: "<today>"}`.
 Parse its single `=== PLAN ===` block (retry ONCE with a "block only" preface on parse failure).
 
-### Phase 2 — Preview + gate
-Print: files to create/merge, the per-file merge summary (preserved/updated/added/conflict), the
+### Phase 2 — Coverage audit + preview + gate
+**Plan-coverage audit (deterministic, BEFORE the gate).** When the design source is a spec
+bundle, cross-check that everything in it landed in the plan:
+1. Collect the design-side IDs: `spec/fit/registry.csv` → every `screen_id` (clone);
+   `spec/traceability.csv` → every `fr_id` (and `us_id` where no FR); the inventory's epics.
+2. Grep the emitted phases' `rendered_markdown` (all of them) for each ID: every registry
+   `screen_id` must appear in ≥1 task (its Visual-QA task at minimum); every `FR-`/`US-` id must
+   appear in ≥1 task's `traces`/text.
+3. Print the audit: `covered: X/Y screens, M/N FRs` + the explicit list of UNCOVERED ids.
+4. **Non-empty uncovered list is a blocker:** ask the user — `r` re-spawn the planner with the
+   uncovered list appended to its input ("these design items are missing from the plan — place
+   each or mark it deferred"), or `a` acknowledge explicitly (each acknowledged id is written
+   into the 00_overview deltas as a `deferred (user-acknowledged)` row so it stays visible).
+   Never write a plan with silently-missing design items.
+
+Then print: files to create/merge, the per-file merge summary (preserved/updated/added/conflict), the
 PROGRESS/00_overview deltas, and every `warnings[]` entry. Ask:
 "Write/merge N phase files + PROGRESS/overview deltas? (y / d — full diff / n)".
 - **d** → dump each `rendered_markdown` + a unified diff vs the on-disk file, then re-ask.
@@ -577,8 +662,12 @@ phase, not per task): ask "Push now? (y/N — default N)".
 
 ### Phase 4 — Record progress
 Tick the task `- [ ]` → `- [x]` in `PHASE_<NN>`; append to PROGRESS.md session log
-`- <date>: PHASE_<NN> — <task> (commit <hash>)`. If the phase now has zero unchecked tasks, say so
-(suggest `--check` + the phase's Verification commands, then set the row to `done`).
+`- <date>: PHASE_<NN> — <task> (commit <hash>)`. **Phase-exit hook:** if the phase now has zero
+unchecked tasks, run the `--check` validator AUTOMATICALLY (read-only) and show its result, then
+suggest the phase's Verification commands + setting the row to `done`. On a CLONE project
+(`spec/fit/registry.csv` exists in the design source) additionally offer once:
+"Phase complete — run `/{{PREFIX}} --fit` against the reference now? (y/N)" — mandatory to offer
+when the completed phase was the final Fit-gate phase or touched screens.
 
 ### Phase 5 — Report
 ```
@@ -599,6 +688,41 @@ first phase, the previous one is `done` with all boxes ticked; (5) **anchor drif
 off-host report Check 5 as `skipped (design off-host)`; (6) customisation layer
 (`.claude/mp/config.json`, `.claude/mp/extras/`) present. Print each check ✓/✗/⚠ +
 `Status: CONSISTENT | INCONSISTENT (N issues)`; if inconsistent, enumerate fixes — do NOT auto-fix.
+
+---
+
+## Workflow: --continue  (state machine — propose the next conveyor step)
+
+The single re-entry point: the user types `/{{PREFIX}} --continue` instead of remembering the
+`--plan --phases → --phase × N → --fit → --feature --next` chain. Read-only until the user
+accepts the proposal.
+
+### Phase 1 — Inspect state (read-only, in this order)
+1. `.claude/specs/active/` — a SPEC mid-flight?
+2. `docs/implementation_plan/PROGRESS.md` (if present) — the `active`/`in progress` phase row,
+   and whether `phases/PHASE_<NN>_*.md` still has unchecked tasks; whether ALL phases are `done`.
+3. `.claude/specs/backlog/` — runnable SPECs queued (ignore `*-00-overview.md`)?
+4. Clone state — does `spec/fit/registry.csv` (or config `referenceScreenshotsDir`) exist, and
+   did the last `--fit` (epic `fit` SPECs in backlog/done, `build/fit/` captures) leave
+   unexplained divergences or has it never run since the last phase completed?
+5. Secondary signals: `retro_due` from the latest telemetry call; queued proposals in
+   `mp_repo/.ai/proposals/` (resolve as in `--improve`, skip silently if unresolved).
+
+### Phase 2 — Pick ONE recommendation (first match wins)
+1. Active SPEC exists → `/{{PREFIX}} --feature --next` (resume it).
+2. Active phase has unchecked tasks → `/{{PREFIX}} --phase`.
+3. A phase just completed (zero unchecked) but its row isn't `done` → `/{{PREFIX}} --check`,
+   then advance the row.
+4. All phases done + clone + fit pending/divergent → `/{{PREFIX}} --fit`.
+5. Backlog non-empty → `/{{PREFIX}} --feature --next`.
+6. Fit clean + backlog empty + phases done → say the conveyor is drained; suggest
+   `/{{PREFIX}} --spec` / `--feature <idea>` (and surface the secondary signals).
+
+### Phase 3 — Propose + gated run
+Print: the recommended command, ONE line of why (grounded in what Phase 1 found), and any
+secondary suggestions (retro due / proposals queued) as bullets — then ask
+"Run it now? (y/N)". On `y` execute that workflow exactly as if the user typed it (its own
+gates still apply); on `N` stop. Never run anything before the `y`.
 
 ---
 
@@ -660,15 +784,38 @@ for patterns recurring in >=2 projects. Reads the global projects list
 
 ---
 
-## Knowledge capture (after a ship)
+## Post-ship (after a ship): feedback → knowledge → nudges
 
-After a successful `--feature` / `--bugfix` (post-docs) you MAY spawn `{{PREFIX}}-knowledge` with
-`{SPEC, CHANGED_FILES, SESSION_RECAP}`. No-op for routine work. It routes lessons:
+After a successful `--feature` / `--bugfix` (post-docs), run these three closing moves in order.
+
+**1. Feedback — one question, always.** Ask exactly ONE question (Claude → `AskUserQuestion`;
+Codex → in chat), in {{UI_LANGUAGE}}: "Does the result match what you wanted? 5 — perfect /
+4 — minor nits / 3 — partly / 2 — wrong direction / 1 — not at all (add a short note if <5)".
+Then record it (see **Run telemetry**):
+`--agent feedback --verdict <pass for 5-4 | partial for 3 | fail for 2-1> --metric "score=<N>" --note "<user note>"`.
+If the score is ≤3 → also append ONE bullet to `selfimprove/lessons.md` at the repo root
+(create the file with a `# Lessons` header if missing, never rewrite existing lines):
+`- <YYYY-MM-DD> <task slug>: feedback <N>/5 — <user note / what missed>`.
+If the note states a durable cross-project preference ("always…", "I never want…", a taste
+statement not specific to this app), flag it in SESSION_RECAP as a `user_preference` candidate —
+`{{PREFIX}}-knowledge` routes those to the cross-project profile.
+Skip the question only when the user is explicitly rushing — never silently.
+
+**2. Knowledge capture (optional, conservative).** You MAY spawn `{{PREFIX}}-knowledge` with
+`{SPEC, CHANGED_FILES, SESSION_RECAP}` — SESSION_RECAP MUST include the feedback score + note
+when collected (a low score is the strongest signal a lesson exists). No-op for routine work.
+It routes lessons:
 - **PROJECT-LOCAL** → writes this project's memory / `.claude/mp/extras/<agent>.md`.
 - **PLUGIN-LEVEL** → returns `plugin_improvements[]`; for each, spawn `{{PREFIX}}-improve` to STAGE it
-  to the queue (`mobile-pipeline/.ai/proposals/`) — do NOT open a PR per lesson. Then tell the user:
-  "Queued N pipeline improvement(s) — run `/{{PREFIX}} --improve --drain` to open the batch PR."
-Skip entirely when the user is moving fast or the task was trivial.
+  to the queue (`mobile-pipeline/.ai/proposals/`) — do NOT open a PR per lesson.
+Skip entirely when the task was trivial.
+
+**3. Improvement-queue + retro nudges (cheap, silent checks).**
+- Resolve `mp_repo` (as in `--improve`; skip silently if unresolved). Count
+  `mp_repo/.ai/proposals/*.patch`: if ≥3 → tell the user
+  "N pipeline improvement proposal(s) are queued — run `/{{PREFIX}} --improve --drain` to open the batch PR."
+- If any telemetry call this session returned `"retro_due":true` → offer the retro once
+  (see **Run telemetry**).
 
 ---
 
@@ -728,6 +875,8 @@ FAILED CHECKS: [errors from Runner]
 ```
 
 Then re-run `.claude/scripts/{{PREFIX}}-runner-<platform>.sh false`. If still `pass=false` → stop, show failures to user.
+
+Record telemetry for the reviewer and the FINAL runner outcome (see **Run telemetry**), as in `--feature`.
 
 **Step 4** — Push to remote (via the `Bash` tool):
 ```bash
@@ -853,6 +1002,8 @@ silently drifting away from its reference.
    b. else `.claude/mp/config.json` `referenceScreenshotsDir` (+ optional `referenceScreenshotMap`);
    c. else ASK the user for the reference screenshots directory and how its images map to screens.
    Build the `screens[]` list of `{screen_id, name, reference}` pairs.
+   Also resolve **`fit_threshold`**: `.claude/mp/config.json` → `fitThreshold` (integer 0–100);
+   absent → default **85**. This is the enforced pass bar for the gate, not advice.
 2. **Device gate (mandatory, same as `--device`).** Apply the **Visual autotest device pre-flight
    (Android)**, then read the `device-connection` memo and confirm with `adb devices`. If none is
    usable → STOP, ask the user how the device/emulator is connected, record the answer to the memo,
@@ -860,6 +1011,22 @@ silently drifting away from its reference.
    Roborazzi/Paparazzi output — then a device is optional).
 
 ### Phase 2 — Capture the built screens
+
+**Normalize the capture environment first** (device captures only — so the pixels measure the
+app, not the chrome; mirror the profile the reference frames were captured on, recorded in the
+bundle's `00_meta.yaml` → `crawl.device` when the crawl ran):
+```bash
+adb shell settings put global sysui_demo_allowed 1
+adb shell am broadcast -a com.android.systemui.demo -e command enter
+adb shell am broadcast -a com.android.systemui.demo -e command clock -e hhmm 1000
+adb shell am broadcast -a com.android.systemui.demo -e command battery -e level 100 -e plugged false
+adb shell am broadcast -a com.android.systemui.demo -e command network -e wifi show -e level 4
+adb shell am broadcast -a com.android.systemui.demo -e command notifications -e visible false
+adb shell settings put system font_scale 1.0
+```
+Best-effort (never block on demo mode); broadcast `-e command exit` when capture finishes. If
+the reference profile (resolution/density) is known and differs from the connected device, warn
+the user — pixel scores will be depressed by pure scaling.
 
 Populate `build/fit/built/<screen_id>.png` for each screen, using the first available source:
 - **Roborazzi/Paparazzi output** — if the project records Compose screenshots covering these screens,
@@ -870,6 +1037,23 @@ Populate `build/fit/built/<screen_id>.png` for each screen, using the first avai
   capture: `adb exec-out screencap -p > build/fit/built/<screen_id>.png`.
 Record `built:null` for any screen you could not capture (the comparator marks it `captured:false`).
 
+**Element-tree dumps (structural diff input).** When `spec/fit/elements/` exists AND a device is
+the capture source, also dump each screen's element tree right after its screenshot:
+`MSYS_NO_PATHCONV=1 adb shell uiautomator dump /sdcard/ui.xml && adb exec-out cat /sdcard/ui.xml > build/fit/built/<screen_id>.xml`
+(on Git Bash keep `MSYS_NO_PATHCONV=1` — /sdcard path mangling). Best-effort: a failed dump just
+means the structural diff is skipped for that screen (note it); never block the capture pass.
+
+### Phase 2.5 — Objective pixel pass (deterministic, before the agent)
+
+For each (screen, state) with BOTH a reference image and a built capture, run:
+```bash
+bash .claude/scripts/{{PREFIX}}-pixel-diff.sh --reference <reference.png> --built <built.png> --out build/fit/diff/<screen_id>.png
+```
+Parse each single JSON line; collect `pixel_scores = {screen_id: {similarity, rmse_pct, heatmap, resized}}`.
+On `tool_missing` (ImageMagick absent) → tell the user once (install hint), set
+`pixel_scores: unavailable`, continue — the multimodal pass still runs. The heatmaps under
+`build/fit/diff/` are evidence artifacts for the report.
+
 ### Phase 3 — Compare
 
 Spawn agent `{{PREFIX}}-fit-android` with:
@@ -879,16 +1063,33 @@ Compare the built screens against their reference images and return one === FIT 
 screens: [ {screen_id, name, reference, built} ... ]
 deviations: spec/deviations.md   (omit the line if absent)
 design_notes: spec/design.md     (omit the line if absent)
+elements_dir: spec/fit/elements  (omit if absent — enables the structural element diff)
+built_dumps: build/fit/built     (omit if no *.xml dumps were captured)
+checklists: spec/fit             (omit if the bundle has no fit/<screen_id>.md checklists)
+pixel_scores: <the Phase 2.5 map, or "unavailable">
 epic_slug: fit
 date: <today YYYY-MM-DD>
 ```
 Parse the `=== FIT ===` block (retry ONCE with a "block only, no prose" preface on parse
 failure; a second failure → stop and show the response).
 
+Record telemetry (see **Run telemetry**): `--agent fit`, verdict `pass` when
+`overall_score ≥ fit_threshold` AND there are no unexplained divergences (else `partial`),
+metric `fit=<overall_score>;threshold=<fit_threshold>`.
+
 ### Phase 4 — Report + gated write
 
 Print the per-screen `fit_score` table, the `divergences`, the `acknowledged_deviations`, and
-the `behavioural_unverified` pointers. If `proposed_specs` is non-empty, ask:
+the `behavioural_unverified` pointers.
+
+**Taste journal.** If the block carries a non-empty `taste_signals[]` (durable cross-project
+preference candidates the comparator inferred from intended deviations), show them and ask ONE
+y/N: "Record these to your cross-project profile?". On `y`, append each as a bullet under
+`## UI & design taste` in `$MP_USER_PROFILE` / `~/.config/mobile-pipeline/user-profile.md`
+(create via the skeleton in `{{PREFIX}}-knowledge` if missing), with provenance
+`(<project name from config>, <date>, fit)`. Skip silently when `taste_signals` is empty.
+
+If `proposed_specs` is non-empty, ask:
 "Write N divergence SPEC(s) to `.claude/specs/backlog/`? (y / d — show bodies / n)".
 - **y** → write each `proposed_specs[].rendered_markdown` to `.claude/specs/backlog/<filename>`
   verbatim; add/update a `fit-00-overview.md` index. (These are `Status: draft` board SPECs.)
@@ -899,14 +1100,20 @@ Never write outside `.claude/specs/`.
 ### Phase 5 — Report
 
 ```
-fit: <N screens compared> — overall <overall_score>/100
+fit: <N screens compared> — overall <overall_score>/100 vs threshold <fit_threshold> → PASS | FAIL
+   Pixel (SSIM/RMSE): <avg similarity>% avg | unavailable   heatmaps: build/fit/diff/
+   Checklist rows: <passed>/<total> (failed rows listed per screen above)
    Filed: <M> divergence SPEC(s) → .claude/specs/backlog/ (epic: fit)
    Behavioural to verify: <K> (run the acceptance/feature arm / --device)
    Next: /{{PREFIX}} --feature --next  (fix the top divergence), then re-run /{{PREFIX}} --fit
 ```
 
+**Threshold enforcement:** the gate result is FAIL while `overall_score < fit_threshold` OR any
+unexplained divergence remains. On FAIL, say explicitly that the clone may NOT be declared done
+(the Fit-gate phase stays open / the clone-done criterion is unmet) until a re-run passes.
+
 The loop closes by implementing the filed SPECs (`--feature --next`) and re-running `--fit`
-until the score converges and only intended deviations remain.
+until the score meets the threshold and only intended deviations remain.
 
 ---
 
@@ -943,7 +1150,15 @@ until the score converges and only intended deviations remain.
 - `--device` is Android-only, runs one control per invocation, and never pushes. A connected device/emulator is mandatory: if none is present the orchestrator asks the user and records the answer to the `device-connection` memo (the runner agent cannot prompt). On-device test seams are restricted to `testTag` / `contentDescription` / `<Name>Content` visibility — a `--device` diff must never add new UI, events, or behaviour.
 - `--fit` is Android + clone-only: it captures built screens, compares them against reference images via `{{PREFIX}}-fit-android` (read-only, multimodal), and writes divergence SPECs to `.claude/specs/backlog/` ONLY behind a y/d/n gate (same write-boundary as `--plan`). It honours `spec/deviations.md` — intended deviations are acknowledged, not filed — and flags behavioural divergences (gestures, entry order, transitions) as `behavioural_unverified` for the acceptance/feature arm rather than asserting them from a static image. Never weakens a comparison; never pushes.
 - `--plan` spawns `{{PREFIX}}-planner` (read-only) and writes ONLY under `.claude/specs/` behind a y/d/n gate; it is the `/mp-spec` bundle → backlog bridge and pairs with `--feature --next`.
+- `--plan --phases` runs a deterministic **plan-coverage audit** before its write gate: every `screen_id` from `spec/fit/registry.csv` and every `FR-`/`US-` id from `spec/traceability.csv` must appear in ≥1 emitted task; uncovered ids block the write until re-planned or explicitly acknowledged as deferred (recorded in 00_overview). A design item never goes missing silently.
 - `--plan --phases` / `--phase` / `--check` are the HEAVY phase model for clone/large builds (numbered PHASE_NN + PROGRESS + content-addressed `slug:+h:` anchors), bridged read-only by `{{PREFIX}}-phase-planner`. They coexist with the lightweight `--plan` backlog board — pick the phase model for a full clone, the backlog for a one-off feature. The phase-planner writes ONLY `phases/PHASE_NN_*.md`, `PROGRESS.md` (append-only), `00_overview.md`, behind a y/d/n gate; it never touches `## Notes for next session`, auto-emits a per-screen "Visual QA vs reference" task, and (for a clone) appends a final Fit-gate phase whose done-criteria is a clean `/{{PREFIX}} --fit`.
 - `--improve` is the ONLY path that changes the mobile-pipeline marketplace, ALWAYS via a gated PR. Two modes: `--improve "<note>"` (direct → its OWN PR via `propose-improvement.sh`) and `--improve --drain` (batch the `.ai/proposals/` queue → ONE PR via `improve-drain.sh`). Patches edit only `templates/`; never a direct push; never this project's source. Project-local lessons go to memory / `.claude/mp/extras/`, not here.
 - `--reflect` is cross-project + maintainer-level: runs `{{PREFIX}}-cross-reflect.sh` (aggregates lessons across `~/.config/mobile-pipeline/projects.txt`) then `{{PREFIX}}-reflect`, which QUEUES proposals only for patterns seen in >=2 projects. Opens no PRs — drain with `--improve --drain`.
 - `{{PREFIX}}-knowledge` runs at most once post-ship and is usually a no-op. It classifies each lesson PROJECT-LOCAL (→ memory/extras) vs PLUGIN-LEVEL (→ STAGE to the `.ai/proposals/` queue via `{{PREFIX}}-improve`, then suggest `--improve --drain`). It never edits source or the live plugin copy.
+- Run telemetry (`{{PREFIX}}-record-run.sh`) is **fire-and-forget**: record after reviewer / final-runner / verifier / fit and for the post-ship feedback question; it writes only under `selfimprove/` and must NEVER block, fail, or retry the pipeline (a missing/erroring script is silently ignored). `{{PREFIX}}-retro.sh` aggregates the events; offer it once per session when a telemetry call returns `retro_due:true`.
+- The post-ship feedback question (one question, score 1–5) is asked after every shipped `--feature`/`--bugfix` unless the user is explicitly rushing. A score ≤3 appends one bullet to `selfimprove/lessons.md` (append-only — a meta/planning artifact like `.claude/specs/`, allowed for the orchestrator to write) and is passed into `{{PREFIX}}-knowledge`'s SESSION_RECAP.
+- The **cross-project user profile** (`$MP_USER_PROFILE` / `~/.config/mobile-pipeline/user-profile.md`) is read at Startup and only ever BIASES recommended answers — it never auto-decides, and its absence changes nothing. Writers: `{{PREFIX}}-knowledge` (`user_preference` lessons, with merge rules) and the orchestrator's `--fit` taste journal (gated y/N append under `## UI & design taste`). It is the one file outside the project the pipeline may write.
+- Phase 1 ends with an **intent echo-back** ahead of the SPEC at the same gate: 2–3 plain-language sentences reconstructing what the user wants (goal / the one behaviour that must become true / out of scope) — never a paraphrase of SPEC fields. A corrected echo-back re-plans before re-emitting.
+- `--continue` is read-only until its single y/N gate: it inspects active SPEC → phase plan → backlog → fit state, proposes ONE next command with a one-line why, and on `y` runs that workflow with all of its own gates intact. It never invents work — conveyor drained means saying so.
+- The Tester reconciles tests of MODIFIED pre-existing files (the Stale-Test Update Rule; `stale_tests_reviewed` in its JSON) and Verifier Check 6 blocks the push when a modified file's old tests were neither updated nor explicitly reviewed as no-change. New tests for new code is only half the contract.
+- `--fit` enforces `fit_threshold` (config `fitThreshold`, default 85): the gate FAILs — and the clone may not be declared done — while the overall score is below it or any unexplained divergence remains. `--phase` auto-runs `--check` when a phase completes and (on clones) offers `--fit`.

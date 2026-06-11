@@ -207,7 +207,7 @@ transform_dev_command() {
   {
     printf '%s\n' '---'
     printf '%s\n' 'description: Mobile dev orchestrator (/mp) — runs the SPEC → develop → review → test → verify pipeline (Android/iOS, Clean Architecture). Reads .claude/mp/config.json + CLAUDE.md + .claude/mp/extras for project specifics.'
-    printf '%s\n' 'argument-hint: --feature|--bugfix|--discuss|--spec|--tdd|--coverage|--device <description>'
+    printf '%s\n' 'argument-hint: --feature|--bugfix|--discuss|--spec|--continue|--tdd|--coverage|--device <description>'
     printf '%s\n' '---'
     cat "$body"
   } > "$dst"
