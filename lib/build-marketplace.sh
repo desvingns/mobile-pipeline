@@ -29,6 +29,7 @@ SPEC_SRC="$ROOT/templates/spec"
 DEV_CODEX="$ROOT/templates/dev/codex"
 COMMON="$ROOT/templates/common"
 ANDROID="$ROOT/templates/android"
+CMP_VERSION="$(tr -d '[:space:]' < "$ROOT/VERSION")"
 
 # strip_platform_block / strip_platform_markers / strip_if_markers come from lib/render.sh
 # (sourcing only DEFINES functions — no side effects).
@@ -72,6 +73,36 @@ copy_dir() {
   [ -d "$src" ] || return 0
   if [ "$DRY" = 1 ]; then echo "  [dry] copy   ${src#"$ROOT"/} -> ${dst#"$ROOT"/}"; return; fi
   rm -rf "$dst"; mkdir -p "$(dirname "$dst")"; cp -r "$src" "$dst"
+}
+
+set_json_version() {
+  local file="$1" version="$2" tmp
+  [ -f "$file" ] || return 0
+  if [ "$DRY" = 1 ]; then echo "  [dry] version ${file#"$ROOT"/} -> $version"; return; fi
+  tmp="$(mktemp)"
+  awk -v v="$version" '
+    BEGIN { done = 0 }
+    !done && /^[[:space:]]*"version"[[:space:]]*:/ {
+      sub(/"version"[[:space:]]*:[[:space:]]*"[^"]*"/, "\"version\": \"" v "\"")
+      done = 1
+    }
+    { print }
+  ' "$file" > "$tmp"
+  mv "$tmp" "$file"
+}
+
+sync_manifest_versions() {
+  local f
+  for f in \
+    "$ROOT/.claude-plugin/marketplace.json" \
+    "$ROOT/claude-plugins/mp-dev/.claude-plugin/plugin.json" \
+    "$ROOT/claude-plugins/mp-spec/.claude-plugin/plugin.json" \
+    "$ROOT/codex-plugins/mp-dev/.codex-plugin/plugin.json" \
+    "$ROOT/codex-plugins/mp-spec/.codex-plugin/plugin.json" \
+    "$DEV_CODEX/.codex-plugin/plugin.json"
+  do
+    set_json_version "$f" "$CMP_VERSION"
+  done
 }
 
 rewrite_mp_spec_file() {
@@ -294,5 +325,6 @@ build_mp_spec claude
 build_mp_spec codex
 build_mp_dev
 build_mp_dev_codex
+sync_manifest_versions
 
-echo "build-marketplace: done ($([ "$DRY" = 1 ] && echo dry-run || echo wrote) mp-spec + mp-dev)."
+echo "build-marketplace: done ($([ "$DRY" = 1 ] && echo dry-run || echo wrote) mp-spec + mp-dev, v$CMP_VERSION)."

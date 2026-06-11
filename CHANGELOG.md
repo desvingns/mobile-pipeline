@@ -4,19 +4,9 @@ All notable changes to `claude-mobile-pipeline` (cmp) are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This repo uses [Semantic Versioning](https://semver.org/) — see `README.md` → Versioning.
 
-## [1.6.3] - 2026-06-09
-
-### Changed
-
-- **Top-tier agents moved from Opus 4.8 to Fable 5** (`claude-fable-5`). mp-dev:
-  `{{PREFIX}}-developer-android`. mp-spec: `crawl-executor`, `crawl-reviewer`,
-  `fit-checklist-author`, `screenshot-business-analyzer`, `screenshot-style-analyzer`,
-  `spec-evaluator` (+ the evaluator rubric's model note). The generic `model: opus`
-  shorthand in those agents is replaced with the explicit `claude-fable-5` id. If a host
-  Claude Code build does not recognise Fable 5, set those agents back to
-  `claude-opus-4-8` manually (the previous assignment).
-
 ## [Unreleased]
+
+## [1.7.0] - 2026-06-11
 
 ### Changed
 
@@ -176,6 +166,18 @@ This repo uses [Semantic Versioning](https://semver.org/) — see `README.md` �
   and `eval/clone-fidelity/` → `eval/clone-fit/`. **Breaking:** the renamed agents change generated
   plugin filenames — downstream projects referencing `mp-fidelity-android` / `fidelity-checklist-author`
   or `spec/fidelity/` paths must update. (Released 1.5.0 history below intentionally keeps "fidelity".)
+
+## [1.6.3] - 2026-06-09
+
+### Changed
+
+- **Top-tier agents moved from Opus 4.8 to Fable 5** (`claude-fable-5`). mp-dev:
+  `{{PREFIX}}-developer-android`. mp-spec: `crawl-executor`, `crawl-reviewer`,
+  `fit-checklist-author`, `screenshot-business-analyzer`, `screenshot-style-analyzer`,
+  `spec-evaluator` (+ the evaluator rubric's model note). The generic `model: opus`
+  shorthand in those agents is replaced with the explicit `claude-fable-5` id. If a host
+  Claude Code build does not recognise Fable 5, set those agents back to
+  `claude-opus-4-8` manually (the previous assignment).
 
 ## [1.5.0] — 2026-06-02
 

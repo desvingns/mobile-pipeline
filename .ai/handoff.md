@@ -1,5 +1,21 @@
 # Handoff
 
+UPDATED: 2026-06-11 by codex
+
+## LATEST (2026-06-11, codex) — publish plugin release metadata for 1.7.0
+- **DONE:** released the previously-authored `[Unreleased]` batch as `1.7.0` in `CHANGELOG.md`,
+  bumped root `VERSION` to `1.7.0`, and synced all Claude/Codex plugin manifests plus the Claude
+  marketplace metadata to `1.7.0`.
+- **DONE:** hardened `lib/build-marketplace.sh` so future marketplace builds read root `VERSION` and
+  rewrite the manifest `version` fields for `.claude-plugin/marketplace.json`, both Claude plugin
+  manifests, both Codex plugin manifests, and the Codex mp-dev template manifest.
+- **VERIFIED:** `lib/build-marketplace.sh` full run + dry-run; manifest JSON parse; `bash -n
+  lib/build-marketplace.sh`; placeholder/tool-marker leak greps; `git diff --check`; `graphify update .`.
+  Local `shellcheck` is not installed, so CI remains the shellcheck authority.
+- **NEXT:** downstream projects should run their plugin marketplace update/install flow and see
+  `mp-dev` / `mp-spec` as `1.7.0`.
+- **OWNER:** codex. **BLOCKERS:** none.
+
 UPDATED: 2026-06-11 by claude
 
 ## LATEST (2026-06-11, claude) — pipeline audit → 46-item roadmap, ALL 6 STAGES AUTHORED
