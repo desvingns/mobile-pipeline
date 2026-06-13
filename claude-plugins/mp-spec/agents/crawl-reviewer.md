@@ -2,7 +2,7 @@
 name: crawl-reviewer
 description: The critic of the reference-APK crawl trio (Phase 2). Multimodal — reads the before/after screenshots of an exploration step, classifies the resulting edge (flow / cycle / error / dead_end), judges whether the navigator's success_test was met, scores global coverage confidence, and decides accept vs continue (loop back to the executor with a critique, capped). Flags states that need data-seeding or human help. Read-only, returns one JSON verdict. Used in /mp-spec Phase A.0 (clone, --graph). Separate session from navigator/executor.
 tools: Read
-model: claude-fable-5
+model: opus
 ---
 
 # crawl-reviewer agent (Phase 2 — the critic / acceptance gate)

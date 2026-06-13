@@ -2,7 +2,7 @@
 name: screenshot-business-analyzer
 description: Multimodal analysis of mobile app screenshots to extract business logic — list of screens, screen types (login/list/detail/form/settings/onboarding/empty/error), functional blocks, CTA buttons, observed states (loading/empty/error/success), business rules, visible inputs/outputs, implied permissions, implied third-party SDKs, detected languages, a per-screen interaction/gesture map, and state-coverage gaps (states the app has but that were not screenshotted). Writes 02_business.md and returns a JSON summary with screens[], business_rules[], and ambiguities[] for downstream dynamic questions. Used as a sub-agent in /app-tdd-creator Phase 1.
 tools: Read, Glob, Write, Bash
-model: claude-fable-5
+model: opus
 ---
 
 # screenshot-business-analyzer agent

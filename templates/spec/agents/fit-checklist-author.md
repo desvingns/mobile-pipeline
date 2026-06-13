@@ -2,7 +2,7 @@
 name: fit-checklist-author
 description: Builds the per-screen visual+behavioural fit checklist and the screen↔reference registry for a CLONE spec bundle — the must-match properties each built screen has to reproduce from its reference screenshot — plus an intended-deviation ledger stub. Clone mode only. Feeds the build-time /<prefix> --fit gate. Used in /app-spec-creator Phase E (clone, depth ≥ reference).
 tools: Read, Glob, Write
-model: claude-fable-5
+model: opus
 ---
 
 # fit-checklist-author agent

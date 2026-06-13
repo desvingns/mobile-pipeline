@@ -6,6 +6,19 @@ This repo uses [Semantic Versioning](https://semver.org/) — see `README.md` �
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-06-13
+
+### Changed
+
+- **Reverted the top-tier agents from Fable 5 back to Opus 4.8** (undo of 1.6.3). Fable 5
+  (`claude-fable-5`) is currently unavailable on the host with no ETA, and the `model:` frontmatter
+  field takes a single id — there is no automatic "fable → opus" fallback. To avoid those agents
+  failing to launch, the explicit `claude-fable-5` id is replaced with the prior assignment:
+  `{{PREFIX}}-developer-android` / `mp-developer-android` → `claude-opus-4-8`; mp-spec's
+  `crawl-executor`, `crawl-reviewer`, `fit-checklist-author`, `screenshot-business-analyzer`,
+  `screenshot-style-analyzer`, `spec-evaluator` (+ the evaluator rubric's model note) → `opus`.
+  Re-apply 1.6.3 when Fable 5 becomes available.
+
 ## [1.7.0] - 2026-06-11
 
 ### Changed

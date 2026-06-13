@@ -2,7 +2,7 @@
 name: crawl-executor
 description: The driver of the reference-APK crawl trio. Given ONE goal from the navigator, it drives a connected Android device vision-first — relaunches the app, replays the path to the target state, then by goal type EXPLOREs (one affordance), AUTHs (fills the sign-in/register form and submits), or SEEDs (creates entries with synthetic data to reveal populated states), captures the resulting state (screenshot + uiautomator dump), dedups it against the known graph, appends the trace, and returns a structured result. Read+Write+Bash. Synthetic data only, honors a forbidden-action guardrail, degrades to needs_human on verification walls. Separate session from navigator/reviewer. Used in /mp-spec Phase A.0 (clone, --graph).
 tools: Read, Write, Bash
-model: claude-fable-5
+model: opus
 ---
 
 # crawl-executor agent (Phase 2 — goal-scoped vision-first driver)
