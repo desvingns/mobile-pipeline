@@ -788,9 +788,21 @@ for patterns recurring in >=2 projects. Reads the global projects list
 
 After a successful `--feature` / `--bugfix` (post-docs), run these three closing moves in order.
 
-**1. Feedback — one question, always.** Ask exactly ONE question (Claude → `AskUserQuestion`;
-Codex → in chat), in {{UI_LANGUAGE}}: "Does the result match what you wanted? 5 — perfect /
-4 — minor nits / 3 — partly / 2 — wrong direction / 1 — not at all (add a short note if <5)".
+**1. Feedback — one question, per epic (not per SPEC).** Ask exactly ONE question (Claude →
+`AskUserQuestion`; Codex → in chat), in {{UI_LANGUAGE}}: "Does the result match what you wanted?
+5 — perfect / 4 — minor nits / 3 — partly / 2 — wrong direction / 1 — not at all (add a short
+note if <5)".
+
+**Epic-scoped timing.** When the shipped SPEC belongs to a multi-SPEC epic — its filename is
+`<epic-slug>-NN-<short>.md` and an `<epic-slug>-00-overview.md` index exists — ask the feedback
+question ONLY when this ship **completes the epic**: i.e. no other SPEC of the same `<epic-slug>`
+remains in `.claude/specs/backlog/` or `.claude/specs/active/` (the just-shipped one is already in
+`done/`). While earlier SPECs of the same epic ship, **skip the question silently** (it is asked
+once, at the end, so the user reviews the whole epic together — not after every slice). A
+standalone SPEC (no `<epic-slug>-NN` pattern / no epic overview) is its own "epic" → ask
+immediately, as before. `--bugfix` and free-text `--feature <desc>` are always standalone → ask
+immediately.
+
 Then record it (see **Run telemetry**):
 `--agent feedback --verdict <pass for 5-4 | partial for 3 | fail for 2-1> --metric "score=<N>" --note "<user note>"`.
 If the score is ≤3 → also append ONE bullet to `selfimprove/lessons.md` at the repo root
@@ -799,7 +811,9 @@ If the score is ≤3 → also append ONE bullet to `selfimprove/lessons.md` at t
 If the note states a durable cross-project preference ("always…", "I never want…", a taste
 statement not specific to this app), flag it in SESSION_RECAP as a `user_preference` candidate —
 `{{PREFIX}}-knowledge` routes those to the cross-project profile.
-Skip the question only when the user is explicitly rushing — never silently.
+Skip the question only when the user is explicitly rushing, or when the shipped SPEC is a
+non-final slice of its epic (per Epic-scoped timing above) — never skip silently for any other
+reason.
 
 **2. Knowledge capture (optional, conservative).** You MAY spawn `{{PREFIX}}-knowledge` with
 `{SPEC, CHANGED_FILES, SESSION_RECAP}` — SESSION_RECAP MUST include the feedback score + note
@@ -1169,7 +1183,7 @@ Run this **every time** a SPEC that belongs to an epic (filename `<epic-slug>-NN
 - `--reflect` is cross-project + maintainer-level: runs `{{PREFIX}}-cross-reflect.sh` (aggregates lessons across `~/.config/mobile-pipeline/projects.txt`) then `{{PREFIX}}-reflect`, which QUEUES proposals only for patterns seen in >=2 projects. Opens no PRs — drain with `--improve --drain`.
 - `{{PREFIX}}-knowledge` runs at most once post-ship and is usually a no-op. It classifies each lesson PROJECT-LOCAL (→ memory/extras) vs PLUGIN-LEVEL (→ STAGE to the `.ai/proposals/` queue via `{{PREFIX}}-improve`, then suggest `--improve --drain`). It never edits source or the live plugin copy.
 - Run telemetry (`{{PREFIX}}-record-run.sh`) is **fire-and-forget**: record after reviewer / final-runner / verifier / fit and for the post-ship feedback question; it writes only under `selfimprove/` and must NEVER block, fail, or retry the pipeline (a missing/erroring script is silently ignored). `{{PREFIX}}-retro.sh` aggregates the events; offer it once per session when a telemetry call returns `retro_due:true`.
-- The post-ship feedback question (one question, score 1–5) is asked after every shipped `--feature`/`--bugfix` unless the user is explicitly rushing. A score ≤3 appends one bullet to `selfimprove/lessons.md` (append-only — a meta/planning artifact like `.claude/specs/`, allowed for the orchestrator to write) and is passed into `{{PREFIX}}-knowledge`'s SESSION_RECAP.
+- The post-ship feedback question (one question, score 1–5) is asked **once per epic, not per SPEC**: for a multi-SPEC epic (`<epic-slug>-NN-<short>.md` + an `-00-overview.md` index) it fires only when the ship completes the epic — no SPEC of that `<epic-slug>` left in `backlog/`/`active/`; intermediate slices skip it silently. A standalone SPEC, `--bugfix`, and free-text `--feature <desc>` are each their own epic → asked immediately. It is also skipped when the user is explicitly rushing. A score ≤3 appends one bullet to `selfimprove/lessons.md` (append-only — a meta/planning artifact like `.claude/specs/`, allowed for the orchestrator to write) and is passed into `{{PREFIX}}-knowledge`'s SESSION_RECAP.
 - The **cross-project user profile** (`$MP_USER_PROFILE` / `~/.config/mobile-pipeline/user-profile.md`) is read at Startup and only ever BIASES recommended answers — it never auto-decides, and its absence changes nothing. Writers: `{{PREFIX}}-knowledge` (`user_preference` lessons, with merge rules) and the orchestrator's `--fit` taste journal (gated y/N append under `## UI & design taste`). It is the one file outside the project the pipeline may write.
 - Phase 1 ends with an **intent echo-back** ahead of the SPEC at the same gate: 2–3 plain-language sentences reconstructing what the user wants (goal / the one behaviour that must become true / out of scope) — never a paraphrase of SPEC fields. A corrected echo-back re-plans before re-emitting.
 - `--continue` is read-only until its single y/N gate: it inspects active SPEC → phase plan → backlog → fit state, proposes ONE next command with a one-line why, and on `y` runs that workflow with all of its own gates intact. It never invents work — conveyor drained means saying so.

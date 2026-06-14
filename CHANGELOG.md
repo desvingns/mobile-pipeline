@@ -6,6 +6,18 @@ This repo uses [Semantic Versioning](https://semver.org/) — see `README.md` �
 
 ## [Unreleased]
 
+## [1.8.1] - 2026-06-14
+
+### Changed
+
+- **Post-ship feedback is now collected once per epic, not per SPEC.** When the shipped SPEC
+  belongs to a multi-SPEC epic (`<epic-slug>-NN-<short>.md` + an `-00-overview.md` index), the
+  `/{{PREFIX}}` orchestrator asks the one feedback question ONLY when the ship completes the epic
+  (no SPEC of that `<epic-slug>` left in `backlog/`/`active/`) — intermediate slices skip it
+  silently so the user reviews the whole epic together. Standalone SPECs, `--bugfix`, and free-text
+  `--feature <desc>` remain their own "epic" and are asked immediately. Reuses the same
+  epic-completion detection introduced in 1.8.0.
+
 ## [1.8.0] - 2026-06-14
 
 ### Added
