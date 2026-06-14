@@ -237,7 +237,7 @@ The coverage agent never writes tests itself. Hand the result back to `/mp --fea
 
 1. Resolve the file — `--backlog <slug>` → the `.claude/specs/backlog/` file whose name matches `<slug>`; `--next` (or bare `--feature` with no description) → resume the SPEC already in `.claude/specs/active/` if one exists, else the top-ordered runnable file in `backlog/` (lowest `NN`; ignore `*-00-overview.md` index files).
 2. Move it `backlog/ → active/`, set front-matter `Status: active`, announce which SPEC, then run **Phase 2** using the `=== SPEC === … === END SPEC ===` block read verbatim from the file.
-3. On ship (Verifier pass / push), move it `active/ → done/`, fill `Implementation links` (commit + files), set `Status: done`.
+3. On ship (Verifier pass / push), move it `active/ → done/`, fill `Implementation links` (commit + files), set `Status: done`. Then run the **Epic completion (final review + close)** check (see **SPEC backlog board**): if this was the epic's last SPEC, review the epic against ALL requirements in its `-00-overview.md` and, on a clean review, move that index `backlog/ → done/` too.
 
 If a free-text description was given instead → run Phase 0 → Phase 1 → Phase 2 as normal.
 
@@ -1130,7 +1130,19 @@ until the score meets the threshold and only intended deviations remain.
 - `done/` — shipped SPECs, with `commit` + changed files filled in.
 - A SPEC's **status is the folder it lives in**; an epic's SPECs share a filename prefix `<epic-slug>-NN-<short>.md` (NN = order).
 
-**Lifecycle the orchestrator drives:** `--feature` Phase 1 writes a multi-SPEC feature's SPEC files into `backlog/` behind one y/N gate → on starting a SPEC, move `backlog/ → active/` and confirm it with the user before Phase 2 → on ship (Verifier pass / push), move `active/ → done/` and fill `commit` + `files`. Creating/moving these markdown files is a planning action the orchestrator may do directly; it never skips the human SPEC-approval gate.
+**Lifecycle the orchestrator drives:** `--feature` Phase 1 writes a multi-SPEC feature's SPEC files into `backlog/` behind one y/N gate → on starting a SPEC, move `backlog/ → active/` and confirm it with the user before Phase 2 → on ship (Verifier pass / push), move `active/ → done/` and fill `commit` + `files` → when that ship was the epic's **last** SPEC, run the **Epic completion** review + close (below). Creating/moving these markdown files is a planning action the orchestrator may do directly; it never skips the human SPEC-approval gate.
+
+### Epic completion (final review + close)
+
+Run this **every time** a SPEC that belongs to an epic (filename `<epic-slug>-NN-<short>.md`) ships and moves `active/ → done/`. It exists because per-SPEC moves leave the epic's `<epic-slug>-00-overview.md` index stranded in `backlog/` — a finished epic must not keep files on the queue.
+
+1. **Detect last SPEC.** The shipped SPEC is the epic's last when no `<epic-slug>-NN-*.md` file (NN ≥ 01) remains in `backlog/` **or** `active/` — only the `<epic-slug>-00-overview.md` index is left. If runnable SPECs remain, do nothing here and continue.
+2. **Final epic review (against ALL requirements).** Re-read `<epic-slug>-00-overview.md` — its goal, the ordered SPEC list, dependencies, and cross-cutting notes — and verify the epic as a whole is actually delivered:
+   - every `<epic-slug>-NN-*.md` it lists is in `done/` with `commit` + `files` filled in;
+   - the overview's stated goal / acceptance / cross-cutting notes are met by the union of those shipped SPECs (not just each SPEC in isolation);
+   - no requirement in the overview is silently unshipped or only partially done.
+   Print a short epic-completion summary (goal + ✓/✗ per listed SPEC + per cross-cutting note). **A gap is a blocker:** if any requirement is unmet or any SPEC is missing from `done/`, surface it and do NOT close the epic — propose the follow-up SPEC (`--spec` / a new backlog file) instead.
+3. **Close the epic (clean review only).** Move `<epic-slug>-00-overview.md` (and any other stray epic file) `backlog/ → done/`, set its `Status: done`, and note the completion date. After this, no file of a completed epic remains in `backlog/`.
 
 ---
 
@@ -1141,6 +1153,7 @@ until the score meets the threshold and only intended deviations remain.
 - The orchestrator may create, edit, and move SPEC markdown files under `.claude/specs/{backlog,active,done}/` (the SPEC backlog board) — planning/state artifacts, not code. Moving a file between those folders is how a SPEC's status changes.
 - `--spec <desc>` authors SPEC(s) and writes them straight to `.claude/specs/backlog/` with `Status: draft` — it runs NO agents and has NO approval gate (backlog grooming only).
 - `--feature --next` / `--feature --backlog <slug>` implement a SPEC already in the backlog: it is treated as already created + approved, so Phase 0 + Phase 1 are SKIPPED — move `backlog/ → active/`, run Phase 2, then `active/ → done/`. `--next` resumes a SPEC already in `active/` if present, else takes the top-ordered backlog file (ignoring `*-00-overview.md`).
+- **Epic completion.** When the SPEC that just shipped (`active/ → done/`) was the epic's LAST one (no `<epic-slug>-NN-*.md` left in `backlog/`/`active/`, only the `-00-overview.md` index), run the **Epic completion (final review + close)** step: review the epic against ALL requirements listed in its `-00-overview.md` (every SPEC in `done/` with commit+files, the overview's goal + cross-cutting notes actually met by the union of ships) and, on a clean review, move the `-00-overview.md` index `backlog/ → done/` (set `Status: done`). A gap blocks closure — surface it and propose the follow-up SPEC instead. No file of a completed epic stays in `backlog/`.
 - All code changes happen inside spawned agents.
 - If a spawned agent fails — stop the chain and report immediately.
 - LLM agent output is validated as JSON (or BRAINSTORM block for architect). On parse failure, retry the same agent ONCE with an explicit "JSON only, no prose" preface. Second failure → stop.

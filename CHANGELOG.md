@@ -6,6 +6,20 @@ This repo uses [Semantic Versioning](https://semver.org/) — see `README.md` �
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-06-14
+
+### Added
+
+- **Epic completion (final review + close) in the `/{{PREFIX}}` orchestrator.** When the SPEC that
+  just shipped (`active/ → done/`) is the last one of its epic (no `<epic-slug>-NN-*.md` left in
+  `backlog/`/`active/`, only the `-00-overview.md` index), the orchestrator now runs a final review
+  of the whole epic against ALL requirements listed in its `-00-overview.md` (every SPEC in `done/`
+  with commit+files, the overview's goal + cross-cutting notes met by the union of ships) and, on a
+  clean review, moves the `-00-overview.md` index `backlog/ → done/`. A gap blocks closure and the
+  orchestrator proposes a follow-up SPEC instead. Fixes finished-epic overview files lingering in
+  `backlog/`. Documented in the command's **SPEC backlog board** section, the `--feature --next`
+  mode-select, and the Rules list (`templates/common/commands/{{PREFIX}}.md`).
+
 ## [1.7.1] - 2026-06-13
 
 ### Changed
