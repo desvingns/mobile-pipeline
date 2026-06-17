@@ -6,6 +6,24 @@ This repo uses [Semantic Versioning](https://semver.org/) — see `README.md` �
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-06-17
+
+### Added
+
+- **Telegram build delivery (`/{{PREFIX}} --deliver`).** New deterministic script
+  `templates/common/scripts/{{PREFIX}}-deliver-telegram.sh` sends a built artifact (default: the
+  newest `*.apk` under any `*/build/outputs/*`) to your own Telegram over an MTProto **user**
+  session (Telethon) — so the file cap is 2 GB, not the bot API's 50 MB. Default target is `me`
+  (Saved Messages); no bot and no local Bot API server required. Secrets (`TG_API_ID`,
+  `TG_API_HASH`, `TG_SESSION`, optional `TG_TARGET`) are read from the environment or a gitignored
+  repo-root `.env` (TG_* keys only, never executed). A one-time `--login` mode mints the
+  `StringSession` interactively. Cross-platform bash wrapper; the MTProto call is delegated to
+  `python3` + `telethon` (an external dependency, like adb/gradle). Emits exactly one JSON line and
+  mirrors `ok` → exit code. Wired into the `/{{PREFIX}}` orchestrator as a documented step (Usage,
+  Deterministic-steps, and **Workflow: --deliver** with a one-time-setup block and an optional
+  post-build send offer). Ships in `claude-plugins/mp-dev` as `mp-deliver-telegram.sh`.
+  See `docs/TELEGRAM-DELIVERY.md`.
+
 ## [1.8.1] - 2026-06-14
 
 ### Changed

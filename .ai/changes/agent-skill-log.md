@@ -340,3 +340,11 @@ summary: Stage 6 of the goals-audit roadmap (claude-011: D1 D2 D3 D4+D7 D5 D9) �
 reason: the last clone "didn't look like the original": the audit showed style tokens were eyeball guesses (±2sp, bucketed radii), exact pixel bounds in crawl dumps went unused, APK assets/fonts were inventoried but never extracted, the 03_style->ui/theme bridge was a manual Theme Builder step that replaced ground truth with a derived guess, and the fit gate was a free-form multimodal judgment with no objective number and no capture normalization. Measurement-first fixes each loss point while keeping the LLM for semantics.
 affects: claude, codex
 by: claude
+
+## 2026-06-17T12:00-telegram-build-delivery
+type: add
+target: templates/common/scripts/{{PREFIX}}-deliver-telegram.sh (new), templates/common/commands/{{PREFIX}}.md, docs/TELEGRAM-DELIVERY.md (new), VERSION, CHANGELOG.md
+summary: new /{{PREFIX}} --deliver step — send a built artifact to your own Telegram over an MTProto USER session (Telethon), default target "me" (Saved Messages), so the file cap is 2 GB not the bot API's 50 MB; no bot, no local Bot API server. New deterministic script {{PREFIX}}-deliver-telegram.sh: cross-platform bash wrapper delegating the MTProto call to python3 + telethon (external dep like adb/gradle); reads TG_API_ID/TG_API_HASH/TG_SESSION/TG_TARGET from env or a gitignored repo-root .env (TG_* keys only, never executed); auto-detects newest *.apk under */build/outputs/* when no path given; --login mode mints a StringSession interactively; emits exactly one JSON line and mirrors ok->exit code; 2 GB size guard. Wired into the orchestrator (Usage line, Deterministic-steps bullet, Workflow: --deliver with one-time-setup block + optional post-build send offer). build-marketplace common-scripts loop auto-ships it as claude-plugins/mp-dev/scripts/mp-deliver-telegram.sh (0 leaks, bash -n clean). VERSION 1.8.1->1.9.0 (MINOR, additive).
+reason: user wanted to self-deliver <100 MB builds via Telegram without the bot API 50 MB cap or a local Bot API server; an MTProto user session is the simplest path to the 2 GB cap and integrates as one deterministic pipeline step.
+affects: claude, codex
+by: claude

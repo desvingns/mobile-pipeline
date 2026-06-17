@@ -16,6 +16,8 @@ stays the same size as before, but skips the LLM round-trip entirely:
   `{{PREFIX}}-runner-<platform>` agent
 - `.claude/scripts/{{PREFIX}}-reviewer-<platform>.sh <file1> <file2> ...` — replaces
   `{{PREFIX}}-reviewer-<platform>` agent
+- `.claude/scripts/{{PREFIX}}-deliver-telegram.sh [<artifact-path>]` — send a built artifact to
+  yourself over Telegram (MTProto user session); emits one JSON line. Used by `--deliver`.
 
 The runner/reviewer agent files are kept as a **fallback** only: invoke them via `Agent`
 when a script fails (non-zero exit, unparseable JSON, missing dependency).
@@ -91,6 +93,7 @@ Usage:
   /{{PREFIX}} --improve "<note>"               — propose ONE plugin-level fix from your note → its OWN gated PR to mobile-pipeline (via {{PREFIX}}-improve). Separate from the batch.
   /{{PREFIX}} --improve --drain                — aggregate ALL queued proposals (auto-staged by {{PREFIX}}-knowledge / {{PREFIX}}-reflect) into ONE gated batch PR.
   /{{PREFIX}} --reflect                        — cross-project: aggregate self-improvement lessons across all projects ({{PREFIX}}-cross-reflect.sh) + queue plugin improvements for patterns seen in >=2 projects ({{PREFIX}}-reflect).
+  /{{PREFIX}} --deliver [<artifact-path>]      — send a built artifact (default: newest APK under */build/outputs/*) to yourself over Telegram (MTProto user session, "me"/Saved Messages by default; 2 GB cap). Reads TG_* from env/.env. See Workflow: --deliver.
 
 ## Platform resolution
 
@@ -781,6 +784,39 @@ for patterns recurring in >=2 projects. Reads the global projects list
    themes and stages QUEUED proposals (opens no PRs).
 3. Report `staged` / `skipped`, then: "Queued N proposal(s). Run `/{{PREFIX}} --improve --drain` to open
    the batch PR."
+
+---
+
+## Workflow: --deliver  (send a build to yourself over Telegram)
+
+Ship the just-built artifact to your own Telegram (Saved Messages by default) via an MTProto
+**user** session — so the file cap is 2 GB, not the bot API's 50 MB. No bot, no local Bot API server.
+
+**One-time setup (out of band, not part of any pipeline run):**
+1. Get `api_id` + `api_hash` at https://my.telegram.org → "API development tools".
+2. Mint a session string: `bash .claude/scripts/{{PREFIX}}-deliver-telegram.sh --login`
+   (prompts for phone → login code → 2FA password if set; prints a `StringSession`).
+3. Put the three secrets in a **gitignored** `.env` at the repo root (or CI secrets / env):
+   `TG_API_ID=…`, `TG_API_HASH=…`, `TG_SESSION=…`, optional `TG_TARGET=me` (default).
+   The session string is equivalent to a login — keep it secret, never commit it.
+
+Requires `python3` + the `telethon` package (`python3 -m pip install telethon`).
+
+### Phase 1 — Resolve + send
+Run (via `Bash`):
+```bash
+bash .claude/scripts/{{PREFIX}}-deliver-telegram.sh [<artifact-path>]
+```
+With no path it picks the newest `*.apk` under any `*/build/outputs/*`. Parse the single JSON line.
+
+### Phase 2 — Report
+On `{"ok":true,...}` print: `delivered: <file> (<mb> MB) → Telegram <target>`.
+On `{"ok":false,...}` relay `error` verbatim and, when it mentions `TG_SESSION`/`telethon`/
+`TG_API_*`, point the user at the one-time setup above. Never print or echo the secret values.
+
+**Offer after a build (optional).** When a `--feature` / `--phase` run produced an installable
+artifact and Telegram delivery is configured (`.env`/env has `TG_API_ID`), you MAY offer ONCE:
+"Send the build to your Telegram now? (y/N)". Only on `y` run Phase 1. Never send without the `y`.
 
 ---
 

@@ -1,5 +1,30 @@
 # Handoff
 
+UPDATED: 2026-06-17 by claude
+
+## LATEST (2026-06-17, claude) — Telegram build delivery (`/{{PREFIX}} --deliver`, v1.9.0)
+- **DONE:** new deterministic step to self-deliver a built artifact over Telegram via an MTProto
+  **user** session (Telethon) — default target `me` (Saved Messages), 2 GB cap (no bot API 50 MB
+  limit, no local Bot API server). NEW `templates/common/scripts/{{PREFIX}}-deliver-telegram.sh`:
+  cross-platform bash wrapper, MTProto call delegated to `python3` + `telethon` (external dep like
+  adb/gradle); reads `TG_API_ID`/`TG_API_HASH`/`TG_SESSION`/`TG_TARGET` from env or a gitignored
+  repo-root `.env` (TG_* keys parsed, never executed); auto-detects newest `*.apk` under
+  `*/build/outputs/*`; `--login` mints a StringSession; emits one JSON line, mirrors `ok`→exit.
+  Wired into the orchestrator (Usage, Deterministic-steps, **Workflow: --deliver** with one-time
+  setup + optional post-build send offer). NEW `docs/TELEGRAM-DELIVERY.md`.
+- **VERIFIED:** `bash -n` (template + generated) clean; `lib/build-marketplace.sh` ships it as
+  `claude-plugins/mp-dev/scripts/mp-deliver-telegram.sh` (auto-picked by the common-scripts loop),
+  0 `{{…}}`/marker leaks, `${CLAUDE_PLUGIN_ROOT}` rewrite correct; all plugin manifests + marketplace
+  now `1.9.0`; `graphify update .` ok. shellcheck not installed locally → CI remains the authority.
+  **NOT run end-to-end** (needs real `api_id`/`api_hash` + a phone login to mint a session).
+- **NEXT:** user does the one-time `--login` to mint `TG_SESSION`, drops the TG_* secrets in a
+  gitignored `.env`, then `/{{PREFIX}} --deliver` (or direct script) to confirm a real send. NOT
+  committed. **[codex] FYI:** `affects: claude, codex` log entry `2026-06-17T12:00-telegram-build-delivery`
+  — pick it up on next sync (no codex-owned file changed; common-scripts loop already ships it).
+- **OWNER:** claude. **BLOCKERS:** none.
+
+---
+
 UPDATED: 2026-06-11 by codex
 
 ## LATEST (2026-06-11, codex) — publish plugin release metadata for 1.7.0

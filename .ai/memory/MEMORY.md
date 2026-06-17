@@ -7,3 +7,4 @@
 - [Graphify + Obsidian integration](graphify-obsidian-integration.md) — AST graphs for cmp/mymoney/diet + shared global graph (~/.graphify) + D:\Pet\ai-hub vault; semantic layer pending a key
 - [Self-improvement loop](self-improvement-loop.md) — observe→reflect→propose→gate→propagate on cmp's own primitives (the selfimprove/ kit)
 - [Reference crawler](reference-crawler.md) — dynamic reference-APK crawl for /mp-spec clone intake: vision-first state graph, dedup invariant, fills input/screenshots/, 4-phase plan
+- [Telegram delivery](telegram-delivery.md) — /mp --deliver self-delivers a build via an MTProto user session (Telethon); ships through the common-scripts loop, 2 GB cap, not the bot API
