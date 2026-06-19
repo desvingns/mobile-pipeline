@@ -1,10 +1,10 @@
 {
   "name": "mp-dev",
-  "version": "1.9.1",
+  "version": "1.9.2",
   "description": "Per-project mobile dev orchestrator (/mp) + specialist agents for Android/iOS. Generic agent bodies read project specifics from .claude/mp/config.json + CLAUDE.md + optional .claude/mp/extras/*.md.",
   "author": {
-    "name": "Konstantin Shavrin",
-    "email": "k.shavrin@strikerz.inc"
+    "name": "Kirill Shavrin",
+    "email": "desvingns@gmail.com"
   },
   "keywords": ["mobile", "android", "ios", "kotlin", "compose", "clean-architecture", "tdd", "orchestrator", "mvvm"]
 }

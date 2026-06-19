@@ -6,6 +6,13 @@ This repo uses [Semantic Versioning](https://semver.org/) â€” see `README.md` â†
 
 ## [Unreleased]
 
+## [1.9.2] - 2026-06-19
+
+### Fixed
+- Plugin author metadata: `claude-plugins/{mp-dev,mp-spec}` and `codex-plugins/mp-spec` still
+  showed `Konstantin Shavrin <k.shavrin@strikerz.inc>`; corrected to `Kirill Shavrin
+  <desvingns@gmail.com>` to match the marketplace owner and the other manifests.
+
 ## [1.9.1] - 2026-06-19
 
 ### Changed
