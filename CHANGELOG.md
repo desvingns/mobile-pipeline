@@ -6,6 +6,15 @@ This repo uses [Semantic Versioning](https://semver.org/) — see `README.md` �
 
 ## [Unreleased]
 
+## [1.9.1] - 2026-06-19
+
+### Changed
+- `/mp --deliver`: the post-ship delivery offer now (a) fires on the **same epic-scoped timing** as
+  the feedback question — once when an epic completes or a standalone SPEC ships, never after a
+  non-final slice — and (b) on `y` **assembles a fresh artifact** (`./gradlew :app:assembleDebug`,
+  stops on build failure) before sending, so the build delivered to Telegram includes the shipped
+  changes instead of a stale APK. Wired into the **Epic completion (final review + close)** step.
+
 ## [1.9.0] - 2026-06-17
 
 ### Added

@@ -818,9 +818,21 @@ On `{"ok":true,...}` print: `delivered: <file> (<mb> MB) → Telegram <target>`.
 On `{"ok":false,...}` relay `error` verbatim and, when it mentions `TG_SESSION`/`telethon`/
 `TG_API_*`, point the user at the one-time setup above. Never print or echo the secret values.
 
-**Offer after a build (optional).** When a `--feature` / `--phase` run produced an installable
-artifact and Telegram delivery is configured (`.env`/env has `TG_API_ID`), you MAY offer ONCE:
-"Send the build to your Telegram now? (y/N)". Only on `y` run Phase 1. Never send without the `y`.
+**Offer after a ship (epic-scoped, requires config).** Offer a delivery on the SAME timing as the
+post-ship feedback question (see Post-ship → **Epic-scoped timing**): once when an epic **completes**
+(its last SPEC shipped), or once when a **standalone** SPEC ships — never after a non-final slice of a
+multi-SPEC epic. Only when Telegram delivery is configured (a `.env`/env at the repo root has
+`TG_API_ID`). Ask EXACTLY ONCE (Claude → `AskUserQuestion`; Codex → in chat) in the project's configured UI language:
+"Send the build to your Telegram now? (y/N)".
+
+On **y**, first **build a fresh artifact** so the delivery includes the shipped changes, *then* send:
+1. Assemble via `Bash` from the repo root — Android default: `./gradlew :app:assembleDebug` (use the
+   project's standard debug-assemble task; non-Android projects use their equivalent). On a build
+   failure, relay the error and **stop** — never send a stale artifact.
+2. Run **Phase 1** above with no path (it auto-picks the just-built newest APK), then **Phase 2 — Report**.
+
+Never build or send without an explicit `y` (treat no answer / anything but `y` as N). Skip silently
+when Telegram is not configured.
 
 ---
 
@@ -1193,6 +1205,7 @@ Run this **every time** a SPEC that belongs to an epic (filename `<epic-slug>-NN
    - no requirement in the overview is silently unshipped or only partially done.
    Print a short epic-completion summary (goal + ✓/✗ per listed SPEC + per cross-cutting note). **A gap is a blocker:** if any requirement is unmet or any SPEC is missing from `done/`, surface it and do NOT close the epic — propose the follow-up SPEC (`--spec` / a new backlog file) instead.
 3. **Close the epic (clean review only).** Move `<epic-slug>-00-overview.md` (and any other stray epic file) `backlog/ → done/`, set its `Status: done`, and note the completion date. After this, no file of a completed epic remains in `backlog/`.
+4. **Offer a fresh Telegram build (only if configured).** After a clean close, run the Telegram delivery offer — see **Workflow: --deliver → "Offer after a ship"**: ask ONCE "Send the build to your Telegram now? (y/N)", and on `y` **assemble a fresh APK** that includes the epic's changes (`./gradlew :app:assembleDebug`, stop on build failure) and send it to Telegram. Skip silently when Telegram is not configured. Do this AFTER the post-ship feedback question so the epic's score is captured first.
 
 ---
 
