@@ -133,10 +133,13 @@ fi
 # ----- send mode: resolve the artifact -----------------------------------
 [ -n "$TARGET_ARG" ] && export TG_TARGET="$TARGET_ARG"
 if [ -z "$ARTIFACT" ]; then
-  # newest *.apk under any */build/outputs/* (ls -t mtime sort is portable across Git Bash/macOS/Linux)
+  # newest app *.apk under any */build/outputs/*, excluding instrumentation test APKs
+  # (androidTest APKs are newer than the app APK when connectedAndroidTest ran last)
   ARTIFACT="$(find "$REPO_ROOT" -type f -name '*.apk' 2>/dev/null \
-              | grep '/build/outputs/' | tr '\n' '\0' | xargs -0 ls -t 2>/dev/null | head -1)"
-  [ -n "$ARTIFACT" ] || fail "no artifact given and no *.apk found under */build/outputs/ — pass a path"
+              | grep '/build/outputs/' \
+              | grep -v -i 'androidTest\|/androidTest/' \
+              | tr '\n' '\0' | xargs -0 ls -t 2>/dev/null | head -1)"
+  [ -n "$ARTIFACT" ] || fail "no artifact given and no app *.apk found under */build/outputs/ — pass a path"
 fi
 [ -f "$ARTIFACT" ] || fail "artifact not found: $ARTIFACT"
 

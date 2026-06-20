@@ -348,3 +348,11 @@ summary: new /{{PREFIX}} --deliver step — send a built artifact to your own Te
 reason: user wanted to self-deliver <100 MB builds via Telegram without the bot API 50 MB cap or a local Bot API server; an MTProto user session is the simplest path to the 2 GB cap and integrates as one deterministic pipeline step.
 affects: claude, codex
 by: claude
+
+## 2026-06-20T13:17-postship-deliver-before-feedback
+type: fix
+target: templates/common/commands/{{PREFIX}}.md, templates/common/scripts/{{PREFIX}}-deliver-telegram.sh
+summary: deliver build to Telegram BEFORE asking feedback; exclude androidTest APKs from auto-pick
+reason: user cannot meaningfully rate a shipped result until they have the built app in hand; auto-pick was sending the instrumentation test APK (app-debug-androidTest.apk, 3.6 MB) instead of the app APK (app-debug.apk, 82 MB) when connectedAndroidTest ran more recently than assembleDebug
+affects: claude, codex
+by: mp-improve
