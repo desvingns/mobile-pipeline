@@ -895,10 +895,37 @@ Read bug description. If reproduction steps unclear, ask only:
 
 Skip questions if bug location is obvious.
 
+**Runtime / persistence / cold-start bug flag.** If the reported bug involves visible UI state not
+surviving app restart (cold-start, process death, re-launch), persisted data that disappears or does
+not round-trip after restart, or a crash / wrong behaviour observed on a running app (not a
+compile/lint failure) — tag the bugfix `RUNTIME_BUG: true` in the SPEC CONSTRAINTS. This tag
+activates the reproduction gate in Phase 2 Step 0.
+
 ### Phase 2 — Fix
 
 Before spawning Developer, apply the **Visual autotest device pre-flight (Android)** when the bugfix is
 explicitly visual and requires visual/device autotests. If the gate fails, stop before any fix work.
+
+**Step 0 — Reproduce the user's literal steps (mandatory when `RUNTIME_BUG: true`; strongly
+recommended for all runtime bugs).**
+
+Do NOT hypothesise a root cause and write a test to match it. Reproduce the user's LITERAL reported
+steps first to confirm the failure before any code is written.
+
+For Android runtime/cold-start bugs (`RUNTIME_BUG: true`):
+1. Build and install a debug APK on the connected device:
+   ```bash
+   ./gradlew :app:assembleDebug && adb install -r app/build/outputs/apk/debug/app-debug.apk
+   ```
+   If no device is connected → apply the **Visual autotest device pre-flight** gate; stop if none is available.
+2. Drive the user's reported steps exactly as described — the literal sequence, with the user's
+   actual locale/data/currency/settings. Do NOT substitute a self-constructed scenario that you
+   believe is equivalent.
+3. Capture evidence of failure (logcat snippet, observed wrong state, screenshot).
+4. Only if the bug is confirmed reproduced → proceed to Step 1 (Developer). If it does NOT
+   reproduce with the literal steps → stop, report non-reproduction to the user, and ask for
+   clarification. Do NOT invent an alternative scenario, and do NOT write a regression test for
+   an invented scenario — a test that passes by construction proves nothing about the user's bug.
 
 **Step 1 — Developer**:
 Spawn agent `mp-developer-<platform>` with prompt:
@@ -944,6 +971,18 @@ Then re-run `${CLAUDE_PLUGIN_ROOT}/scripts/mp-runner-<platform>.sh false`. If st
 
 Record telemetry for the reviewer and the FINAL runner outcome (see **Run telemetry**), as in `--feature`.
 
+**Step 3.5 — Device re-verification (mandatory when `RUNTIME_BUG: true`).**
+After Runner passes, rebuild and install the fixed APK on device and drive the user's LITERAL
+reproduction steps again to confirm the wrong behaviour is gone:
+```bash
+./gradlew :app:assembleDebug && adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+Record result as `device_repro_confirmed: fixed` or `device_repro_confirmed: still-failing`.
+If `still-failing` → stop and report; do NOT push. A green self-authored regression test is NOT
+sufficient to declare a user-reported runtime bug fixed. Both must be true before push:
+- `regression_test: green` — the automated check passes
+- `device_repro_confirmed: fixed` — the user's literal scenario re-run on device no longer fails
+
 **Step 4** — Push to remote (via the `Bash` tool):
 ```bash
 remote_path=$(git remote get-url origin | sed -e 's#^https://[^/]*@#https://#' -e 's#^https://##')
@@ -962,6 +1001,8 @@ fix: [description]
    Commit: [hash]
    Tests: [N passed]
    Lint:  ok
+   Regression test: green | not-applicable
+   Device repro confirmed: fixed | not-applicable (non-runtime bug)
    Pushed: yes / failed: [reason]
 ```
 

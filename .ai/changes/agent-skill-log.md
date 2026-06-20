@@ -348,3 +348,13 @@ summary: new /{{PREFIX}} --deliver step — send a built artifact to your own Te
 reason: user wanted to self-deliver <100 MB builds via Telegram without the bot API 50 MB cap or a local Bot API server; an MTProto user session is the simplest path to the 2 GB cap and integrates as one deterministic pipeline step.
 affects: claude, codex
 by: claude
+
+## 2026-06-20T10:00-bugfix-repro-first-runtime
+type: update
+target: templates/common/commands/{{PREFIX}}.md
+target: templates/android/agents/{{PREFIX}}-developer-android.md
+target: templates/android/agents/{{PREFIX}}-tester-android.md
+summary: --bugfix repro-first discipline for runtime/persistence/cold-start bugs
+reason: Pipeline declared a cold-start bug fixed twice over because (1) Developer reproduced its own hypothesis instead of the user's literal steps, (2) a self-authored regression test that passed by construction was treated as proof, and (3) the test reused a single in-memory DataStore instance for write+read so the real disk round-trip was never exercised. The fix was only confirmed by driving the user's literal steps on a real device.
+affects: claude, codex
+by: mp-improve

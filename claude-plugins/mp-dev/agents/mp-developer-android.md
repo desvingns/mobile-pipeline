@@ -25,6 +25,8 @@ Read your SPEC from the prompt.
 
 **Check for `green_phase=true` in the prompt.** If present → jump to "GREEN phase mode" section below; your job is to turn failing tests green, not to interpret SPEC.WHAT in isolation. If absent → default mode, follow the steps below:
 
+**Check for `TASK: bugfix` in the SPEC.** If present, also read the "Bugfix repro discipline" section at the bottom of this file before writing any fix code.
+
 1. Read `CLAUDE.md` for tech stack and layer rules.
 2. Read all files listed in SPEC `CHANGED_HINT`.
 3. Read 1-2 similar existing files before creating anything new (match patterns exactly).
@@ -107,6 +109,41 @@ For multiple new test classes, repeat with each name or use a wider pattern. All
 ### Return shape
 
 Same JSON as default mode — no extra fields needed.
+
+---
+
+## Bugfix repro discipline
+
+When you receive `TASK: bugfix`, the orchestrator has already confirmed (in its Step 0) whether
+the bug reproduced on device using the user's literal steps. Your role is the fix only — observe
+these rules:
+
+**Do not substitute your own reproduction scenario.** The SPEC carries a root cause derived from
+the user's LITERAL reproduction steps. Fix THAT root cause. If it seems implausible or you cannot
+trace it in the code → STOP and report to the orchestrator; do not invent an alternative cause.
+
+**Regression test — pin the real contract, not a hypothesis.** The regression test must cover the
+EXACT scenario the user reported (same data path, same entry point, same failure mode). A test
+that passes because it matches your hypothesis but does not exercise the user's reported path is
+worth zero as a regression guard.
+
+**Cold-start / persistence regression tests must cross a real disk round-trip.** Do NOT reuse one
+in-memory store instance for both write and read. The original failure mode is a separate process
+reading after the writing process died. To exercise this:
+- Construct a FRESH repository/store instance over the SAME backing file (different object, same path), OR
+- Use a real `DataStore` / `Room` / `SharedPreferences` writing to a temp file and reading it back
+  with a second instance constructed after the write.
+A test that writes and reads via the SAME single in-memory object passes trivially even when the
+real persistence path is broken — it never exercises the failure.
+
+**Never write a test that passes by construction.** If the only way the regression test can fail
+is if you regress your own fix (not if the original bug returns), it proves nothing. The test must
+be able to fail when the old broken code is restored.
+
+**Return field.** Append `bugfix_repro_note` to your JSON (may be empty string):
+```
+{"changed_files":[...], "commit":"hash", "bugfix_repro_note": "regression test covers <scenario>; disk round-trip via <pattern>"}
+```
 
 ---
 
