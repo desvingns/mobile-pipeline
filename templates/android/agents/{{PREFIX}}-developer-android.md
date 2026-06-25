@@ -105,6 +105,42 @@ Same JSON as default mode — no extra fields needed.
 
 ## Commit
 
+### Version bump (mandatory, every commit)
+
+Before staging files, increment `versionName` in `app/build.gradle.kts` (inside
+`defaultConfig`). Follow `MAJOR.MINOR.PATCH` strictly:
+
+- **PATCH** (third number) -- increment by 1 on **every** pipeline commit, whether
+  `--feature` or `--bugfix`. This makes `versionName` track the commit counter
+  (e.g. `1.0.0` -> `1.0.1` -> `1.0.2`).
+- **MAJOR / MINOR** -- never touched by the pipeline. The human bumps MINOR after
+  a Google Play release (and resets PATCH at their discretion). Do not auto-change
+  either component.
+- **versionCode** -- if the project tracks `versionCode` in the same `defaultConfig`
+  block, increment it by 1 in the same edit (one integer per build).
+
+Locate the current values, compute the next PATCH, and apply the edit before `git add`:
+
+```bash
+ROOT=$(git rev-parse --show-toplevel)
+GRADLE="$ROOT/app/build.gradle.kts"
+CURRENT=$(grep "versionName" "$GRADLE" | sed "s/.*\"\([^\"]*\)\".*/\1/")
+MAJOR=$(echo "$CURRENT" | cut -d. -f1)
+MINOR=$(echo "$CURRENT" | cut -d. -f2)
+PATCH=$(echo "$CURRENT" | cut -d. -f3)
+NEXT="$MAJOR.$MINOR.$((PATCH + 1))"
+sed -i "s/versionName = \"$CURRENT\"/versionName = \"$NEXT\"/" "$GRADLE"
+VC=$(grep "versionCode" "$GRADLE" | tr -dc "0-9")
+if [ -n "$VC" ]; then
+  sed -i "s/versionCode = $VC/versionCode = $((VC + 1))/" "$GRADLE"
+fi
+echo "Version bumped: $CURRENT -> $NEXT"
+```
+
+Include `app/build.gradle.kts` in the commit together with all other changed files.
+
+### Stage and commit
+
 After implementation:
 ```
 git add -p

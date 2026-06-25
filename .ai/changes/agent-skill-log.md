@@ -348,3 +348,11 @@ summary: new /{{PREFIX}} --deliver step — send a built artifact to your own Te
 reason: user wanted to self-deliver <100 MB builds via Telegram without the bot API 50 MB cap or a local Bot API server; an MTProto user session is the simplest path to the 2 GB cap and integrates as one deterministic pipeline step.
 affects: claude, codex
 by: claude
+
+## 2026-06-25T14:00-developer-android-version-bump-on-commit
+type: add
+target: templates/android/agents/{{PREFIX}}-developer-android.md
+summary: require developer to bump versionName PATCH (+1) and versionCode (+1) on every pipeline commit; MAJOR/MINOR are human-only
+reason: every /mp commit should produce a unique, traceable versionName (MAJOR.MINOR.PATCH) so builds delivered via --deliver or side-loaded are unambiguously identified; without this rule the pipeline leaves versionName static across commits
+affects: claude, codex
+by: mp-improve
