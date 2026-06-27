@@ -366,3 +366,11 @@ summary: deliver build to Telegram BEFORE asking feedback; exclude androidTest A
 reason: user cannot meaningfully rate a shipped result until they have the built app in hand; auto-pick was sending the instrumentation test APK (app-debug-androidTest.apk, 3.6 MB) instead of the app APK (app-debug.apk, 82 MB) when connectedAndroidTest ran more recently than assembleDebug
 affects: claude, codex
 by: mp-improve
+
+## 2026-06-25T14:00-developer-android-version-bump-on-commit
+type: add
+target: templates/android/agents/{{PREFIX}}-developer-android.md
+summary: require developer to bump versionName PATCH (+1) and versionCode (+1) on every pipeline commit; MAJOR/MINOR are human-only
+reason: every /mp commit should produce a unique, traceable versionName (MAJOR.MINOR.PATCH) so builds delivered via --deliver or side-loaded are unambiguously identified; without this rule the pipeline leaves versionName static across commits
+affects: claude, codex
+by: mp-improve
