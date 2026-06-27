@@ -166,10 +166,12 @@ MAJOR=$(echo "$CURRENT" | cut -d. -f1)
 MINOR=$(echo "$CURRENT" | cut -d. -f2)
 PATCH=$(echo "$CURRENT" | cut -d. -f3)
 NEXT="$MAJOR.$MINOR.$((PATCH + 1))"
-sed -i "s/versionName = \"$CURRENT\"/versionName = \"$NEXT\"/" "$GRADLE"
+# Never `sed -i` (GNU/BSD differ) -- write to a temp file and mv.
+TMP="$GRADLE.tmp"
+sed "s/versionName = \"$CURRENT\"/versionName = \"$NEXT\"/" "$GRADLE" > "$TMP" && mv "$TMP" "$GRADLE"
 VC=$(grep "versionCode" "$GRADLE" | tr -dc "0-9")
 if [ -n "$VC" ]; then
-  sed -i "s/versionCode = $VC/versionCode = $((VC + 1))/" "$GRADLE"
+  sed "s/versionCode = $VC/versionCode = $((VC + 1))/" "$GRADLE" > "$TMP" && mv "$TMP" "$GRADLE"
 fi
 echo "Version bumped: $CURRENT -> $NEXT"
 ```

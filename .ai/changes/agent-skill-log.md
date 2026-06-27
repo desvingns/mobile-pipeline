@@ -374,3 +374,11 @@ summary: require developer to bump versionName PATCH (+1) and versionCode (+1) o
 reason: every /mp commit should produce a unique, traceable versionName (MAJOR.MINOR.PATCH) so builds delivered via --deliver or side-loaded are unambiguously identified; without this rule the pipeline leaves versionName static across commits
 affects: claude, codex
 by: mp-improve
+
+## 2026-06-27T12:00-version-bump-no-sed-i
+type: fix
+target: templates/android/agents/{{PREFIX}}-developer-android.md
+summary: version-bump snippet replaced `sed -i` with the write-to-temp + mv pattern (versionName and versionCode edits)
+reason: the merged version-bump-on-commit snippet used `sed -i`, which violates the golden rule (GNU vs BSD sed differ); rewrite to `sed ... > $TMP && mv $TMP $GRADLE` for cross-platform safety
+affects: claude, codex
+by: claude
