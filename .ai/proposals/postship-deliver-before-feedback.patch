@@ -1,0 +1,74 @@
+--- a/templates/common/commands/{{PREFIX}}.md	2026-06-20 10:13:01.402665200 +0200
++++ b/templates/common/commands/{{PREFIX}}.md	2026-06-20 13:16:56.450321200 +0200
+@@ -815,7 +815,7 @@
+ `TG_API_*`, point the user at the one-time setup above. Never print or echo the secret values.
+ 
+ **Offer after a ship (epic-scoped, requires config).** Offer a delivery on the SAME timing as the
+-post-ship feedback question (see Post-ship → **Epic-scoped timing**): once when an epic **completes**
++post-ship feedback question (see Post-ship → **Epic-scoped timing**), but run it BEFORE the feedback question — the user should have the app in hand before rating it: once when an epic **completes**
+ (its last SPEC shipped), or once when a **standalone** SPEC ships — never after a non-final slice of a
+ multi-SPEC epic. Only when Telegram delivery is configured (a `.env`/env at the repo root has
+ `TG_API_ID`). Ask EXACTLY ONCE (Claude → `AskUserQuestion`; Codex → in chat) in {{UI_LANGUAGE}}:
+@@ -832,11 +832,13 @@
+ 
+ ---
+ 
+-## Post-ship (after a ship): feedback → knowledge → nudges
++## Post-ship (after a ship): deliver → feedback → knowledge → nudges
+ 
+-After a successful `--feature` / `--bugfix` (post-docs), run these three closing moves in order.
++After a successful `--feature` / `--bugfix` (post-docs), run these four closing moves in order.
+ 
+-**1. Feedback — one question, per epic (not per SPEC).** Ask exactly ONE question (Claude →
++**1. Telegram delivery (when configured, epic-scoped).** When Telegram delivery is configured, offer the build FIRST — before asking for feedback — so the user can try the built app before rating it. Run the **Offer after a ship** flow (see **Workflow: --deliver → Offer after a ship**) now: offer ONCE in {{UI_LANGUAGE}} “Send the build to your Telegram now? (y/N)”, and on `y` assemble a fresh artifact and send it. Skip silently when Telegram is not configured.
++
++**2. Feedback — one question, per epic (not per SPEC).** Ask exactly ONE question (Claude →
+ `AskUserQuestion`; Codex → in chat), in {{UI_LANGUAGE}}: "Does the result match what you wanted?
+ 5 — perfect / 4 — minor nits / 3 — partly / 2 — wrong direction / 1 — not at all (add a short
+ note if <5)".
+@@ -863,7 +865,7 @@
+ non-final slice of its epic (per Epic-scoped timing above) — never skip silently for any other
+ reason.
+ 
+-**2. Knowledge capture (optional, conservative).** You MAY spawn `{{PREFIX}}-knowledge` with
++**3. Knowledge capture (optional, conservative).** You MAY spawn `{{PREFIX}}-knowledge` with
+ `{SPEC, CHANGED_FILES, SESSION_RECAP}` — SESSION_RECAP MUST include the feedback score + note
+ when collected (a low score is the strongest signal a lesson exists). No-op for routine work.
+ It routes lessons:
+@@ -872,7 +874,7 @@
+   to the queue (`mobile-pipeline/.ai/proposals/`) — do NOT open a PR per lesson.
+ Skip entirely when the task was trivial.
+ 
+-**3. Improvement-queue + retro nudges (cheap, silent checks).**
++**4. Improvement-queue + retro nudges (cheap, silent checks).**
+ - Resolve `mp_repo` (as in `--improve`; skip silently if unresolved). Count
+   `mp_repo/.ai/proposals/*.patch`: if ≥3 → tell the user
+   "N pipeline improvement proposal(s) are queued — run `/{{PREFIX}} --improve --drain` to open the batch PR."
+@@ -1242,7 +1244,7 @@
+    - no requirement in the overview is silently unshipped or only partially done.
+    Print a short epic-completion summary (goal + ✓/✗ per listed SPEC + per cross-cutting note). **A gap is a blocker:** if any requirement is unmet or any SPEC is missing from `done/`, surface it and do NOT close the epic — propose the follow-up SPEC (`--spec` / a new backlog file) instead.
+ 3. **Close the epic (clean review only).** Move `<epic-slug>-00-overview.md` (and any other stray epic file) `backlog/ → done/`, set its `Status: done`, and note the completion date. After this, no file of a completed epic remains in `backlog/`.
+-4. **Offer a fresh Telegram build (only if configured).** After a clean close, run the Telegram delivery offer — see **Workflow: --deliver → "Offer after a ship"**: ask ONCE "Send the build to your Telegram now? (y/N)", and on `y` **assemble a fresh APK** that includes the epic's changes (`./gradlew :app:assembleDebug`, stop on build failure) and send it to Telegram. Skip silently when Telegram is not configured. Do this AFTER the post-ship feedback question so the epic's score is captured first.
++4. **Offer a fresh Telegram build (only if configured).** After a clean close, run the Telegram delivery offer — see **Workflow: --deliver → "Offer after a ship"**: ask ONCE "Send the build to your Telegram now? (y/N)", and on `y` **assemble a fresh APK** that includes the epic's changes (`./gradlew :app:assembleDebug`, stop on build failure) and send it to Telegram. Skip silently when Telegram is not configured. Do this BEFORE the post-ship feedback question so the user can try the built app before rating it.
+ 
+ ---
+ 
+--- a/templates/common/scripts/{{PREFIX}}-deliver-telegram.sh	2026-06-17 14:04:26.142621400 +0200
++++ b/templates/common/scripts/{{PREFIX}}-deliver-telegram.sh	2026-06-20 13:16:12.723207500 +0200
+@@ -133,10 +133,13 @@
+ # ----- send mode: resolve the artifact -----------------------------------
+ [ -n "$TARGET_ARG" ] && export TG_TARGET="$TARGET_ARG"
+ if [ -z "$ARTIFACT" ]; then
+-  # newest *.apk under any */build/outputs/* (ls -t mtime sort is portable across Git Bash/macOS/Linux)
++  # newest app *.apk under any */build/outputs/*, excluding instrumentation test APKs
++  # (androidTest APKs are newer than the app APK when connectedAndroidTest ran last)
+   ARTIFACT="$(find "$REPO_ROOT" -type f -name '*.apk' 2>/dev/null \
+-              | grep '/build/outputs/' | tr '\n' '\0' | xargs -0 ls -t 2>/dev/null | head -1)"
+-  [ -n "$ARTIFACT" ] || fail "no artifact given and no *.apk found under */build/outputs/ — pass a path"
++              | grep '/build/outputs/' \
++              | grep -v -i 'androidTest\|/androidTest/' \
++              | tr '\n' '\0' | xargs -0 ls -t 2>/dev/null | head -1)"
++  [ -n "$ARTIFACT" ] || fail "no artifact given and no app *.apk found under */build/outputs/ — pass a path"
+ fi
+ [ -f "$ARTIFACT" ] || fail "artifact not found: $ARTIFACT"
+ 

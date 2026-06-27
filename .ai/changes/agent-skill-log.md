@@ -358,3 +358,11 @@ summary: --bugfix repro-first discipline for runtime/persistence/cold-start bugs
 reason: Pipeline declared a cold-start bug fixed twice over because (1) Developer reproduced its own hypothesis instead of the user's literal steps, (2) a self-authored regression test that passed by construction was treated as proof, and (3) the test reused a single in-memory DataStore instance for write+read so the real disk round-trip was never exercised. The fix was only confirmed by driving the user's literal steps on a real device.
 affects: claude, codex
 by: mp-improve
+
+## 2026-06-20T13:17-postship-deliver-before-feedback
+type: fix
+target: templates/common/commands/{{PREFIX}}.md, templates/common/scripts/{{PREFIX}}-deliver-telegram.sh
+summary: deliver build to Telegram BEFORE asking feedback; exclude androidTest APKs from auto-pick
+reason: user cannot meaningfully rate a shipped result until they have the built app in hand; auto-pick was sending the instrumentation test APK (app-debug-androidTest.apk, 3.6 MB) instead of the app APK (app-debug.apk, 82 MB) when connectedAndroidTest ran more recently than assembleDebug
+affects: claude, codex
+by: mp-improve
