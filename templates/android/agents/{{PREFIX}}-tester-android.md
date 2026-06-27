@@ -71,6 +71,40 @@ expected test file ALREADY exists on disk is almost certainly a modified file �
 
 ---
 
+## Cold-start / persistence test discipline
+
+Applies whenever `SPEC.TASK` is `bugfix` AND the bug involves persisted state not surviving a
+restart, or any time a test scenario involves: "after restart", "cold start", "force-stop / relaunch",
+"process death", or "survives relaunch".
+
+**The failure mode is a missing disk round-trip.** A store object holds its last write in memory.
+A test that writes to one instance and reads from THE SAME instance always passes — even when the
+real disk path is broken — because the read never touches the file.
+
+**Required pattern — two-instance round-trip:**
+```kotlin
+// 1. Write via first instance (simulates the pre-restart write)
+val file = tempFolder.newFile("test.preferences_pb")
+val store1 = buildDataStore(file.toPath())   // project's real builder
+store1.updateData { prefs -> prefs.toBuilder().setFoo(42).build() }
+
+// 2. Read via SECOND instance over THE SAME file (simulates the post-restart read)
+val store2 = buildDataStore(file.toPath())   // NEW object, same path
+val result = store2.data.first()
+assertEquals(42, result.foo)
+```
+For Room: close `db1` then open a new `Room.databaseBuilder(context, ..., sameDbName)`.
+For `SharedPreferences`: use `context.getSharedPreferences(sameKey, MODE_PRIVATE)` twice with
+the first instance cleared from memory in between (e.g. via Robolectric's
+`ShadowApplication.clearSharedPreferences()`).
+
+**If a two-instance test is structurally impossible** (e.g. the failure genuinely requires a real
+process boundary the JVM/Robolectric cannot simulate), add a `coverage_exceptions` entry explaining
+why and note that device-level validation by the orchestrator covers this gap. Never downgrade to a
+same-instance test and claim it covers cold-start durability.
+
+---
+
 ## Non-Negotiable Rules
 
 **Fakes only — never MockK or any mocking framework.**

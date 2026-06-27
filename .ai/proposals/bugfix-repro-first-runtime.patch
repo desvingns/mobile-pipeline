@@ -1,0 +1,171 @@
+diff --git a/templates/android/agents/{{PREFIX}}-developer-android.md b/templates/android/agents/{{PREFIX}}-developer-android.md
+index e99bad6..1885546 100644
+--- a/templates/android/agents/{{PREFIX}}-developer-android.md
++++ b/templates/android/agents/{{PREFIX}}-developer-android.md
+@@ -18,6 +18,8 @@ Read your SPEC from the prompt.
+ 
+ **Check for `green_phase=true` in the prompt.** If present → jump to "GREEN phase mode" section below; your job is to turn failing tests green, not to interpret SPEC.WHAT in isolation. If absent → default mode, follow the steps below:
+ 
++**Check for `TASK: bugfix` in the SPEC.** If present, also read the "Bugfix repro discipline" section at the bottom of this file before writing any fix code.
++
+ 1. Read `CLAUDE.md` for tech stack and layer rules.
+ 2. Read all files listed in SPEC `CHANGED_HINT`.
+ 3. Read 1-2 similar existing files before creating anything new (match patterns exactly).
+@@ -103,6 +105,41 @@ Same JSON as default mode — no extra fields needed.
+ 
+ ---
+ 
++## Bugfix repro discipline
++
++When you receive `TASK: bugfix`, the orchestrator has already confirmed (in its Step 0) whether
++the bug reproduced on device using the user's literal steps. Your role is the fix only — observe
++these rules:
++
++**Do not substitute your own reproduction scenario.** The SPEC carries a root cause derived from
++the user's LITERAL reproduction steps. Fix THAT root cause. If it seems implausible or you cannot
++trace it in the code → STOP and report to the orchestrator; do not invent an alternative cause.
++
++**Regression test — pin the real contract, not a hypothesis.** The regression test must cover the
++EXACT scenario the user reported (same data path, same entry point, same failure mode). A test
++that passes because it matches your hypothesis but does not exercise the user's reported path is
++worth zero as a regression guard.
++
++**Cold-start / persistence regression tests must cross a real disk round-trip.** Do NOT reuse one
++in-memory store instance for both write and read. The original failure mode is a separate process
++reading after the writing process died. To exercise this:
++- Construct a FRESH repository/store instance over the SAME backing file (different object, same path), OR
++- Use a real `DataStore` / `Room` / `SharedPreferences` writing to a temp file and reading it back
++  with a second instance constructed after the write.
++A test that writes and reads via the SAME single in-memory object passes trivially even when the
++real persistence path is broken — it never exercises the failure.
++
++**Never write a test that passes by construction.** If the only way the regression test can fail
++is if you regress your own fix (not if the original bug returns), it proves nothing. The test must
++be able to fail when the old broken code is restored.
++
++**Return field.** Append `bugfix_repro_note` to your JSON (may be empty string):
++```
++{"changed_files":[...], "commit":"hash", "bugfix_repro_note": "regression test covers <scenario>; disk round-trip via <pattern>"}
++```
++
++---
++
+ ## Commit
+ 
+ After implementation:
+diff --git a/templates/android/agents/{{PREFIX}}-tester-android.md b/templates/android/agents/{{PREFIX}}-tester-android.md
+index a7d034e..a6ee160 100644
+--- a/templates/android/agents/{{PREFIX}}-tester-android.md
++++ b/templates/android/agents/{{PREFIX}}-tester-android.md
+@@ -71,6 +71,40 @@ expected test file ALREADY exists on disk is almost certainly a modified file 
+ 
+ ---
+ 
++## Cold-start / persistence test discipline
++
++Applies whenever `SPEC.TASK` is `bugfix` AND the bug involves persisted state not surviving a
++restart, or any time a test scenario involves: "after restart", "cold start", "force-stop / relaunch",
++"process death", or "survives relaunch".
++
++**The failure mode is a missing disk round-trip.** A store object holds its last write in memory.
++A test that writes to one instance and reads from THE SAME instance always passes — even when the
++real disk path is broken — because the read never touches the file.
++
++**Required pattern — two-instance round-trip:**
++```kotlin
++// 1. Write via first instance (simulates the pre-restart write)
++val file = tempFolder.newFile("test.preferences_pb")
++val store1 = buildDataStore(file.toPath())   // project's real builder
++store1.updateData { prefs -> prefs.toBuilder().setFoo(42).build() }
++
++// 2. Read via SECOND instance over THE SAME file (simulates the post-restart read)
++val store2 = buildDataStore(file.toPath())   // NEW object, same path
++val result = store2.data.first()
++assertEquals(42, result.foo)
++```
++For Room: close `db1` then open a new `Room.databaseBuilder(context, ..., sameDbName)`.
++For `SharedPreferences`: use `context.getSharedPreferences(sameKey, MODE_PRIVATE)` twice with
++the first instance cleared from memory in between (e.g. via Robolectric's
++`ShadowApplication.clearSharedPreferences()`).
++
++**If a two-instance test is structurally impossible** (e.g. the failure genuinely requires a real
++process boundary the JVM/Robolectric cannot simulate), add a `coverage_exceptions` entry explaining
++why and note that device-level validation by the orchestrator covers this gap. Never downgrade to a
++same-instance test and claim it covers cold-start durability.
++
++---
++
+ ## Non-Negotiable Rules
+ 
+ **Fakes only — never MockK or any mocking framework.**
+diff --git a/templates/common/commands/{{PREFIX}}.md b/templates/common/commands/{{PREFIX}}.md
+index 4d50005..78783e5 100644
+--- a/templates/common/commands/{{PREFIX}}.md
++++ b/templates/common/commands/{{PREFIX}}.md
+@@ -891,11 +891,38 @@ Read bug description. If reproduction steps unclear, ask only:
+ 
+ Skip questions if bug location is obvious.
+ 
++**Runtime / persistence / cold-start bug flag.** If the reported bug involves visible UI state not
++surviving app restart (cold-start, process death, re-launch), persisted data that disappears or does
++not round-trip after restart, or a crash / wrong behaviour observed on a running app (not a
++compile/lint failure) — tag the bugfix `RUNTIME_BUG: true` in the SPEC CONSTRAINTS. This tag
++activates the reproduction gate in Phase 2 Step 0.
++
+ ### Phase 2 — Fix
+ 
+ Before spawning Developer, apply the **Visual autotest device pre-flight (Android)** when the bugfix is
+ explicitly visual and requires visual/device autotests. If the gate fails, stop before any fix work.
+ 
++**Step 0 — Reproduce the user's literal steps (mandatory when `RUNTIME_BUG: true`; strongly
++recommended for all runtime bugs).**
++
++Do NOT hypothesise a root cause and write a test to match it. Reproduce the user's LITERAL reported
++steps first to confirm the failure before any code is written.
++
++For Android runtime/cold-start bugs (`RUNTIME_BUG: true`):
++1. Build and install a debug APK on the connected device:
++   ```bash
++   ./gradlew :app:assembleDebug && adb install -r app/build/outputs/apk/debug/app-debug.apk
++   ```
++   If no device is connected → apply the **Visual autotest device pre-flight** gate; stop if none is available.
++2. Drive the user's reported steps exactly as described — the literal sequence, with the user's
++   actual locale/data/currency/settings. Do NOT substitute a self-constructed scenario that you
++   believe is equivalent.
++3. Capture evidence of failure (logcat snippet, observed wrong state, screenshot).
++4. Only if the bug is confirmed reproduced → proceed to Step 1 (Developer). If it does NOT
++   reproduce with the literal steps → stop, report non-reproduction to the user, and ask for
++   clarification. Do NOT invent an alternative scenario, and do NOT write a regression test for
++   an invented scenario — a test that passes by construction proves nothing about the user's bug.
++
+ **Step 1 — Developer**:
+ Spawn agent `{{PREFIX}}-developer-<platform>` with prompt:
+ ```
+@@ -940,6 +967,18 @@ Then re-run `.claude/scripts/{{PREFIX}}-runner-<platform>.sh false`. If still `p
+ 
+ Record telemetry for the reviewer and the FINAL runner outcome (see **Run telemetry**), as in `--feature`.
+ 
++**Step 3.5 — Device re-verification (mandatory when `RUNTIME_BUG: true`).**
++After Runner passes, rebuild and install the fixed APK on device and drive the user's LITERAL
++reproduction steps again to confirm the wrong behaviour is gone:
++```bash
++./gradlew :app:assembleDebug && adb install -r app/build/outputs/apk/debug/app-debug.apk
++```
++Record result as `device_repro_confirmed: fixed` or `device_repro_confirmed: still-failing`.
++If `still-failing` → stop and report; do NOT push. A green self-authored regression test is NOT
++sufficient to declare a user-reported runtime bug fixed. Both must be true before push:
++- `regression_test: green` — the automated check passes
++- `device_repro_confirmed: fixed` — the user's literal scenario re-run on device no longer fails
++
+ **Step 4** — Push to remote (via the `Bash` tool):
+ ```bash
+ remote_path=$(git remote get-url origin | sed -e 's#^https://[^/]*@#https://#' -e 's#^https://##')
+@@ -958,6 +997,8 @@ fix: [description]
+    Commit: [hash]
+    Tests: [N passed]
+    Lint:  ok
++   Regression test: green | not-applicable
++   Device repro confirmed: fixed | not-applicable (non-runtime bug)
+    Pushed: yes / failed: [reason]
+ ```
+ 
