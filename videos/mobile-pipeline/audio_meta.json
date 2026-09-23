@@ -1,0 +1,94 @@
+{
+  "provider": "edge-tts",
+  "total_duration_s": 233.033,
+  "voices": [
+    {
+      "id": "voice-idea",
+      "type": "voice",
+      "provider": "edge-tts",
+      "voice": "ru-RU-DmitryNeural",
+      "path": "assets/voice/idea-final.m4a",
+      "duration_s": 24.9,
+      "sha256": "2c2f3319a78c97056598dc156576c33762a1322b001ad344c42ee1f2d7b477d7",
+      "source": "Approved scenario narration",
+      "processing": "atempo=1.23; loudnorm=-16 LUFS"
+    },
+    {
+      "id": "voice-research",
+      "type": "voice",
+      "provider": "edge-tts",
+      "voice": "ru-RU-DmitryNeural",
+      "path": "assets/voice/research-final.m4a",
+      "duration_s": 26.1,
+      "sha256": "69de585b25164091c29310d8ddb3ea3d9faa2c56680afc06bc30de4acd832796",
+      "source": "Approved scenario narration",
+      "processing": "atempo=1.23; loudnorm=-16 LUFS"
+    },
+    {
+      "id": "voice-agreement",
+      "type": "voice",
+      "provider": "edge-tts",
+      "voice": "ru-RU-DmitryNeural",
+      "path": "assets/voice/agreement-final.m4a",
+      "duration_s": 28.8,
+      "sha256": "56628ee1099c2021a0fe07199f382b0aa58872b24d6435f208441c3bc7b76294",
+      "source": "Approved scenario narration",
+      "processing": "atempo=1.23; loudnorm=-16 LUFS"
+    },
+    {
+      "id": "voice-design",
+      "type": "voice",
+      "provider": "edge-tts",
+      "voice": "ru-RU-DmitryNeural",
+      "path": "assets/voice/design-final.m4a",
+      "duration_s": 27.2,
+      "sha256": "b954a49d0d51c6f328ba88e0c51721310b2a1d89f7443f62f09a9802630cbd36",
+      "source": "Approved scenario narration",
+      "processing": "atempo=1.23; loudnorm=-16 LUFS"
+    },
+    {
+      "id": "voice-development",
+      "type": "voice",
+      "provider": "edge-tts",
+      "voice": "ru-RU-DmitryNeural",
+      "path": "assets/voice/development-final.m4a",
+      "duration_s": 28.6,
+      "sha256": "21ebce4d7b7e5677d16e5f04814880c8238d076f9ff7ec7a5b665b326e714a1f",
+      "source": "Approved scenario narration",
+      "processing": "atempo=1.23; loudnorm=-16 LUFS"
+    },
+    {
+      "id": "voice-checks",
+      "type": "voice",
+      "provider": "edge-tts",
+      "voice": "ru-RU-DmitryNeural",
+      "path": "assets/voice/checks-final.m4a",
+      "duration_s": 29.8,
+      "sha256": "0fff6c2118e008ffed0ac29afe5edb601d995550f873c3041c9fa7823bbf73f9",
+      "source": "Approved scenario narration",
+      "processing": "atempo=1.23; loudnorm=-16 LUFS"
+    },
+    {
+      "id": "voice-repair",
+      "type": "voice",
+      "provider": "edge-tts",
+      "voice": "ru-RU-DmitryNeural",
+      "path": "assets/voice/repair-final.m4a",
+      "duration_s": 26.7,
+      "sha256": "93054d04b856ad3e2e9dfebc487868e7a89fa0bb7189f134023249a0b3a38a3c",
+      "source": "Approved scenario narration",
+      "processing": "atempo=1.23; loudnorm=-16 LUFS"
+    },
+    {
+      "id": "voice-result",
+      "type": "voice",
+      "provider": "edge-tts",
+      "voice": "ru-RU-DmitryNeural",
+      "path": "assets/voice/result-final.m4a",
+      "duration_s": 30,
+      "sha256": "3bfc9543166c2d939163bc5611d49510f559449d83d0f24aa584226f97672dc6",
+      "source": "Approved scenario narration",
+      "processing": "atempo=1.23; loudnorm=-16 LUFS"
+    }
+  ]
+}

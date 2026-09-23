@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Как команда ИИ превращает идею в проверенную функцию. Наглядная история Mobile Pipeline на примере приложения рецептов.">
+  <meta name="theme-color" content="#f6f5f0">
+  <title>Mobile Pipeline — от идеи до работающей функции</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/demo.css">
+</head>
+<body>
+<a class="skip-link" href="#main-content">К содержанию</a>
+<header class="site-header">
+  <a class="brand" href="#simple/idea" aria-label="Mobile Pipeline — начало истории"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>mobile<span class="brand-light">pipeline</span><small>ИДЕЯ · КОМАНДА · РЕЗУЛЬТАТ</small></span></a>
+  <nav class="mode-nav" aria-label="Уровень подробности">
+    <button data-mode="simple" aria-pressed="true">Простыми словами</button>
+    <button data-mode="guided" aria-pressed="false">Как это устроено</button>
+    <button data-mode="details" aria-pressed="false">Все детали</button>
+    <button data-mode="presentation" aria-pressed="false"><span aria-hidden="true">▷</span> Презентация</button>
+  </nav>
+</header>
+<main id="main-content" tabindex="-1">
+  <section id="story-view" class="story-view" aria-label="История разработки">
+    <div class="hero">
+      <div><p class="eyebrow"><span class="tiny-dot"></span> КОМАНДА ИИ В ДЕЙСТВИИ</p><h1>Из идеи —<br><span>в работающую функцию.</span></h1><p class="hero-description">Вы описываете, что нужно. Команда изучает, создаёт и проверяет.<br class="desktop-break"> Пройдём этот путь на одном понятном примере.</p></div>
+      <div class="hero-note"><span class="note-number">01 → 08</span><p>Одна идея.<br>Разные специалисты.<br><strong>Общий результат.</strong></p><button class="text-button" data-open-presentation>Посмотреть видеорассказ <span aria-hidden="true">↗</span></button></div>
+    </div>
+    <nav class="journey-nav" aria-label="Короткий маршрут работы">
+      <button data-stage="0" data-journey="0"><span>01</span><strong>Готовим задачу</strong><small>Понимаем и договариваемся</small></button>
+      <button data-stage="3" data-journey="1"><span>02</span><strong>Создаём функцию</strong><small>Оформляем и разрабатываем</small></button>
+      <button data-stage="5" data-journey="2"><span>03</span><strong>Проверяем результат</strong><small>Исправляем и принимаем</small></button>
+    </nav>
+    <nav id="chapter-nav" class="chapter-nav" aria-label="Этапы разработки"></nav>
+    <div class="workspace">
+      <section class="story-canvas" aria-labelledby="stage-title">
+        <div class="stage-heading"><div><p class="eyebrow" id="stage-kicker"></p><h2 id="stage-title"></h2></div><span class="canvas-tag">УЧЕБНЫЙ ПРИМЕР</span></div>
+        <p id="stage-intro" class="stage-intro"></p>
+        <div class="coordinator"><span class="role-icon coordinator-icon" id="coordinator-icon"></span><div><div class="coordinator-label">Координатор <span>ведёт весь процесс</span></div><p id="coordinator-text"></p></div><span class="coordinator-badge" aria-hidden="true">ИИ</span></div>
+        <div class="flow-header"><span id="flow-caption"></span><span class="flow-hint">Нажмите на карточку, чтобы узнать больше</span></div>
+        <div id="node-flow" class="node-flow"></div>
+        <div id="join-note" class="join-note" hidden></div>
+        <div class="outcome"><span class="outcome-icon" aria-hidden="true">↳</span><div><span class="outcome-label">РЕЗУЛЬТАТ ЭТАПА</span><p id="outcome-text"></p></div></div>
+        <div class="stage-controls"><button class="button secondary" id="simulate">▷ Показать работу</button><span id="simulation-status" class="simulation-status" role="status" aria-live="polite">Шаг за шагом, в вашем темпе</span><div class="step-arrows"><button class="button icon-button" id="previous" aria-label="Предыдущий этап">←</button><button class="button primary" id="next">Далее <span aria-hidden="true">→</span></button></div></div>
+      </section>
+      <aside class="app-preview" aria-label="Пример приложения рецептов"><div class="preview-caption"><span class="tiny-dot"></span><span id="phone-caption">Вот ради чего всё начинается</span></div><div id="phone" class="phone"></div><p class="phone-footnote" id="phone-footnote"></p><div class="legend-compact"><span><i class="legend-dot agent"></i>ИИ-специалист</span><span><i class="legend-dot human"></i>Человек</span><span><i class="legend-dot script"></i>Автопроверка</span></div></aside>
+    </div>
+    <section id="technical-context" class="technical-context" hidden aria-labelledby="context-title"><div><p class="eyebrow">ПОД КАПОТОМ</p><h2 id="context-title">Что запускается на этом этапе</h2><p id="context-text"></p><button class="text-button" id="open-technical">Открыть этот участок полной карты ↗</button></div><div id="technical-roles" class="technical-roles"></div></section>
+    <footer class="story-footer"><span>Каждый специалист отвечает за свою часть. Координатор объединяет результаты.</span><span>Mobile Pipeline <span id="version"></span></span></footer>
+  </section>
+  <section id="details-view" class="details-view" hidden aria-label="Полная техническая карта"><div class="details-top"><div><p class="eyebrow">ПОЛНАЯ КАРТА ПАЙПЛАЙНОВ</p><p>Агенты, команды и связи с исходниками. Выберите карточку, чтобы открыть описание.</p></div><button class="button secondary" id="back-to-story">← К текущему этапу истории</button></div><iframe id="expert-frame" title="Интерактивная техническая карта Mobile Pipeline"></iframe></section>
+  <section id="presentation-view" class="presentation-view" hidden aria-labelledby="presentation-title"><div class="presentation-heading"><div><p class="eyebrow">ВИДЕОРАССКАЗ · НА РУССКОМ</p><h1 id="presentation-title">Как идея становится функцией</h1><p>Одна история — от первых вопросов до проверенного результата.</p></div><a class="button primary" href="media/mobile-pipeline.mp4" download>Скачать MP4 ↓</a></div><div class="video-layout"><div><video id="presentation-video" controls playsinline preload="metadata" poster="media/poster.jpg" aria-label="Mobile Pipeline: видеорассказ с русской озвучкой и титрами"><source src="media/mobile-pipeline.mp4" type="video/mp4">Ваш браузер не поддерживает видео. <a href="media/mobile-pipeline.mp4">Скачать ролик</a>.</video><p class="video-notice" id="video-notice"></p></div><nav id="video-chapters" aria-label="Главы видео"></nav></div><details class="transcript"><summary>Читать текст видеорассказа</summary><div id="transcript"></div></details></section>
+</main>
+<dialog id="role-dialog" class="role-dialog" aria-labelledby="role-title"><div class="dialog-top"><span id="role-type" class="eyebrow"></span><button id="close-dialog" class="button icon-button" aria-label="Закрыть описание">×</button></div><div id="role-heading"></div><div id="role-body"></div><button id="role-source" class="text-button">Найти на технической карте ↗</button></dialog>
+<noscript><p class="noscript">Для интерактивной истории включите JavaScript. <a href="media/mobile-pipeline.mp4">Скачать видеорассказ</a>.</p></noscript>
+<script src="story/scenario.js"></script>
+<script src="story/timing.js"></script>
+<script src="assets/demo.js"></script>
+</body>
+</html>

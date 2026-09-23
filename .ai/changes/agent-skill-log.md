@@ -694,3 +694,27 @@ summary: exact --feature --next --chain authorizes the current close-out push an
 reason: a completed chain run stopped before successor creation because unattended runs treated git push as an unconditional human gate even when the user explicitly requested chain continuation
 affects: claude, codex
 by: mp-improve-fallback
+
+## 2026-09-04T00:00-graph-node-view
+type: add
+target: graph/, tests/test-graph.sh, .github/workflows/pages.yml
+summary: add a hand-authored node-view of both pipelines (overview, /mp-spec, /mp) with plain-Russian per-node explanations on one running example, plus a drift guard and a Pages deployment
+reason: the structure of both pipelines only existed as prose across README/ARCHITECTURE/SPEC-PIPELINE/runtime contracts, so understanding "what runs after what, who gets what, where the human gates are" required holding a dozen markdown files in mind
+affects:
+by: claude
+
+## 2026-09-04T01:00-graph-node-titles
+type: update
+target: graph/data/overview.js, graph/data/mp-spec.js, graph/data/mp-dev.js, tests/test-graph.sh, graph/README.md
+summary: node titles now answer "why this step exists" in short plain Russian; commands, flags and agent ids moved to the mono tech line, with a CI rule enforcing it
+reason: a card titled "/mp-spec --feature — спека одной фичи" made the reader parse a command line before understanding the purpose of the step
+affects:
+by: claude
+
+## 2026-09-23T00:00-graph-audience-levels
+type: update
+target: graph/, videos/mobile-pipeline/, tests/graph-demo/, tests/test-graph.sh
+summary: add four Russian audience levels, a source-linked feature story, parallel and sequential teaching states, and a narrated HyperFrames presentation with local assets
+reason: the technical topology did not explain agent responsibilities and launch timing to nontechnical viewers; the default view must make the human goal and delivered behavior visible
+affects:
+by: codex

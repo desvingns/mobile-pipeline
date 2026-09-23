@@ -1,0 +1,46 @@
+name: pages
+
+# Publish the node-view graph (graph/) to GitHub Pages so the current picture of both
+# pipelines is always one link away. The same files also open straight from disk
+# (graph/index.html over file://) — Pages is the shareable copy, not the only copy.
+#
+# One-time manual setup in the repository: Settings → Pages → Source: GitHub Actions.
+# Until that is done this workflow fails; nothing else in the repo depends on it.
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'graph/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Guard — the graph must be in sync with templates/
+        run: bash tests/test-graph.sh
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: graph
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

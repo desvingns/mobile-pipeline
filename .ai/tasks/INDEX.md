@@ -16,9 +16,10 @@ None.
 
 ## COMPLETE / HISTORICAL
 
+- `codex-004-graph-demo.md` — four audience levels, narrated HyperFrames film and graph regression checks.
 - `codex-003-github-chain-reliability.md` — repaired standard GitHub push and Codex chain hand-off.
 - `codex-002-system-optimization.md` — token, quality, memory/brain, telemetry, eval, sync, graph,
   and CI optimization release (`1.12.0`).
 - `claude-002-spec-integration.md`, `claude-003-marketplace.md`, `claude-005-grill-me.md`.
 
-Last reconciled: 2026-07-13 by codex.
+Last reconciled: 2026-09-23 by codex.

@@ -8,6 +8,19 @@ on:
     branches: [ main ]
 
 jobs:
+  graph-demo:
+    name: Graph demonstration behavior
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: tests/graph-demo/package-lock.json
+      - run: npm ci --prefix tests/graph-demo --ignore-scripts
+      - run: npm test --prefix tests/graph-demo
+
   validate:
     name: validate (${{ matrix.os }})
     strategy:
@@ -93,6 +106,7 @@ jobs:
           bash tests/test-bootstrap.sh
           bash tests/test-chain-contract.sh
           bash tests/test-github-push-contract.sh
+          bash tests/test-graph.sh
           bash eval/runner.sh
 
       - name: Marketplace generator parses on every host

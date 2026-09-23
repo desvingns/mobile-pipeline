@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mobile-pipeline — граф конвейеров /mp и /mp-spec</title>
+<link rel="stylesheet" href="assets/styles.css">
+<script>
+  // Registry bootstrap. Must exist before any data/*.js runs.
+  // Data files are hand-edited JSON in a one-line wrapper so the page also
+  // works from file:// (fetch() and ES modules are blocked there).
+  window.MP_GRAPHS = [];
+  window.MP_GRAPH_REGISTER = function (graph) { window.MP_GRAPHS.push(graph); };
+</script>
+</head>
+<body>
+
+<header id="topbar">
+  <div class="brand">
+    <b>mobile-pipeline</b>
+    <span class="ver" id="verBadge">—</span>
+  </div>
+
+  <div class="seg" id="graphSwitch" role="group" aria-label="Выбор графа"></div>
+
+  <select id="flowSelect" aria-label="Режим / ветка"></select>
+
+  <input id="search" type="search" placeholder="Поиск ноды  (/)" autocomplete="off" spellcheck="false">
+
+  <span class="topbar-spacer"></span>
+
+  <label class="toggle" title="Показать слой общих контрактов">
+    <input type="checkbox" id="showContracts"> контракты
+  </label>
+  <button class="btn" id="fitBtn" title="Вписать в экран (F)">Вписать</button>
+  <button class="btn" id="resetBtn" title="Сбросить перетащенные ноды">Сброс раскладки</button>
+</header>
+
+<div id="storybar"></div>
+
+<main id="stage">
+  <div id="world">
+    <svg id="edges" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div id="nodes"></div>
+  </div>
+
+  <div id="empty">Нет данных для этой ветки.</div>
+
+  <div id="legend">
+    <h4 id="legendToggle" title="Свернуть / развернуть">Легенда</h4>
+    <div class="cols">
+      <div>
+        <div class="row"><span class="sw" style="background:var(--k-mode)"></span>режим</div>
+        <div class="row"><span class="sw" style="background:var(--k-agent)"></span>агент</div>
+        <div class="row"><span class="sw" style="background:var(--k-script)"></span>скрипт</div>
+        <div class="row"><span class="sw" style="background:var(--k-gate)"></span>гейт (человек)</div>
+        <div class="row"><span class="sw" style="background:var(--k-artifact)"></span>артефакт</div>
+        <div class="row"><span class="sw" style="background:var(--k-board)"></span>доска / план</div>
+        <div class="row"><span class="sw" style="background:var(--k-contract)"></span>контракт</div>
+      </div>
+      <div>
+        <div class="row"><span class="ln" style="border-color:var(--e-data)"></span>данные</div>
+        <div class="row"><span class="ln" style="border-color:var(--e-gate)"></span>решение человека</div>
+        <div class="row"><span class="ln" style="border-color:var(--e-retry);border-top-style:dashed"></span>повтор / петля</div>
+        <div class="row"><span class="ln" style="border-color:var(--e-fallback);border-top-style:dashed"></span>запасной путь</div>
+        <div class="row"><span class="ln" style="border-color:var(--e-blocked);border-top-style:dashed"></span>стоп конвейера</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="hud">
+    <button class="btn" id="zoomOut" title="Отдалить">−</button>
+    <span class="zoomval" id="zoomVal">100%</span>
+    <button class="btn" id="zoomIn" title="Приблизить">+</button>
+  </div>
+</main>
+
+<aside id="panel" aria-live="polite">
+  <div class="p-head">
+    <button class="p-close" id="panelClose" title="Закрыть (Esc)">×</button>
+    <h2 id="panelTitle"></h2>
+    <div class="tech" id="panelTech"></div>
+  </div>
+  <div class="p-body" id="panelBody"></div>
+</aside>
+
+<script src="data/overview.js"></script>
+<script src="data/mp-spec.js"></script>
+<script src="data/mp-dev.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

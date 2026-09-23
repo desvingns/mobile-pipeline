@@ -1,0 +1,6 @@
+{
+  "name": "mobile-pipeline-graph-tests",
+  "private": true,
+  "scripts": {"test": "node test.cjs"},
+  "devDependencies": {"jsdom": "30.1.1"}
+}
