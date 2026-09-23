@@ -1,12 +1,14 @@
 <!doctype html>
-<html lang="ru">
+<html lang="ru" data-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Как команда ИИ превращает идею в проверенную функцию. Наглядная история Mobile Pipeline на примере приложения рецептов.">
-  <meta name="theme-color" content="#f6f5f0">
+  <meta name="theme-color" content="#0b1118">
   <title>Mobile Pipeline — от идеи до работающей функции</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <script src="assets/theme.js"></script>
+  <link rel="stylesheet" href="assets/themes.css">
   <link rel="stylesheet" href="assets/demo.css">
 </head>
 <body>
@@ -19,12 +21,17 @@
     <button data-mode="details" aria-pressed="false">Все детали</button>
     <button data-mode="presentation" aria-pressed="false"><span aria-hidden="true">▷</span> Презентация</button>
   </nav>
+  <div class="theme-switch" role="group" aria-label="Оформление сайта">
+    <button data-theme-choice="dark" aria-pressed="true" title="Тёмная тема"><span class="theme-swatch swatch-dark" aria-hidden="true"></span>Тёмная</button>
+    <button data-theme-choice="light" aria-pressed="false" title="Светлая тема"><span class="theme-swatch swatch-light" aria-hidden="true"></span>Светлая</button>
+    <button data-theme-choice="paper" aria-pressed="false" title="Бумажная тема"><span class="theme-swatch swatch-paper" aria-hidden="true"></span>Бумажная</button>
+  </div>
 </header>
 <main id="main-content" tabindex="-1">
   <section id="story-view" class="story-view" aria-label="История разработки">
     <div class="hero">
-      <div><p class="eyebrow"><span class="tiny-dot"></span> КОМАНДА ИИ В ДЕЙСТВИИ</p><h1>Из идеи —<br><span>в работающую функцию.</span></h1><p class="hero-description">Вы описываете, что нужно. Команда изучает, создаёт и проверяет.<br class="desktop-break"> Пройдём этот путь на одном понятном примере.</p></div>
-      <div class="hero-note"><span class="note-number">01 → 08</span><p>Одна идея.<br>Разные специалисты.<br><strong>Общий результат.</strong></p><button class="text-button" data-open-presentation>Посмотреть видеорассказ <span aria-hidden="true">↗</span></button></div>
+      <div class="hero-copy"><p class="eyebrow"><span class="tiny-dot"></span> КОМАНДА ИИ В ДЕЙСТВИИ</p><h1>Ваша идея.<br><span>Сила команды.</span></h1><p class="hero-description">Вы описываете, что нужно. Команда изучает, создаёт и проверяет. Посмотрим, как рождается одна полезная функция.</p><button class="text-button hero-play" data-open-presentation><span class="play-disc" aria-hidden="true">▶</span>Посмотреть историю <span class="play-time">3:53</span></button></div>
+      <div class="hero-art" aria-hidden="true"><div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div><svg class="art-links" viewBox="0 0 500 310" fill="none"><path d="M112 66 253 155 407 76M74 211 253 155 402 239"/><circle cx="175" cy="106" r="4"/><circle cx="332" cy="114" r="4"/><circle cx="335" cy="202" r="4"/></svg><div class="art-node art-center"><span class="art-symbol">✳</span><strong>Всё связано.</strong><small>У каждого своя задача</small></div><div class="art-node art-research"><span>⌕</span>Исследуем</div><div class="art-node art-build"><span>⌘</span>Создаём</div><div class="art-node art-check"><span>✓</span>Проверяем</div><div class="art-result"><span>♥</span> Идея оживает</div><span class="art-caption">ОДНА КОМАНДА · ОБЩИЙ РЕЗУЛЬТАТ</span></div>
     </div>
     <nav class="journey-nav" aria-label="Короткий маршрут работы">
       <button data-stage="0" data-journey="0"><span>01</span><strong>Готовим задачу</strong><small>Понимаем и договариваемся</small></button>

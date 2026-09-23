@@ -1,0 +1,20 @@
+/* Explicitly selected palette overrides the map's older system preference. */
+:root.expert-page{
+  --bg:var(--page);--grid:var(--soft);--surface-2:var(--raised);--surface-3:var(--soft);
+  --line-soft:var(--soft);--text:var(--ink);--text-dim:var(--muted);--text-faint:var(--subtle);
+  --e-data:var(--subtle);--sans:Onest,Arial,sans-serif;
+  --k-mode:var(--artifact);--k-agent:var(--agent);--k-script:var(--script);
+  --k-gate:var(--human);--k-artifact:var(--artifact);--k-contract:var(--muted);
+  --k-board:var(--agent);--k-note:var(--subtle);
+}
+.expert-page .seg button[aria-pressed="true"]{color:var(--accent-ink)}
+.expert-page .badge.model{color:var(--artifact);border-color:var(--line);background:var(--artifact-bg)}
+.expert-page .badge.warn{color:var(--human);border-color:var(--line);background:var(--human-bg)}
+.expert-page .badge.stop{color:var(--human);border-color:var(--line);background:var(--human-bg)}
+.expert-page #panel .example p,.expert-page #panel .src{color:var(--ink)}
+.expert-page #panel p{font-size:16px;line-height:1.7}
+.expert-page #panel .p-head h2{font-size:22px}
+.expert-page #panel h3{font-size:13px}
+.expert-page #panel .example p{font-size:16px}
+.expert-page #panel .p-head .tech,.expert-page #panel .src{font-size:13px}
+.expert-page button:focus-visible,.expert-page input:focus-visible,.expert-page select:focus-visible{outline:3px solid var(--accent);outline-offset:3px}

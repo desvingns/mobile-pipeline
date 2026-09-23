@@ -1,10 +1,16 @@
 # Handoff
 
-Last session: Codex · 2026-09-23 · Russian audience modes and narrated film.
+Last session: Codex · 2026-09-23 · larger typography and three visual themes.
 Previous uncommitted handoff preserved at `archive/handoff-2026-09-04-graph.md`.
 
 ## DONE
 
+- Visual follow-up: replaced the small-text styling with 17–19 px story copy,
+  larger role cards, a dimensional team illustration, a larger phone and explicit
+  dark/light/paper themes. Dark is the default; selection persists in localStorage.
+- Shared theme.js/themes.css apply to both the story and expert map. The parent
+  sends the selected theme after iframe loads; blocked storage does not prevent
+  changing themes. Current routes/stages and the previously delivered film stay intact.
 - Replaced graph/index.html with four audience modes. The simple route has
   three plain-language groups and eight readable scenes, role cards, coordinator,
   directed connections, a parallel join demonstration and interactive phone.
@@ -23,6 +29,10 @@ Previous uncommitted handoff preserved at `archive/handoff-2026-09-04-graph.md`.
 
 ## VERIFIED
 
+- Visual follow-up: existing DOM regression tests plus theme persistence,
+  invalid preference fallback, blocked storage, frame synchronization and rejection
+  of foreign frame messages: PASS. CSS parses and JS syntax is valid. Semantic
+  text/background contrast pairs meet 4.5:1 in all three themes.
 - bash tests/test-graph.sh, bash -n, ShellCheck 0.11.0: PASS.
 - Node 24 / jsdom tests: four modes, old URLs, source refs, join barrier, sequential
   execution, cancellation, keyboard, reduced motion, file URL routing, focus,

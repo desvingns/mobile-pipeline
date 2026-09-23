@@ -16,6 +16,7 @@ None.
 
 ## COMPLETE / HISTORICAL
 
+- `codex-005-graph-visual.md` — larger type, dimensional visuals and persistent dark/light/paper themes.
 - `codex-004-graph-demo.md` — four audience levels, narrated HyperFrames film and graph regression checks.
 - `codex-003-github-chain-reliability.md` — repaired standard GitHub push and Codex chain hand-off.
 - `codex-002-system-optimization.md` — token, quality, memory/brain, telemetry, eval, sync, graph,

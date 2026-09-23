@@ -22,7 +22,7 @@ fail() { echo "  FAIL $1" >&2; fails=$((fails + 1)); }
 
 echo "test-graph: viewer files"
 
-for f in index.html expert.html assets/app.js assets/styles.css assets/demo.js assets/demo.css story/scenario.js story/timing.js data/overview.js data/mp-spec.js data/mp-dev.js; do
+for f in index.html expert.html assets/app.js assets/styles.css assets/demo.js assets/demo.css assets/theme.js assets/themes.css assets/expert-theme.css story/scenario.js story/timing.js data/overview.js data/mp-spec.js data/mp-dev.js; do
   if [ -f "$GRAPH/$f" ]; then pass "graph/$f exists"; else fail "graph/$f is missing"; fi
 done
 

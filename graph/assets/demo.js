@@ -73,6 +73,7 @@
   }
   function renderStory() {
     var s=stage();
+    document.querySelector('.story-canvas').dataset.step=String(stageIndex+1).padStart(2,'0');
     document.querySelectorAll('[data-journey]').forEach(function(b){b.setAttribute('aria-current',Number(b.dataset.journey)===(stageIndex<3?0:stageIndex<5?1:2)?'step':'false');});
     $('chapter-nav').innerHTML=stages.map(function(v,i){return '<button data-stage="'+i+'" class="'+(i<stageIndex?'past':'')+'"'+(i===stageIndex?' aria-current="step"':'')+'><span class="chapter-number">'+String(i+1).padStart(2,'0')+'</span>'+esc(v.label)+'</button>';}).join('');
     $('stage-kicker').textContent='ЭТАП '+String(stageIndex+1).padStart(2,'0')+' / 08';

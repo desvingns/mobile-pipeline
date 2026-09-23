@@ -1,5 +1,20 @@
 # Demonstration validation — 2026-09-23
 
+## Visual refinement — same day
+
+- Replaced the small-text presentation with 17–19 px story copy, 22–25 px role
+  headings, larger controls, a more dimensional phone and stronger role colors.
+- Added explicit dark (default), light and paper palettes, including the expert
+  map. Selection persists when localStorage is available and still works when
+  storage is blocked. Themes do not change the route or current story stage.
+- Focused DOM checks cover stored/invalid preferences, blocked file storage,
+  selected-button state, parent-to-map synchronization and foreign-message rejection.
+- Contrast calculations for primary, secondary, role and phone text/background
+  pairs meet 4.5:1: minimum 6.58 dark, 4.91 light and 4.53 paper. These calculations
+  are not a substitute for browser visual inspection; the earlier restriction remains.
+- Responsive styles switch cards to a vertical sequence on small screens;
+  reduced-motion mode disables hover transforms and keeps the phone still.
+
 ## Website
 
 - `bash tests/test-graph.sh`: PASS. All canonical agents, scripts, modes, graph
