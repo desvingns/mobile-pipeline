@@ -1,0 +1,94 @@
+/* Shell: sticky header, tabs, calm toggle, progress belt, tab panels */
+.site-header {
+  position: sticky; top: 0; z-index: 100;
+  height: var(--header-h);
+  display: flex; align-items: center; gap: clamp(10px, 2vw, 28px);
+  padding: 0 var(--gutter);
+  background: var(--ink); color: var(--cream);
+  border-bottom: var(--outline-thin) solid var(--ink);
+}
+.brand {
+  display: flex; align-items: center; gap: 12px; text-decoration: none; min-width: 0;
+}
+.brand-mark { width: 40px; height: 40px; flex: none; }
+.brand-text { display: flex; flex-direction: column; line-height: 1.05; min-width: 0; }
+.brand-name { font-family: var(--font-display); font-weight: 800; font-size: 18px; white-space: nowrap; }
+.brand-sub { font-size: 16px; color: color-mix(in srgb, var(--cream) 82%, var(--ink)); white-space: nowrap; }
+
+.tabs {
+  margin-left: auto;
+  display: inline-flex; padding: 4px; gap: 4px;
+  background: rgba(255, 246, 230, .1); border-radius: 16px; border: 2px solid rgba(255, 246, 230, .25);
+}
+.tab {
+  min-height: 44px; padding: 6px 20px; border: 0; border-radius: 12px;
+  background: transparent; color: var(--cream);
+  font-family: var(--font-display); font-weight: 700; font-size: 17px;
+}
+.tab[aria-selected="true"] { background: var(--cream); color: var(--ink); box-shadow: 3px 3px 0 var(--violet); }
+.tab:not([aria-selected="true"]):hover { background: rgba(255, 246, 230, .14); }
+
+.calm-toggle {
+  display: inline-flex; align-items: center; gap: 10px;
+  min-height: 44px; padding: 6px 12px; border-radius: 12px;
+  background: transparent; color: var(--cream); border: 2px solid rgba(255, 246, 230, .35);
+  font-size: 16px; font-weight: 600; white-space: nowrap;
+}
+.calm-toggle .knob {
+  position: relative; width: 38px; height: 22px; border-radius: 999px; background: rgba(255,246,230,.25); flex: none;
+}
+.calm-toggle .knob::after {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--cream); transition: transform .2s ease-out;
+}
+.calm-toggle[aria-pressed="true"] .knob { background: var(--mint); }
+.calm-toggle[aria-pressed="true"] .knob::after { transform: translateX(16px); }
+
+/* Progress belt under the header (decorative; driven by prosto.js) */
+.progress-belt {
+  position: absolute; left: 0; right: 0; bottom: -9px; height: 9px;
+  background: repeating-linear-gradient(-45deg, var(--ink) 0 8px, #2a2560 8px 16px);
+  border-bottom: 2px solid var(--ink);
+  pointer-events: none;
+  overflow-x: clip;
+}
+.progress-belt .fill {
+  position: absolute; inset: 0 auto 0 0; width: 100%;
+  transform-origin: 0 50%; transform: scaleX(0);
+  background: repeating-linear-gradient(-45deg, var(--lemon) 0 8px, var(--tangerine) 8px 16px);
+}
+.progress-belt .token {
+  position: absolute; top: -7px; left: 0; width: 22px; height: 22px; margin-left: -11px;
+  border-radius: 50%; background: var(--cream); border: 3px solid var(--ink);
+}
+body.tab-skhema .progress-belt { display: none; }
+
+/* Header focus: cream outline + lemon ring on the ink header (the selected tab keeps its violet shadow too) */
+.site-header :focus-visible { outline: 3px solid var(--cream); outline-offset: 2px; box-shadow: 0 0 0 6px var(--lemon); }
+.tab[aria-selected="true"]:focus-visible { box-shadow: 0 0 0 6px var(--lemon), 3px 3px 0 var(--violet); }
+
+/* No flash of the wrong tab on a #skhema deep link (router.js removes .boot-skhema once it runs) */
+html.boot-skhema #panel-prosto { display: none; }
+html.boot-skhema #panel-skhema { display: block !important; }
+html.boot-skhema .progress-belt { display: none; }
+
+.panel { position: relative; }
+#panel-skhema {
+  height: calc(100dvh - var(--header-h));
+  background: #17191c; color: #e6e9ed;
+}
+.skhema-skeleton {
+  height: 100%; display: grid; place-items: center; font-family: var(--font-display); font-size: 22px; color: #9aa3ad;
+}
+
+@media (max-width: 900px) {
+  .brand-sub, .brand-text { display: none; }
+  .calm-toggle .label-long { display: none; }
+}
+@media (max-width: 600px) {
+  .brand-text { display: none; }
+  .tab { padding: 6px 14px; font-size: 15px; }
+  .calm-toggle { padding: 6px 8px; }
+  .calm-toggle .label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .site-header { gap: 8px; }
+}

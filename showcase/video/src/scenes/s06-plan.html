@@ -1,0 +1,211 @@
+<!doctype html>
+<!-- s06-plan «План» — scene pack V3. Contract: src/scenes/README.md.
+     Motion: grid-card-assemble (the blueprint is cut into 4 cards that flip into icon cards one per spoken item, then
+     the array re-assembles on the board) + waterfall-entry (cards whip into the «Ждут» column, binary opacity) +
+     spring-pop-entrance (your stamp, the board headers dropping on their words). -->
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>s06-plan</title>
+  </head>
+  <body>
+    <template id="s06-plan-template">
+      <style>
+        %%FONTS%%
+        %%KITCSS%%
+        #s06-plan { position: absolute; inset: 0; overflow: hidden; background: %%FIELD%%; color: %%INK%%; font-family: "Golos Text", sans-serif; }
+        #s06-plan .abs { position: absolute; }
+        #s06-plan .ghost { left: 520px; top: 330px; font-family: "Unbounded", sans-serif; font-weight: 900; font-size: 380px; line-height: 1; white-space: nowrap; opacity: 0.11; }
+        #s06-plan .deco { inset: 0; }
+        #s06-plan .deco i { position: absolute; display: block; border: 3px solid #16123a; border-radius: 4px; }
+        #s06-plan .deco i.p { border: 0; opacity: 0.22; }
+        #s06-plan .plus::before, #s06-plan .plus::after { content: ""; position: absolute; background: #16123a; border-radius: 2px; }
+        #s06-plan .plus::before { left: 0; right: 0; top: 50%; height: 4px; margin-top: -2px; }
+        #s06-plan .plus::after { top: 0; bottom: 0; left: 50%; width: 4px; margin-left: -2px; }
+        #s06-plan .pc { width: 360px; height: 230px; }
+        #s06-plan .bp, #s06-plan .card { position: absolute; inset: 0; border-radius: 18px; overflow: hidden; }
+        #s06-plan .bp { background: #3ec5ff; }
+        #s06-plan .edge { position: absolute; inset: 0; border: 5px solid #16123a; border-radius: 18px; box-shadow: 8px 8px 0 #16123a; opacity: 0; }
+        #s06-plan .card { background: #fff6e6; border: 5px solid #16123a; box-shadow: 8px 8px 0 #16123a; overflow: visible; opacity: 0; }
+        #s06-plan .card svg { position: absolute; left: 16px; top: 55px; width: 104px; height: 104px; }
+        #s06-plan .card b { position: absolute; left: 132px; right: 10px; top: 0; bottom: 0; display: flex; align-items: center; font-weight: 800; font-size: 29px; line-height: 1.12; }
+        #s06-plan .bub { padding: 12px 24px 14px; background: #fff6e6; border: 4px solid #16123a; border-radius: 28px; box-shadow: 6px 6px 0 #16123a; font-weight: 800; font-size: 32px; white-space: nowrap; }
+        #s06-plan .bub::after { content: ""; position: absolute; left: 100px; bottom: -19px; width: 26px; height: 26px; background: #fff6e6; border-right: 4px solid #16123a; border-bottom: 4px solid #16123a; transform: rotate(45deg) skew(8deg, 8deg); }
+        #s06-plan .pin { position: absolute; left: 168px; top: -14px; width: 26px; height: 26px; border-radius: 50%; border: 4px solid #16123a; }
+        #s06-plan .docf { left: 760px; top: 180px; width: 720px; height: 460px; border: 5px solid #16123a; border-radius: 24px; box-shadow: 10px 10px 0 #16123a; }
+        #s06-plan .ttl { position: absolute; left: 22px; top: 18px; padding: 4px 16px; background: #fff6e6; border: 4px solid #16123a; border-radius: 12px; font-weight: 800; font-size: 30px; }
+        #s06-plan .cut { background: repeating-linear-gradient(90deg, #16123a 0 18px, transparent 18px 32px); height: 6px; }
+        #s06-plan .cut.v { background: repeating-linear-gradient(180deg, #16123a 0 18px, transparent 18px 32px); width: 6px; height: auto; }
+        #s06-plan .scis { left: 0; top: 0; width: 150px; height: 150px; }
+        #s06-plan .plate { left: 222px; top: 750px; height: 46px; padding: 0 22px; display: flex; align-items: center; background: #fff6e6; border: 4px solid #16123a; border-radius: 999px; box-shadow: 5px 5px 0 #16123a; font-weight: 800; font-size: 28px; }
+        #s06-plan .board { left: 600px; top: 140px; width: 1128px; height: 605px; background: #5b34f5; border: 5px solid #16123a; border-radius: 30px; box-shadow: 10px 10px 0 #16123a; }
+        #s06-plan .board-t { position: absolute; left: 30px; top: 10px; color: #fff6e6; font-weight: 800; font-size: 34px; line-height: 50px; }
+        #s06-plan .col { top: 70px; width: 348px; height: 515px; background: rgba(22, 18, 58, 0.3); border: 4px solid #16123a; border-radius: 22px; }
+        #s06-plan .hd { position: absolute; left: 14px; right: 14px; top: 12px; height: 58px; display: flex; align-items: center; justify-content: center; border: 4px solid #16123a; border-radius: 999px; box-shadow: 4px 4px 0 #16123a; font-weight: 800; font-size: 30px; }
+        #s06-plan .ph { position: absolute; left: 12px; width: 316px; height: 86px; border: 3px dashed rgba(255, 246, 230, 0.4); border-radius: 16px; }
+        #s06-plan .mini { width: 316px; height: 86px; background: #fff6e6; border: 4px solid #16123a; border-radius: 16px; box-shadow: 5px 5px 0 #16123a; }
+        #s06-plan .mini svg { position: absolute; left: 12px; top: 13px; }
+        #s06-plan .mini b { position: absolute; left: 80px; right: 8px; top: 0; bottom: 0; display: flex; align-items: center; font-weight: 800; font-size: 26px; line-height: 1.08; }
+        #s06-plan .glow { left: -14px; top: -14px; right: -14px; bottom: -14px; border: 8px solid #ff8a1f; border-radius: 26px; opacity: 0; }
+        #s06-plan .seal { left: 1020px; top: 310px; width: 200px; height: 200px; }
+        #s06-plan .stamp { left: 990px; top: 158px; width: 260px; height: 303px; }
+        #s06-plan .ring { left: 1020px; top: 310px; width: 200px; height: 200px; border-radius: 50%; border: 14px solid #ffda4f; box-shadow: 0 0 0 5px #16123a, inset 0 0 0 5px #16123a; opacity: 0; }
+        #s06-plan .scrap { left: 1120px; top: 410px; width: 0; height: 0; }
+        #s06-plan .scrap i { position: absolute; left: 0; top: 0; display: block; width: 0; height: 0; }
+        #s06-plan .scrap b { position: absolute; left: -9px; top: -6px; display: block; width: 18px; height: 11px; border: 3px solid #16123a; border-radius: 3px; opacity: 0; }
+      </style>
+      <div id="s06-plan" data-composition-id="%%ID%%" data-width="1920" data-height="1080" data-duration="%%DUR%%">
+        <div class="abs ghost" id="s06-plan-ghost" data-layout-allow-overflow data-layout-ignore aria-hidden="true">ПЛАН</div>
+        <div class="abs deco" id="s06-plan-deco" data-layout-allow-overflow></div>
+        <div class="abs board" id="s06-plan-board" data-layout-allow-overflow><div class="board-t">Доска заданий</div><div id="s06-plan-cols"></div></div>
+        <div id="s06-plan-pcs"></div>
+        <div class="abs docf" id="s06-plan-docf"></div>
+        <div class="abs cut v" id="s06-plan-cutv" style="left: 1117px; top: 180px; bottom: 440px"></div>
+        <div class="abs cut" id="s06-plan-cuth" style="left: 760px; top: 407px; width: 720px"></div>
+        <div class="abs scrap" id="s06-plan-scrap" data-layout-allow-overflow></div>
+        <div id="s06-plan-minis"></div>
+        <div class="abs" id="s06-plan-pl" data-layout-allow-orbit style="left: 200px; top: 418px; width: 280px; height: 327px"><div class="kit-rim">%%CHAR:planirovshchik:280#s06-plan-kp%%</div></div>
+        <div class="abs plate" id="s06-plan-plate">Планировщик</div>
+        <div class="abs bub" id="s06-plan-b0" style="left: 220px; top: 316px">Сейчас нарежу!</div><div class="abs bub" id="s06-plan-b1" style="left: 196px; top: 316px">Первую&nbsp;— в&nbsp;работу!</div>
+        <div class="abs scis" id="s06-plan-scis"><svg id="s06-plan-scis-r" width="150" height="150" viewBox="-75 -75 150 150" aria-hidden="true"><g id="s06-plan-bl1"><path d="M-4 4 L62 -6 Q66 0 60 4 Z" fill="#c9d3e6" stroke="#16123a" stroke-width="5" stroke-linejoin="round" /><circle cx="-34" cy="-16" r="17" fill="none" stroke="#16123a" stroke-width="13" /><circle cx="-34" cy="-16" r="17" fill="none" stroke="#ff4f8b" stroke-width="7" /><path d="M-4 4 L-22 -8" stroke="#16123a" stroke-width="9" stroke-linecap="round" /></g><g id="s06-plan-bl2"><path d="M-4 -4 L62 6 Q66 0 60 -4 Z" fill="#c9d3e6" stroke="#16123a" stroke-width="5" stroke-linejoin="round" /><circle cx="-34" cy="16" r="17" fill="none" stroke="#16123a" stroke-width="13" /><circle cx="-34" cy="16" r="17" fill="none" stroke="#ff4f8b" stroke-width="7" /><path d="M-4 -4 L-22 8" stroke="#16123a" stroke-width="9" stroke-linecap="round" /></g><circle cx="-4" cy="0" r="5" fill="#16123a" /></svg></div>
+        <div class="abs ring" id="s06-plan-ring"></div>
+        <div class="abs seal" id="s06-plan-seal">%%SEAL:200:ОДОБРЕНО#s06-plan-sealk%%</div>
+        <div class="abs stamp" id="s06-plan-stamp" data-layout-allow-overflow><div class="kit-rim">%%STAMP:260#s06-plan-stk%%</div></div>
+      </div>
+      <script>
+        (function () {
+          %%HELPERS%%
+          var C = %%CUES%%;
+          var D = %%DUR%%, W = %%WORDS%%, H = window.MPV, P = H.C, OUT = C._out;
+          var tl = gsap.timeline({ paused: true }), NIR = { immediateRender: false }, rnd = H.rng(606), i;
+          document.querySelectorAll("#s06-plan-sealk text, #s06-plan-stk text").forEach(function (t) { t.setAttribute("data-layout-allow-overlap", ""); });   /* the seal is printed BY the stamp face: they overlap on the hit, on purpose */
+          function el(id) { return document.getElementById("s06-plan-" + id); } function x(a, b) { var r = {}, k; for (k in a) r[k] = a[k]; for (k in b) r[k] = b[k]; return r; }
+          function at(stem, after, fb) { // first spoken word starting with `stem` at/after `after` (scene-local s)
+            for (var n = 0; n < W.length; n++) if (W[n].start >= after && W[n].text.toLowerCase().replace(/[^а-яёa-z0-9-]/g, "").indexOf(stem) === 0) return W[n].start;
+            return fb;
+          }
+          function bubble(id, t0, t1) { // characters speak in short bubbles: pop in, (optionally) pop out
+            tl.fromTo(el(id), { scale: 0.3, y: 30, opacity: 0 }, { scale: 1, y: 0, opacity: 1, duration: 0.32, ease: "back.out(2.2)" }, t0);
+            if (t1 != null) tl.fromTo(el(id), { scale: 1, opacity: 1 }, x(NIR, { scale: 0.6, opacity: 0, duration: 0.18, ease: "power2.in" }), t1);
+          }
+          function hop(sel, t, h) { tl.fromTo(sel, { y: 0 }, x(NIR, { y: -h, duration: 0.15, ease: "power2.out" }), t); tl.fromTo(sel, { y: -h }, x(NIR, { y: 0, duration: 0.34, ease: "bounce.out" }), t + 0.15); }
+          // ---- background layer: paper scraps + pluses drifting (the scissors' leftovers), ghost word
+          var dh = "", SC = [P.sky, P.tangerine, P.mint, P.violet, P.raspberry];
+          for (i = 0; i < 22; i++) {
+            var w0 = 16 + Math.round(rnd() * 22), px = Math.round(rnd() * 1860), py = Math.round(100 + rnd() * 880);
+            dh += i % 2 ? '<i class="p plus" style="left:' + px + "px;top:" + py + "px;width:" + (w0 + 4) + "px;height:" + (w0 + 4) + 'px"></i>'
+              : '<i style="left:' + px + "px;top:" + py + "px;width:" + w0 + "px;height:" + Math.round(w0 * 0.62) + "px;background:" + SC[i % 5] + ";transform:rotate(" + Math.round(rnd() * 80 - 40) + 'deg);opacity:0.55"></i>';
+          }
+          el("deco").innerHTML = dh;
+          H.drift(tl, el("ghost"), 0, D, { x: -160 }); H.drift(tl, el("deco"), 0, D, { y: -56, x: 30 });
+          // ---- icons + the 4 pieces (blueprint face / card face) + the board's columns and mini cards
+          var IC = [
+            '<rect x="14" y="8" width="82" height="96" rx="12" fill="#fff6e6" stroke="#16123a" stroke-width="5"/><circle cx="34" cy="34" r="8" fill="#2bd99f" stroke="#16123a" stroke-width="3.5"/><circle cx="34" cy="58" r="8" fill="#2bd99f" stroke="#16123a" stroke-width="3.5"/><circle cx="34" cy="82" r="8" fill="#2bd99f" stroke="#16123a" stroke-width="3.5"/><path d="M50 34h32M50 58h26M50 82h30" stroke="#16123a" stroke-width="6" stroke-linecap="round"/>',
+            '<path d="M55 12 C33 12 26 30 26 50 V68 L16 82 H94 L84 68 V50 C84 30 77 12 55 12 Z" fill="#ff8a1f" stroke="#16123a" stroke-width="5" stroke-linejoin="round"/><path d="M44 88 Q55 102 66 88" fill="#ff8a1f" stroke="#16123a" stroke-width="5"/><path d="M84 28 C92 40 98 46 98 54 A12 12 0 0 1 74 54 C74 46 80 40 84 28 Z" fill="#3ec5ff" stroke="#16123a" stroke-width="4" stroke-linejoin="round"/>',
+            '<rect x="10" y="16" width="90" height="84" rx="12" fill="#fff6e6" stroke="#16123a" stroke-width="5"/><path d="M10 40 H100 V28 Q100 16 88 16 H22 Q10 16 10 28 Z" fill="#3ec5ff" stroke="#16123a" stroke-width="5" stroke-linejoin="round"/><path d="M34 8V24M76 8V24" stroke="#16123a" stroke-width="6" stroke-linecap="round"/><path d="M30 56h10M50 56h10M70 56h10M30 76h10M70 76h10" stroke="#16123a" stroke-width="6" stroke-linecap="round" stroke-opacity="0.35"/><path d="M55 64 C60 72 63 75 63 80 A8 8 0 0 1 47 80 C47 75 50 72 55 64 Z" fill="#3ec5ff" stroke="#16123a" stroke-width="3.5"/>',
+            '<path d="M18 34 H38 L46 22 H66 L74 34 H92 Q100 34 100 42 V90 Q100 98 92 98 H18 Q10 98 10 90 V42 Q10 34 18 34 Z" fill="#5b34f5" stroke="#16123a" stroke-width="5" stroke-linejoin="round"/><circle cx="55" cy="64" r="22" fill="#fff6e6" stroke="#16123a" stroke-width="5"/><path d="M55 76 V60 M55 66 Q46 56 47 50 Q55 52 55 62 Q56 52 63 50 Q64 58 55 66" fill="#2bd99f" stroke="#16123a" stroke-width="3" stroke-linejoin="round"/>'];
+          var LBL = ["Список цветов", "Напоминание о поливе", "Календарь полива", "Фото цветка"], PIN = [P.mint, P.tangerine, P.sky, P.violet];
+          var PX = [760, 1120, 760, 1120], PY = [180, 180, 410, 410], SPL = [[-26, -20, -2.5], [26, -20, 2], [-26, 20, 1.5], [26, 20, -2]];
+          var BPD = ['<path d="M150 150 h150 v60 h-150 z M180 150 v60" stroke-dasharray="10 8"/>', '<path d="M60 60 h120 v150 h-120 z M60 100 h120 M90 60 v-30 h60 v30"/>', '<path d="M60 40 h240 M60 90 h180 M60 140 h210"/><circle cx="300" cy="170" r="30"/>', '<path d="M40 50 l120 120 M40 170 l120 -120"/><circle cx="240" cy="110" r="60"/>'];
+          var pcs = "", mins = "", cols = "";
+          for (i = 0; i < 4; i++) {
+            var grid = "";
+            for (var g = 30; g < 360; g += 30) grid += "M" + g + " 0V230";
+            for (g = 30; g < 230; g += 30) grid += "M0 " + g + "H360";
+            pcs += '<div class="abs pc" id="s06-plan-pc' + i + '" style="left:' + PX[i] + "px;top:" + PY[i] + 'px"><div class="bp"><svg width="360" height="230" viewBox="0 0 360 230" aria-hidden="true"><path d="' + grid + '" stroke="#fff6e6" stroke-opacity="0.35" stroke-width="2" fill="none"/><g fill="none" stroke="#fff6e6" stroke-width="5" stroke-linecap="round" stroke-opacity="0.9">' + BPD[i] + "</g></svg>" +
+              (i ? "" : '<div class="ttl">Чертёж</div>') + '</div><div class="edge"></div><div class="card"><i class="pin" style="background:' + PIN[i] + '"></i><svg width="110" height="110" viewBox="0 0 110 110" aria-hidden="true">' + IC[i] + "</svg><b>" + LBL[i] + "</b></div></div>";
+            mins += '<div class="abs mini" id="s06-plan-m' + i + '" style="left:636px;top:' + (300 + i * 98) + 'px"><i class="abs glow"></i><svg width="56" height="56" viewBox="0 0 110 110" aria-hidden="true">' + IC[i] + "</svg><b>" + LBL[i] + "</b></div>";
+          }
+          ["Ждут", "В работе", "Готово"].forEach(function (t, c) { cols += '<div class="abs col" style="left:' + (15 + c * 368) + 'px">' + (c ? '<i class="ph" style="top:81px"></i><i class="ph" style="top:179px"></i>' : "") + '<div class="hd" id="s06-plan-h' + c + '" style="background:' + [P.sky, P.tangerine, P.mint][c] + '">' + t + "</div></div>"; });
+          el("pcs").innerHTML = pcs; el("minis").innerHTML = mins; el("cols").innerHTML = cols;
+          // ---- 0 … planner: the blueprint is on the table; Планировщик arrives
+          H.arrive(tl, el("pcs"), 0.08, { from: 0.9, y: 40 }); H.arrive(tl, el("docf"), 0.08, { from: 0.9, y: 40 });
+          H.arrive(tl, el("pl"), 0.2, { from: 0.4, y: 60 }); H.slam(tl, el("plate"), C.planner); hop("#s06-plan-pl > .kit-rim", C.planner, 20);
+          bubble("b0", C.planner + 0.3, C.tasks + 0.5); bubble("b1", C.done + 0.5, null);
+          H.bob(tl, el("pl"), 0.75, OUT, { y: 7, period: 2.2 }); H.blink(tl, "#s06-plan-kp .c-lid", 0.6, OUT, { seed: 61 });
+          tl.fromTo(el("cutv"), { scaleY: 0, transformOrigin: "50% 0%" }, { scaleY: 1, duration: 0.3, ease: "power2.out" }, C.planner + 0.15);
+          tl.fromTo(el("cuth"), { scaleX: 0, transformOrigin: "0% 50%" }, { scaleX: 1, duration: 0.3, ease: "power2.out" }, C.planner + 0.3);
+          // «режет чертёж»: the big scissors run down the vertical cut, then across the horizontal one
+          var CUT = at("режет", C.planner, C.planner + 0.55), SPLIT = C.tasks;
+          tl.fromTo(el("scis"), { x: 1045, y: 60, scale: 0.3, opacity: 0 }, { x: 1045, y: 90, scale: 1, opacity: 1, duration: 0.25, ease: "back.out(2)" }, CUT - 0.25);
+          tl.fromTo(el("scis-r"), { rotation: 90 }, x(NIR, { rotation: 90, duration: 0.01 }), CUT - 0.25);
+          tl.fromTo(el("scis"), { x: 1045, y: 90 }, x(NIR, { x: 1045, y: 580, duration: (SPLIT - CUT) * 0.46, ease: "power1.inOut" }), CUT);
+          tl.fromTo(el("scis"), { x: 1045, y: 580 }, x(NIR, { x: 660, y: 332, duration: 0.14, ease: "power2.inOut" }), CUT + (SPLIT - CUT) * 0.47);
+          tl.fromTo(el("scis-r"), { rotation: 90 }, x(NIR, { rotation: 0, duration: 0.14 }), CUT + (SPLIT - CUT) * 0.47);
+          tl.fromTo(el("scis"), { x: 660, y: 332 }, x(NIR, { x: 1420, y: 332, duration: (SPLIT - CUT) * 0.4, ease: "power1.inOut" }), CUT + (SPLIT - CUT) * 0.6);
+          tl.fromTo(el("scis"), { x: 1420, scale: 1, opacity: 1 }, x(NIR, { x: 1560, scale: 0.4, opacity: 0, duration: 0.25, ease: "power2.in" }), SPLIT + 0.02);
+          tl.fromTo(el("bl1"), { rotation: 0 }, x(NIR, { rotation: -16, svgOrigin: "-4 0", duration: 0.09, ease: "none", yoyo: true, repeat: H.repeats(SPLIT - CUT, 0.09) }), CUT);
+          tl.fromTo(el("bl2"), { rotation: 0 }, x(NIR, { rotation: 16, svgOrigin: "-4 0", duration: 0.09, ease: "none", yoyo: true, repeat: H.repeats(SPLIT - CUT, 0.09) }), CUT);
+          tl.fromTo("#s06-plan-kp .c-arm-r", { rotation: 0 }, x(NIR, { rotation: -22, duration: 0.12, ease: "sine.inOut", yoyo: true, repeat: 1 + 2 * Math.floor((SPLIT - CUT) / 0.24) }), CUT);
+          // tasks: the four pieces spring apart; paper scraps puff from the cut cross
+          tl.set([el("docf"), el("cutv"), el("cuth")], { opacity: 0 }, SPLIT);
+          tl.fromTo("#s06-plan .edge", { opacity: 0 }, { opacity: 1, duration: 0.01, immediateRender: false }, SPLIT);
+          SPL.forEach(function (s, n) { tl.fromTo(el("pc" + n), { x: 0, y: 0, rotation: 0 }, x(NIR, { x: s[0], y: s[1], rotation: s[2], duration: 0.5, ease: "back.out(2.2)" }), SPLIT); });
+          // paper scraps puff from the cut cross: nested property tweens (outer = launch velocity, ease none; inner =
+          // gravity power1.in = u², spin, binary appear + tail fade) so any seek order renders the right frame
+          var sh = "", SF = 0.9;
+          for (i = 0; i < 12; i++) sh += '<i><b style="background:' + SC[i % 5] + '"></b></i>';
+          el("scrap").innerHTML = sh;
+          for (i = 0; i < 12; i++) {
+            var a = rnd() * Math.PI * 2, v = 260 + rnd() * 260, spin = rnd() * 600 - 300, o = el("scrap").children[i], bb = o.firstChild;
+            tl.fromTo(o, { x: 0, y: 0 }, x(NIR, { x: Math.cos(a) * v * SF, y: (Math.sin(a) * v - 200) * SF, duration: SF, ease: "none" }), SPLIT);
+            tl.fromTo(bb, { y: 0 }, x(NIR, { y: 700 * SF * SF, duration: SF, ease: "power1.in" }), SPLIT);
+            tl.fromTo(bb, { rotation: 0 }, x(NIR, { rotation: spin * SF, duration: SF, ease: "none" }), SPLIT);
+            tl.fromTo(bb, { opacity: 0 }, x(NIR, { opacity: 1, duration: 0.01, ease: "none" }), SPLIT);
+            tl.fromTo(bb, { opacity: 1 }, x(NIR, { opacity: 0, duration: 0.3, ease: "power1.in" }), SPLIT + SF - 0.3);
+          }
+          // plants / remind / календарь / фото: each piece flips into its task card on its spoken word
+          var FLIP = [C.plants, C.remind, at("календар", C.remind, C.remind + 1.3), at("фото", C.remind, C.remind + 2)];
+          FLIP.forEach(function (t, n) {
+            var pc = el("pc" + n);
+            tl.fromTo(pc, { scaleX: 1 }, x(NIR, { scaleX: 0, duration: 0.12, ease: "power2.in" }), t - 0.1);
+            tl.set(pc.querySelector(".bp"), { opacity: 0 }, t + 0.02); tl.set(pc.querySelector(".card"), { opacity: 1 }, t + 0.02);
+            tl.fromTo(pc, { scaleX: 0 }, x(NIR, { scaleX: 1, duration: 0.34, ease: "back.out(2)" }), t + 0.02);
+            tl.fromTo(pc.querySelector(".card svg"), { scale: 0.4, rotation: -20 }, { scale: 1, rotation: 0, duration: 0.4, ease: "back.out(2.6)", immediateRender: false }, t + 0.1);
+          });
+          // ---- approve: your hand stamps «ОДОБРЕНО» on the plan
+          var ST = C.approve + 0.2;
+          tl.fromTo(el("stamp"), { y: -560, rotation: -10 }, { y: 0, rotation: 0, duration: 0.3, ease: "power3.in" }, ST - 0.3);
+          tl.fromTo("#s06-plan-stk", { scaleY: 1 }, x(NIR, { scaleY: 0.9, transformOrigin: "50% 100%", duration: 0.07, yoyo: true, repeat: 1 }), ST);
+          tl.fromTo(el("seal"), { scale: 1.5, rotation: -40, opacity: 0 }, { scale: 1, rotation: -8, opacity: 1, duration: 0.3, ease: "back.out(2.4)" }, ST + 0.03);
+          tl.fromTo(el("ring"), { scale: 0.9, opacity: 1 }, x(NIR, { scale: 2.1, opacity: 0, duration: 0.6, ease: "power2.out" }), ST + 0.03);
+          tl.fromTo("#s06-plan-pcs", { y: 0 }, x(NIR, { y: 10, duration: 0.07, ease: "power2.out", yoyo: true, repeat: 1 }), ST);
+          tl.fromTo(el("stamp"), { y: 0, rotation: 0 }, x(NIR, { y: -120, rotation: 6, duration: 0.35, ease: "power2.out" }), ST + 0.25);
+          tl.fromTo(el("stamp"), { y: -120 }, x(NIR, { y: -700, duration: 0.4, ease: "power2.in" }), ST + 0.9);
+          tl.fromTo(el("stamp"), { opacity: 0 }, { opacity: 1, duration: 0.01, immediateRender: true }, ST - 0.3); tl.fromTo(el("stamp"), { opacity: 1 }, x(NIR, { opacity: 0, duration: 0.01 }), ST + 1.31); // parked off-frame = hidden
+          hop("#s06-plan-pl > .kit-rim", ST + 0.1, 24);
+          // ---- board: the board drops on «доску», the cards whip into «Ждут» (waterfall), the headers drop on their words
+          var B = C.board;
+          tl.fromTo(el("board"), { y: -980 }, { y: 0, duration: 0.42, ease: "back.out(1.15)" }, B - 0.3);
+          tl.fromTo(el("ghost"), { opacity: 0.11 }, x(NIR, { opacity: 0, duration: 0.3 }), B - 0.2); // the board now covers it
+          // the imprint rides along and lands as a sticker on the board's free corner (≥155 px so «ОДОБРЕНО» stays ≥16 px)
+          tl.fromTo(el("seal"), { x: 0, y: 0, scale: 1, rotation: -8 }, x(NIR, { x: 520, y: 270, scale: 0.8, rotation: -14, duration: 0.5, ease: "power3.inOut" }), B - 0.25);
+          var wt = B + 0.08;
+          [0, 1, 2, 3].forEach(function (n) {
+            var d = 0.2 - n * 0.02, pc = el("pc" + n);
+            // the piece dives (scale 0.4) onto the mini's whip-in start point and hands off to it in one binary swap
+            tl.fromTo(pc, { x: SPL[n][0], y: SPL[n][1], rotation: SPL[n][2], scale: 1 }, x(NIR, { x: 614 - PX[n], y: 298 + n * 90 - PY[n], rotation: 0, scale: 0.4, duration: 0.26, ease: "power2.in" }), wt - 0.26);
+            tl.fromTo(pc, { opacity: 1 }, x(NIR, { opacity: 0, duration: 0.01, ease: "none" }), wt);
+            tl.fromTo(el("m" + n), { opacity: 0, y: 70 - n * 8 }, { opacity: 0, y: 70 - n * 8, duration: 0.01, immediateRender: true }, 0);
+            tl.set(el("m" + n), { opacity: 1 }, wt);
+            tl.fromTo(el("m" + n), { y: 70 - n * 8 }, x(NIR, { y: 0, duration: d, ease: "power4.out" }), wt);
+            wt += d - 0.03;
+          });
+          [C.todo, C.doing, C.done].forEach(function (t, c) { tl.fromTo(el("h" + c), { y: -70, scale: 1.3, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.36, ease: "back.out(2.2)" }, t - 0.05); });
+          // tail: «Напоминание о поливе» moves to «В работе»; the queue closes up behind it
+          var MV = C.done + 0.62;
+          tl.fromTo(el("m1"), { x: 0 }, x(NIR, { x: 368, duration: 0.6, ease: "power2.inOut" }), MV);
+          tl.fromTo(el("m1"), { y: 0, rotation: 0 }, x(NIR, { y: -150, rotation: 4, duration: 0.3, ease: "power2.out" }), MV);
+          tl.fromTo(el("m1"), { y: -150, rotation: 4 }, x(NIR, { y: -98, rotation: 0, duration: 0.3, ease: "back.out(2)" }), MV + 0.3);
+          tl.fromTo("#s06-plan-m1 .glow", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.25, ease: "back.out(2)", immediateRender: false }, MV + 0.55);
+          tl.fromTo("#s06-plan-m1 .glow", { opacity: 1 }, { opacity: 0.55, duration: 0.5, ease: "sine.inOut", yoyo: true, repeat: H.repeats(OUT - MV - 0.8, 0.5), immediateRender: false }, MV + 0.8);
+          tl.fromTo([el("m2"), el("m3")], { y: 0 }, x(NIR, { y: -98, duration: 0.35, ease: "back.out(1.8)", stagger: 0.06 }), MV + 0.35);
+          hop("#s06-plan-pl > .kit-rim", MV + 0.6, 18);
+          tl.fromTo(el("h1"), { scale: 1 }, x(NIR, { scale: 1.1, duration: 0.14, yoyo: true, repeat: 1 }), MV + 0.6);
+
+          window.__timelines["%%ID%%"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

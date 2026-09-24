@@ -1,0 +1,239 @@
+<!doctype html>
+<!-- s05-critic «Придира» — scene pack V3. Contract: src/scenes/README.md.
+     Motion: css-marker-patterns (circle mode, drawn with pathLength) + kinetic-beat-slam (distinct entrances: side-snap
+     Придира, scale-slam stamp «ДОРАБОТАТЬ», rise «ДА») + vertical-spring-ticker («Круг 1 из 2» -> 2) +
+     press-release-spring and particle-burst (≈30 seeded confetti) for your «ДА». -->
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>s05-critic</title>
+  </head>
+  <body>
+    <template id="s05-critic-template">
+      <style>
+        %%FONTS%%
+        %%KITCSS%%
+        #s05-critic { position: absolute; inset: 0; overflow: hidden; background: %%FIELD%%; color: %%INK%%; font-family: "Golos Text", sans-serif; }
+        #s05-critic .abs { position: absolute; }
+        #s05-critic .ghost { left: 60px; top: 300px; font-family: "Unbounded", sans-serif; font-weight: 900; font-size: 300px; line-height: 1; white-space: nowrap; opacity: 0.13; }
+        #s05-critic .deco { inset: 0; opacity: 0.3; }
+        #s05-critic .deco i { position: absolute; display: block; }
+        #s05-critic .dot { border-radius: 50%; background: #16123a; }
+        #s05-critic .ring0 { border-radius: 50%; border: 5px solid #16123a; }
+        #s05-critic .plus::before, #s05-critic .plus::after { content: ""; position: absolute; background: #16123a; border-radius: 2px; }
+        #s05-critic .plus::before { left: 0; right: 0; top: 50%; height: 4px; margin-top: -2px; }
+        #s05-critic .plus::after { top: 0; bottom: 0; left: 50%; width: 4px; margin-left: -2px; }
+        #s05-critic .doc { left: 690px; top: 150px; width: 520px; height: 490px; background: #fff6e6; border: 5px solid #16123a; border-radius: 28px; box-shadow: 10px 10px 0 #16123a; }
+        #s05-critic .doc-h { position: absolute; left: 0; right: 0; top: 0; height: 76px; background: #3ec5ff; border-bottom: 5px solid #16123a; border-radius: 23px 23px 0 0; display: flex; align-items: center; padding-left: 28px; font-weight: 800; font-size: 32px; }
+        #s05-critic .tile { position: absolute; width: 124px; height: 150px; background: #fff6e6; border: 4px solid #16123a; border-radius: 14px; box-shadow: 5px 5px 0 #16123a; overflow: hidden; }
+        #s05-critic .tile i { position: absolute; left: 0; right: 0; top: 0; height: 24px; border-bottom: 4px solid #16123a; }
+        #s05-critic .tile svg { position: absolute; left: 0; top: 24px; }
+        #s05-critic .gap { position: absolute; left: 198px; top: 286px; width: 124px; height: 150px; border: 5px dashed #16123a; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-family: "Unbounded", sans-serif; font-weight: 900; font-size: 64px; opacity: 0.6; }
+        #s05-critic .mark { position: absolute; left: 0; top: 0; overflow: visible; }
+        #s05-critic .bracket { position: absolute; left: 0; top: 0; width: 144px; height: 170px; }
+        #s05-critic .bracket b { position: absolute; width: 34px; height: 34px; border: 0 solid #16123a; }
+        #s05-critic .stamp { position: absolute; left: 30px; top: 150px; width: 460px; height: 96px; display: flex; align-items: center; justify-content: center; background: #ff4f8b; border: 6px solid #16123a; border-radius: 16px; box-shadow: 6px 6px 0 #16123a; font-family: "Unbounded", sans-serif; font-weight: 900; font-size: 42px; letter-spacing: 0.02em; }
+        #s05-critic .sheet { left: 693px; top: 348px; width: 84px; height: 104px; background: #fff6e6; border: 4px solid #16123a; border-radius: 10px; box-shadow: 4px 4px 0 #16123a; overflow: hidden; }
+        #s05-critic .sheet i { position: absolute; left: 0; right: 0; top: 0; height: 18px; background: #3ec5ff; border-bottom: 4px solid #16123a; }
+        #s05-critic .sheet u { position: absolute; left: 12px; height: 6px; border-radius: 3px; background: #16123a; opacity: 0.6; }
+        #s05-critic .pill { left: 392px; top: 150px; height: 72px; padding: 0 30px; display: flex; align-items: center; background: #16123a; color: #fff6e6; border-radius: 999px; box-shadow: 6px 6px 0 rgba(22, 18, 58, 0.35); font-weight: 800; font-size: 36px; white-space: nowrap; }
+        #s05-critic .win { display: inline-block; width: 38px; height: 44px; margin: 0 12px; overflow: hidden; vertical-align: middle; }
+        #s05-critic .bub { padding: 12px 24px 14px; background: #fff6e6; border: 4px solid #16123a; border-radius: 28px; box-shadow: 6px 6px 0 #16123a; font-weight: 800; font-size: 32px; white-space: nowrap; }
+        #s05-critic .bub::after { content: ""; position: absolute; bottom: -19px; width: 26px; height: 26px; background: #fff6e6; border-right: 4px solid #16123a; border-bottom: 4px solid #16123a; transform: rotate(45deg) skew(8deg, 8deg); }
+        #s05-critic .bub.l::after { left: 44px; }
+        #s05-critic .bub.r::after { right: 54px; }
+        #s05-critic .win span { display: block; }
+        #s05-critic .win em { display: block; height: 44px; line-height: 44px; font-style: normal; font-family: "Unbounded", sans-serif; font-weight: 900; font-size: 40px; text-align: center; }
+        #s05-critic .plate { top: 750px; height: 46px; padding: 0 22px; display: flex; align-items: center; background: #fff6e6; border: 4px solid #16123a; border-radius: 999px; box-shadow: 5px 5px 0 #16123a; font-weight: 800; font-size: 28px; white-space: nowrap; }
+        #s05-critic .spark { width: 60px; height: 60px; }
+        #s05-critic .btn { left: 450px; top: 285px; width: 220px; height: 220px; }
+        #s05-critic .btn-face { position: absolute; inset: 0; border-radius: 50%; background: #ffda4f; border: 6px solid #16123a; box-shadow: 10px 10px 0 #16123a; display: flex; align-items: center; justify-content: center; font-family: "Unbounded", sans-serif; font-weight: 900; font-size: 96px; line-height: 1; }
+        #s05-critic .btn-face span { display: block; }
+        #s05-critic .burst { left: 260px; top: 95px; width: 600px; height: 600px; overflow: visible; }
+        #s05-critic .okb { position: absolute; left: 458px; top: -40px; width: 96px; height: 96px; }
+        #s05-critic .field { left: 560px; top: 395px; width: 0; height: 0; }
+        #s05-critic .field i { position: absolute; left: 0; top: 0; display: block; width: 0; height: 0; }
+        #s05-critic .field b { position: absolute; display: block; opacity: 0; border: 2px solid #16123a; border-radius: 3px; }
+        #s05-critic .handw { left: 469px; top: -558px; width: 180px; height: 900px; transform-origin: 91px 888px; transform: rotate(10deg); }
+        #s05-critic .handm { left: 0; top: 0; width: 180px; height: 900px; }
+        #s05-critic .hand { left: 0; top: 0; }
+      </style>
+      <div id="s05-critic" data-composition-id="%%ID%%" data-width="1920" data-height="1080" data-duration="%%DUR%%">
+        <div class="abs ghost" id="s05-critic-ghost" data-layout-allow-overflow data-layout-ignore aria-hidden="true">ПРИДИРА</div>
+        <div class="abs deco" id="s05-critic-deco" data-layout-allow-overflow></div>
+        <div class="abs field" id="s05-critic-field" data-layout-allow-overflow></div>
+        <svg class="abs burst" id="s05-critic-burst" width="600" height="600" viewBox="-300 -300 600 600" aria-hidden="true"><circle id="s05-critic-r0" r="105" fill="none" stroke="#16123a" stroke-width="0" /><circle id="s05-critic-r1" r="105" fill="none" stroke="#ffda4f" stroke-width="0" /><circle id="s05-critic-r2" r="108" fill="none" stroke="#16123a" stroke-width="0" /></svg>
+        <svg class="abs" id="s05-critic-loop" style="left: 360px; top: 280px" width="400" height="240" viewBox="0 0 400 240" aria-hidden="true"> <ellipse id="s05-critic-loopd" cx="200" cy="120" rx="175" ry="100" fill="none" stroke="#16123a" stroke-width="7" stroke-dasharray="18 14" stroke-linecap="round" /> <path d="M214 6 L196 20 L214 34 M186 206 L204 220 L186 234" fill="none" stroke="#16123a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" /> </svg>
+        <div class="abs" id="s05-critic-pisar" data-layout-allow-orbit style="left: 250px; top: 477px; width: 230px; height: 268px"><div class="kit-rim">%%CHAR:pisar:230#s05-critic-kp%%</div></div>
+        <div class="abs sheet" id="s05-critic-sheet" data-layout-allow-orbit><i></i><u style="top: 34px; width: 56px"></u><u style="top: 52px; width: 40px"></u><u style="top: 70px; width: 50px"></u></div>
+        <div class="abs doc" id="s05-critic-doc">
+          <div class="doc-h">Чертёж · «Полей меня»</div>
+          <div id="s05-critic-tiles"></div> <div class="gap" id="s05-critic-gap">?</div> <div class="tile" id="s05-critic-fix" style="left: 198px; top: 286px"></div>
+          <svg class="mark" id="s05-critic-mark" width="520" height="490" viewBox="0 0 520 490" aria-hidden="true"><path id="s05-critic-circ" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" fill="none" stroke="#ff4f8b" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" d="" /><path id="s05-critic-tick" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" d="M366 110 q30 -26 52 4 q16 20 44 -6" fill="none" stroke="#ff4f8b" stroke-width="9" stroke-linecap="round" /></svg>
+          <div class="bracket" id="s05-critic-brk"><b style="left: 0; top: 0; border-width: 6px 0 0 6px; border-radius: 10px 0 0 0"></b><b style="right: 0; top: 0; border-width: 6px 6px 0 0; border-radius: 0 10px 0 0"></b><b style="left: 0; bottom: 0; border-width: 0 0 6px 6px; border-radius: 0 0 0 10px"></b><b style="right: 0; bottom: 0; border-width: 0 6px 6px 0; border-radius: 0 0 10px 0"></b></div>
+          <div class="stamp" id="s05-critic-stamp" data-layout-allow-occlusion>ДОРАБОТАТЬ</div>
+          <svg class="okb" id="s05-critic-okb" data-layout-allow-overflow viewBox="0 0 96 96" aria-hidden="true"><circle cx="50" cy="50" r="40" fill="#16123a" /><circle cx="44" cy="44" r="40" fill="#2bd99f" stroke="#16123a" stroke-width="5" /><path d="M25 45 l13 13 l26 -28" fill="none" stroke="#16123a" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </div>
+        <div class="abs pill" id="s05-critic-pill">Круг<span class="win" data-layout-allow-overflow><span id="s05-critic-stack"><em>1</em><em>2</em></span></span>из&nbsp;2</div>
+        <div class="abs" id="s05-critic-pridira" data-layout-allow-overflow data-layout-allow-orbit style="left: 1250px; top: 348px; width: 340px; height: 397px"><div class="kit-rim">%%CHAR:pridira:340#s05-critic-kc%%</div></div>
+        <div class="abs plate" id="s05-critic-pl0" style="left: 300px">Писарь</div>
+        <div class="abs bub l" id="s05-critic-b0" style="left: 250px; top: 372px">Готово! Проверяйте.</div><div class="abs bub r" id="s05-critic-b1" style="left: 1250px; top: 238px">Ага, дыра!</div><div class="abs bub l" id="s05-critic-b2" style="left: 1400px; top: 250px">Ладно, годится.</div>
+        <div class="abs plate" id="s05-critic-pl1" style="left: 1340px">Придира</div>
+        <svg class="abs spark" id="s05-critic-glint" style="left: 1446px; top: 540px" viewBox="0 0 60 60" aria-hidden="true"><path d="M30 2 Q33 27 58 30 Q33 33 30 58 Q27 33 2 30 Q27 27 30 2 Z" fill="#fff6e6" stroke="#16123a" stroke-width="3" stroke-linejoin="round" /></svg>
+        <svg class="abs spark" id="s05-critic-fixspark" style="left: 420px; top: 560px" viewBox="0 0 60 60" aria-hidden="true"><path d="M30 2 Q33 27 58 30 Q33 33 30 58 Q27 33 2 30 Q27 27 30 2 Z" fill="#2bd99f" stroke="#16123a" stroke-width="3" stroke-linejoin="round" /></svg>
+        <div class="abs btn" id="s05-critic-btn" data-layout-allow-overflow><div class="btn-face" id="s05-critic-face"><span id="s05-critic-da">ДА</span></div></div>
+        <div class="abs handw" id="s05-critic-handw" data-layout-allow-overflow><div class="abs handm" id="s05-critic-handm"><svg class="abs hand" id="s05-critic-hand" width="180" height="900" viewBox="0 0 180 900" aria-hidden="true"><path d="M38 -10 H142 V540 H38 Z" fill="#ffda4f" stroke="#16123a" stroke-width="6" stroke-linejoin="round" /><path d="M72 40 V520 M106 40 V520" stroke="#16123a" stroke-width="3" stroke-opacity="0.25" /><rect x="28" y="522" width="124" height="42" rx="14" fill="#ffda4f" stroke="#16123a" stroke-width="6" /><rect x="44" y="558" width="96" height="112" rx="34" fill="#fff6e6" stroke="#16123a" stroke-width="6" /><path d="M52 632 q12 16 26 0 M78 640 q10 14 22 2" fill="none" stroke="#16123a" stroke-width="4" stroke-linecap="round" /><path d="M136 580 q22 14 10 44 q-6 12 -20 8" fill="#fff6e6" stroke="#16123a" stroke-width="6" stroke-linejoin="round" /><rect x="74" y="636" width="34" height="252" rx="17" fill="#fff6e6" stroke="#16123a" stroke-width="6" /><path d="M82 850 q9 8 18 0" fill="none" stroke="#16123a" stroke-width="3.5" stroke-linecap="round" stroke-opacity="0.5" /><path d="M56 576 q14 -8 30 -6" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" /></svg></div></div>
+      </div>
+      <script>
+        (function () {
+          %%HELPERS%%
+          var C = %%CUES%%;
+          var D = %%DUR%%, W = %%WORDS%%, H = window.MPV, P = H.C, OUT = C._out;
+          var tl = gsap.timeline({ paused: true }), NIR = { immediateRender: false }, rnd = H.rng(505);
+          function el(id) { return document.getElementById("s05-critic-" + id); } function x(a, b) { var r = {}, k; for (k in a) r[k] = a[k]; for (k in b) r[k] = b[k]; return r; }
+          function at(stem, after, fb) { // first spoken word starting with `stem` at/after `after` (scene-local s)
+            for (var i = 0; i < W.length; i++) if (W[i].start >= after && W[i].text.toLowerCase().replace(/[^а-яёa-z0-9-]/g, "").indexOf(stem) === 0) return W[i].start;
+            return fb;
+          }
+          function bubble(id, t0, t1) { // characters speak in short bubbles: pop in, (optionally) pop out
+            tl.fromTo(el(id), { scale: 0.3, y: 30, opacity: 0 }, { scale: 1, y: 0, opacity: 1, duration: 0.32, ease: "back.out(2.2)" }, t0);
+            if (t1 != null) tl.fromTo(el(id), { scale: 1, opacity: 1 }, x(NIR, { scale: 0.6, opacity: 0, duration: 0.18, ease: "power2.in" }), t1);
+          }
+          function hop(sel, t, h) { tl.fromTo(sel, { y: 0 }, x(NIR, { y: -h, duration: 0.15, ease: "power2.out" }), t); tl.fromTo(sel, { y: -h }, x(NIR, { y: 0, duration: 0.34, ease: "bounce.out" }), t + 0.15); }
+          // ---- background layer: seeded dots / pluses / rings drifting, ghost word drifting
+          var dh = "", i, sz;
+          for (i = 0; i < 22; i++) { sz = (i % 3 ? 20 : 12) + Math.round(rnd() * 16); dh += '<i class="' + ["dot", "plus", "ring0"][i % 3] + '" style="left:' + Math.round(rnd() * 1860) + "px;top:" + Math.round(100 + rnd() * 880) + "px;width:" + sz + "px;height:" + sz + 'px"></i>'; }
+          el("deco").innerHTML = dh;
+          H.drift(tl, el("ghost"), 0, D, { x: -150 }); H.drift(tl, el("deco"), 0, D, { y: -50, x: -20 });
+          // ---- the blueprint: 5 section tiles (callback to S04) + the gap; the fix tile is the mint checklist
+          function tile(col, row, c, kind, id) {
+            var s = "", j;
+            for (j = 0; j < 3; j++) {
+              if (kind === 2) s += '<rect x="16" y="' + (12 + j * 34) + '" width="24" height="24" rx="5" fill="#fff6e6" stroke="#16123a" stroke-width="3.5"/><path d="M20 ' + (24 + j * 34) + ' l6 6 l12 -15" fill="none" stroke="#16123a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>';
+              if (kind !== 1) s += '<path d="M' + (kind === 2 ? 50 : 36) + " " + (24 + j * 34) + "h" + (38 + Math.round(rnd() * 26)) + '" stroke="#16123a" stroke-width="5" stroke-linecap="round" stroke-opacity="0.7"/>' + (kind ? "" : '<circle cx="22" cy="' + (24 + j * 34) + '" r="6" fill="' + c + '" stroke="#16123a" stroke-width="3"/>');
+            }
+            if (kind === 1) s = '<rect x="34" y="10" width="56" height="100" rx="11" fill="#fff6e6" stroke="#16123a" stroke-width="4"/><rect x="42" y="20" width="40" height="12" rx="4" fill="' + c + '"/><rect x="42" y="42" width="40" height="24" rx="5" fill="#16123a" fill-opacity="0.14"/><circle cx="62" cy="92" r="7" fill="#3ec5ff" stroke="#16123a" stroke-width="3"/>';
+            return (id ? "" : '<div class="tile" style="left:' + (50 + col * 148) + "px;top:" + (112 + row * 174) + 'px">') + '<i style="background:' + c + '"></i><svg width="116" height="106" viewBox="0 0 124 114" aria-hidden="true">' + s + "</svg>" + (id ? "" : "</div>");
+          }
+          el("tiles").innerHTML = tile(0, 0, P.tangerine, 0) + tile(1, 0, P.violet, 1) + tile(2, 0, P.mint, 2) + tile(0, 1, P.violet, 1) + tile(2, 1, P.tangerine, 0);
+          el("fix").innerHTML = tile(1, 1, P.mint, 2, true);
+          // hand-drawn marker ellipse around the gap (a little more than one turn, wobbling radius)
+          var d = "", a;
+          for (i = 0; i <= 44; i++) { a = -1.9 + i * (2.25 * Math.PI) / 44; d += (i ? "L" : "M") + (260 + Math.cos(a) * (104 + 8 * Math.sin(i * 0.7))).toFixed(1) + " " + (361 + Math.sin(a) * (112 - 6 * Math.cos(i * 0.5))).toFixed(1); }
+          el("circ").setAttribute("d", d);
+          // ---- 0 … critic: the finished blueprint lands, its author presents it, then Придира side-snaps in
+          H.arrive(tl, el("doc"), 0.1, { from: 0.85, y: -60 });
+          H.arrive(tl, el("pisar"), 0.3, { from: 0.4, y: 40 });
+          H.slam(tl, el("pl0"), 0.55);
+          tl.fromTo("#s05-critic-kp .c-arm-l", { rotation: 0 }, x(NIR, { rotation: 70, duration: 0.3, ease: "back.out(2)", yoyo: true, repeat: 1, repeatDelay: 0.8 }), 0.7);
+          H.bob(tl, el("pisar"), 0.9, OUT, { y: 6, period: 2.1 }); H.blink(tl, "#s05-critic-kp .c-lid", 0.5, OUT, { seed: 51 });
+          tl.fromTo(el("pridira"), { x: 760, rotation: 12 }, { x: 0, rotation: 0, duration: 0.5, ease: "expo.out" }, C.critic - 0.3);
+          tl.fromTo("#s05-critic-kc .c-body", { scaleY: 1, scaleX: 1 }, x(NIR, { scaleY: 0.86, scaleX: 1.1, duration: 0.1, ease: "power2.out", yoyo: true, repeat: 1 }), C.critic + 0.18);
+          H.slam(tl, el("pl1"), C.critic + 0.08);
+          bubble("b0", 0.75, C.critic - 0.35); bubble("b1", C.gap + 0.05, C.back + 0.85); bubble("b2", at("вы", C.accept, C.accept + 0.55) + 0.35, null);
+          H.bob(tl, el("pridira"), C.critic + 0.7, OUT, { y: 6, period: 2.4 }); H.blink(tl, "#s05-critic-kc .c-lid", C.critic + 0.6, OUT, { seed: 52 });
+          tl.fromTo(el("glint"), { scale: 0, rotation: -45, opacity: 0 }, { scale: 1, rotation: 0, opacity: 1, duration: 0.2, ease: "back.out(3)" }, C.critic + 0.5);
+          tl.fromTo(el("glint"), { scale: 1, opacity: 1 }, x(NIR, { scale: 0, opacity: 0, duration: 0.25, ease: "power2.in" }), C.critic + 0.85);
+          // ---- reading: an inspection bracket snaps tile to tile (automaton-crisp) and lands on the gap at C.gap
+          var SPOT = [[40, 102], [188, 102], [336, 102], [40, 276], [188, 276]];
+          tl.fromTo(el("brk"), { x: SPOT[0][0], y: SPOT[0][1], scale: 1.4, opacity: 0 }, { x: SPOT[0][0], y: SPOT[0][1], scale: 1, opacity: 1, duration: 0.25, ease: "back.out(2)" }, C.critic + 0.55);
+          for (i = 1; i < 5; i++) H.snap(tl, el("brk"), C.critic + 0.55 + (C.gap - 0.1 - C.critic - 0.55) * i / 4, { x: SPOT[i][0], y: SPOT[i][1] }, { dur: 0.2, fromVars: { x: SPOT[i - 1][0], y: SPOT[i - 1][1] } });
+          tl.fromTo(el("brk"), { opacity: 1 }, x(NIR, { opacity: 0, duration: 0.2 }), C.gap + 0.2);
+          // gap: the marker circles the hole, Придира raises the red pencil, the stamp slams, the doc shakes
+          tl.fromTo(el("circ"), { strokeDashoffset: 1 }, x(NIR, { strokeDashoffset: 0, duration: 0.36, ease: "power1.inOut" }), C.gap);
+          tl.fromTo("#s05-critic-kc .c-arm-r", { rotation: 0 }, { rotation: -75, duration: 0.2, ease: "back.out(2)", immediateRender: false }, C.gap);
+          tl.fromTo("#s05-critic-kc .c-arm-r", { rotation: -75 }, { rotation: 0, duration: 0.3, ease: "power2.inOut", immediateRender: false }, C.back + 0.35);
+          tl.fromTo(el("stamp"), { scale: 2.3, rotation: -22, opacity: 0 }, { scale: 1, rotation: -9, opacity: 1, duration: 0.26, ease: "expo.out" }, C.gap + 0.16);
+          tl.fromTo(el("doc"), { x: 0 }, x(NIR, { x: 7, duration: 0.05, ease: "none", yoyo: true, repeat: 5 }), C.gap + 0.36);
+          // ---- back: the sheet leaves the doc along the dashed loop to its author, gets fixed, comes back (x2 rounds).
+          // Every leg is a plain x/y property tween (callback drivers freeze under the runtime's suppressed seeks): an
+          // ellipse at constant angular speed is exactly x sine.inOut + y sine.out/sine.in; a quarter arc is sine.out/sine.in.
+          var sheet = el("sheet"), RX = 175, RY = 100, HX = -450, HY = 290;   // loop radii; the author's hands (rest = right point)
+          function leg(p, a, b, t, d, e) { var f = {}, v = {}; f[p] = a; v[p] = b; v.duration = d; v.ease = e; tl.fromTo(sheet, f, x(NIR, v), t); }
+          function tripOut(t0, T) { // top half-ellipse right -> left, then a drop into the author's hands
+            var A = T * 0.7, B = T - A;
+            leg("x", 0, -2 * RX, t0, A, "sine.inOut"); leg("y", 0, -RY, t0, A / 2, "sine.out"); leg("y", -RY, 0, t0 + A / 2, A / 2, "sine.in");
+            leg("x", -2 * RX, HX, t0 + A, B, "power1.in"); leg("y", 0, HY, t0 + A, B, "power1.out"); leg("scale", 1, 0.85, t0 + A, B, "power1.in");
+            leg("rotation", 0, -14, t0, A / 2, "sine.out"); leg("rotation", -14, 8, t0 + A / 2, A / 2 + B, "sine.inOut");
+          }
+          function tripBack(t0, T) { // rise out of the hands to the loop's bottom, then the bottom quarter-arc -> right point
+            var A = T * 0.4, B = T - A;
+            leg("x", HX, -RX, t0, A, "none"); leg("y", HY, RY, t0, A, "power2.out"); leg("x", -RX, 0, t0 + A, B, "sine.out"); leg("y", RY, 0, t0 + A, B, "sine.in");
+            leg("scale", 0.85, 1, t0, A, "power2.out"); leg("rotation", 8, 0, t0, T, "sine.inOut");
+          }
+          tl.fromTo(sheet, { opacity: 0 }, { opacity: 1, duration: 0.1, immediateRender: true }, C.back);
+          tl.fromTo(el("loop"), { scale: 0.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.35, ease: "back.out(1.8)" }, C.back - 0.1);
+          tl.fromTo(el("loopd"), { strokeDashoffset: 0 }, x(NIR, { strokeDashoffset: 320, duration: C.two + 0.3 - C.back, ease: "none" }), C.back);
+          H.arrive(tl, el("pill"), C.back + 0.1, { from: 0.5 });
+          var R1 = C.back, FIXT = R1 + 0.95, LAND = FIXT + 1.35, TWO = C.two;
+          var R2 = Math.max(LAND + 0.04, at("не", C.back + 1.5, C.two - 0.6) - 0.35);   // never overlaps round 1's legs
+          tripOut(R1, 0.95);
+          hop("#s05-critic-pisar > .kit-rim", FIXT - 0.05, 18);
+          tl.fromTo("#s05-critic-kp .c-arm-r", { rotation: 0 }, x(NIR, { rotation: -26, duration: 0.1, ease: "sine.inOut", yoyo: true, repeat: 5 }), FIXT);
+          tl.fromTo(el("fixspark"), { scale: 0, rotation: -60, opacity: 0 }, { scale: 1.2, rotation: 0, opacity: 1, duration: 0.25, ease: "back.out(3)" }, FIXT + 0.45);
+          tl.fromTo(el("fixspark"), { scale: 1.2, opacity: 1 }, x(NIR, { scale: 0, opacity: 0, duration: 0.2 }), FIXT + 0.8);
+          tripBack(FIXT + 0.55, 0.8);
+          // round 1 lands: the fixed tile fills the hole, marker and stamp peel off
+          H.arrive(tl, el("fix"), LAND, { from: 1.4, dur: 0.4, ease: "back.out(2.4)" });
+          tl.fromTo(el("gap"), { opacity: 0.6 }, x(NIR, { opacity: 0, duration: 0.15 }), LAND);
+          tl.fromTo(el("circ"), { opacity: 1 }, x(NIR, { opacity: 0, duration: 0.3 }), LAND);
+          tl.fromTo(el("stamp"), { scale: 1, rotation: -9, opacity: 1 }, x(NIR, { scale: 1.25, rotation: 6, opacity: 0, duration: 0.3, ease: "power2.in" }), LAND - 0.05);
+          // round 2 (the last one): a smaller note, the sheet goes round once more, faster
+          tl.fromTo(el("tick"), { strokeDashoffset: 1, opacity: 1 }, x(NIR, { strokeDashoffset: 0, duration: 0.25, ease: "power2.out" }), R2 - 0.3);
+          tripOut(R2, 0.6);
+          tripBack(R2 + 0.62, 0.55);
+          tl.fromTo(el("tick"), { opacity: 1 }, x(NIR, { opacity: 0, duration: 0.2 }), R2 + 1.1);
+          tl.fromTo(sheet, { opacity: 1 }, x(NIR, { opacity: 0, duration: 0.12 }), R2 + 1.1);
+          // two: vertical-spring-ticker — «Круг 1 из 2» clicks to 2 on the spoken «двух», the loop goes quiet
+          tl.fromTo(el("stack"), { y: 0 }, x(NIR, { y: -44, duration: 0.55, ease: "back.out(2.5)" }), TWO);
+          tl.fromTo(el("pill"), { scale: 1 }, x(NIR, { scale: 1.1, duration: 0.12, ease: "power2.out", yoyo: true, repeat: 1 }), TWO);
+          hop("#s05-critic-pridira > .kit-rim", TWO + 0.05, 16);
+          // the dim must finish before the exit tween below starts (AC - 0.5), or it outlives it and revives the loop
+          tl.fromTo(el("loop"), { opacity: 1 }, x(NIR, { opacity: 0.35, duration: Math.max(0.01, Math.min(0.4, C.accept - 0.5 - (TWO + 0.35))) }), TWO + 0.35);
+          // ---- accept: the loop is closed, the round pill steps aside, your lemon «ДА» springs up in the loop's place;
+          // your hand comes down (tilted clear of the HUD) and presses it on «вы»; the blueprint gets its mint check
+          var YOU = at("вы", C.accept, C.accept + 0.55), AC = C.accept;
+          tl.fromTo(el("loop"), { scale: 1, opacity: 0.35 }, x(NIR, { scale: 0.55, opacity: 0, duration: 0.26, ease: "power2.in" }), AC - 0.5);
+          tl.fromTo(el("pill"), { x: 0 }, x(NIR, { x: -190, duration: 0.42, ease: "power2.inOut" }), AC - 0.5);
+          H.arrive(tl, el("btn"), AC - 0.26, { from: 0.15, y: 80, dur: 0.5, ease: "back.out(1.9)" });
+          H.slam(tl, el("da"), AC - 0.12);   // the word lands while the disc is still growing: never a blank lemon disc
+          tl.fromTo(el("handm"), { y: -900 }, { y: 0, duration: 0.42, ease: "power3.out" }, YOU - 0.46);
+          tl.fromTo(el("handm"), { y: 0 }, x(NIR, { y: 16, duration: 0.1, ease: "power1.in" }), YOU - 0.04);
+          tl.fromTo(el("face"), { scale: 1 }, x(NIR, { scale: 0.88, duration: 0.1, ease: "power1.in" }), YOU - 0.04);
+          tl.fromTo(el("face"), { scale: 0.88 }, x(NIR, { scale: 1, duration: 0.55, ease: "back.out(2.6)" }), YOU + 0.06);
+          tl.fromTo(el("handm"), { y: 16 }, x(NIR, { y: -120, duration: 0.3, ease: "power2.out" }), YOU + 0.24);
+          tl.fromTo(el("handm"), { y: -120 }, x(NIR, { y: -900, duration: 0.42, ease: "power2.in" }), YOU + 0.62);
+          tl.fromTo(el("handm"), { opacity: 0 }, { opacity: 1, duration: 0.01, immediateRender: true }, YOU - 0.46); tl.fromTo(el("handm"), { opacity: 1 }, x(NIR, { opacity: 0, duration: 0.01 }), YOU + 1.05); // parked off-frame = hidden
+          H.bob(tl, el("btn"), YOU + 0.75, OUT, { y: 6, period: 1.7 });
+          // press-release-spring burst BEHIND the button: crisp rings that grow and thin out (attr r / stroke-width, no alpha smear)
+          function ring(id, t, r1, w, dur) { tl.fromTo(el(id), { attr: { r: 112, "stroke-width": 0 } }, { attr: { r: 112, "stroke-width": w }, duration: 0.01, ease: "none", immediateRender: true }, t);
+            tl.fromTo(el(id), { attr: { r: 112, "stroke-width": w } }, x(NIR, { attr: { r: r1, "stroke-width": 0 }, duration: dur, ease: "power2.out" }), t + 0.01); }
+          ring("r0", YOU + 0.05, 290, 30, 0.62); ring("r1", YOU + 0.05, 290, 20, 0.62); ring("r2", YOU + 0.13, 225, 9, 0.5);
+          H.arrive(tl, el("okb"), YOU + 0.2, { from: 0, dur: 0.45, ease: "back.out(2.6)" });
+          tl.fromTo(el("doc"), { y: 0 }, x(NIR, { y: -16, duration: 0.14, ease: "power2.out" }), YOU + 0.16);
+          tl.fromTo(el("doc"), { y: -16 }, x(NIR, { y: 0, duration: 0.4, ease: "bounce.out" }), YOU + 0.3);
+          hop("#s05-critic-pisar > .kit-rim", YOU + 0.12, 26);
+          tl.fromTo("#s05-critic-kp .c-arm-r", { rotation: 0 }, x(NIR, { rotation: -100, duration: 0.2, ease: "back.out(2)", yoyo: true, repeat: 3 }), YOU + 0.15);
+          hop("#s05-critic-pridira > .kit-rim", YOU + 0.22, 12);
+          // particle-burst: ≈30 seeded confetti chips flying BEHIND the button, doc and pills (the field sits under them in the
+          // DOM). y = vy·t + g·t² split over two nested nodes so every part is a plain property tween (seek-safe with suppressed
+          // events): outer <i> = launch velocity (ease none); inner <b> = gravity (power1.in is exactly u²), spin, appear, tail fade.
+          var CF = ["#ffda4f", "#2bd99f", "#3ec5ff", "#fff6e6", "#5b34f5", "#ff8a1f"], fh = "", FL = 1.25, G = 820, CT = YOU + 0.06, parts = [];
+          for (i = 0; i < 30; i++) {
+            var ang = -Math.PI / 2 + (rnd() * 2 - 1) * 1.05, sp = 620 + rnd() * 560, w = 16 + Math.round(rnd() * 12);
+            fh += '<i><b style="left:' + -Math.round(w / 2) + "px;top:" + -Math.round(w * 0.31) + "px;width:" + w + "px;height:" + Math.round(w * 0.62) + "px;background:" + CF[i % 6] + '"></b></i>';
+            parts.push({ vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, spin: (rnd() * 2 - 1) * 540 });
+          }
+          el("field").innerHTML = fh;
+          parts.forEach(function (p, n) {
+            var o = el("field").children[n], b = o.firstChild;
+            tl.fromTo(o, { x: 0, y: 0 }, x(NIR, { x: p.vx * FL, y: p.vy * FL, duration: FL, ease: "none" }), CT);
+            tl.fromTo(b, { y: 0 }, x(NIR, { y: G * FL * FL, duration: FL, ease: "power1.in" }), CT); tl.fromTo(b, { rotation: 0 }, x(NIR, { rotation: p.spin * FL, duration: FL, ease: "none" }), CT);
+            tl.fromTo(b, { opacity: 0 }, x(NIR, { opacity: 1, duration: 0.01, ease: "none" }), CT); tl.fromTo(b, { opacity: 1 }, x(NIR, { opacity: 0, duration: 0.4, ease: "power1.in" }), CT + FL - 0.4);
+          });
+          window.__timelines["%%ID%%"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

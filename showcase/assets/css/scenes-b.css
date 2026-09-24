@@ -1,0 +1,49 @@
+/* scenes-b.css — package B: chertyozh, sborka, proverki (sticky-step stages). See docs/design-prosto.md §2.5–2.7.
+ * The stages are framed «windows into the factory»: ink outline, big radius, hard offset shadow (no blur).
+ * All motion is GSAP inside the SVG; nothing here animates (chars.css owns transform boxes of kit parts). */
+
+#chertyozh .stage,
+#sborka .stage,
+#proverki .stage {
+  border: var(--outline) solid var(--ink);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-hard-lg);
+  overflow: hidden;
+  isolation: isolate;
+}
+#chertyozh .stage > svg,
+#sborka .stage > svg,
+#proverki .stage > svg { overflow: hidden; }
+
+/* blueprint: sky paper with a cream grid (major lines every 4 cells) */
+#chertyozh .stage {
+  background-color: var(--sky);
+  background-image:
+    linear-gradient(rgba(255, 246, 230, .34) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(255, 246, 230, .34) 2px, transparent 2px),
+    linear-gradient(rgba(255, 246, 230, .16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 246, 230, .16) 1px, transparent 1px);
+  background-size: 96px 96px, 96px 96px, 24px 24px, 24px 24px;
+  background-position: -2px -2px, -2px -2px, -1px -1px, -1px -1px;
+}
+
+/* assembly hall: cream wall on the sky field */
+#sborka .stage { background: var(--cream); }
+
+/* inspection hall: cream wall, a touch of dotted texture so it reads apart from the cream section field */
+#proverki .stage {
+  background-color: var(--cream);
+  background-image: radial-gradient(rgba(22, 18, 58, .09) 1.6px, transparent 1.8px);
+  background-size: 18px 18px;
+}
+
+/* the defect button sits under its step text; raspberry = defect / return (brand §2), ink text on it */
+#proverki [data-action="throw-defect"] { margin-top: 6px; background: var(--raspberry); color: var(--ink); }
+#proverki [data-action="throw-defect"] .ico { width: 1.25em; height: 1.25em; }
+
+@media (max-width: 1023px) {
+  #chertyozh .stage,
+  #sborka .stage,
+  #proverki .stage { border-radius: 20px; box-shadow: var(--shadow-hard); }
+  #chertyozh .stage { background-size: 64px 64px, 64px 64px, 16px 16px, 16px 16px; }
+}

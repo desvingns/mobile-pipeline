@@ -1,0 +1,227 @@
+<!doctype html>
+<!-- s08-tests «Испытания» — scene pack V4. Blueprint agent-progress-theater (static night stage: the machine
+     works, a checklist populates and its rows flip state). Rules: vertical-spring-ticker («круг 1 → 2 из 2»),
+     chromatic-glitch (the phone jumps to 03:00 and back, quantized seeded jitter via tl.set steps),
+     ambient-glow-bloom (raspberry glow on «Красный», mint glow at the end). The mint siren sits at (960,400):
+     the T8 mint disc grows from it. -->
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>s08-tests</title>
+  </head>
+  <body>
+    <template id="s08-tests-template">
+      <style>
+        %%FONTS%%
+        %%KITCSS%%
+        #s08-tests { position: absolute; inset: 0; overflow: hidden; background: %%FIELD%%; color: %%INK%%; font-family: "Golos Text", sans-serif; }
+        #s08-tests .ab { position: absolute; display: block; }
+        #s08-tests .kit-phone { clip-path: inset(1.15% 2.14% round 17.9% / 9.6%); }
+        #s08-tests .fill { position: absolute; inset: 0; }
+        #s08-tests .ghost { position: absolute; left: 60px; top: 330px; font-family: "Unbounded", sans-serif; font-weight: 900; font-size: 250px; line-height: 1; white-space: nowrap; color: #FFF6E6; opacity: 0.08; }
+        #s08-tests .star { position: absolute; display: block; border-radius: 50%; background: #FFF6E6; }
+        #s08-tests .floor { left: 0; right: 0; top: 745px; height: 335px; background: rgba(91, 52, 245, 0.2); border-top: 4px solid rgba(255, 246, 230, 0.22); }
+        #s08-tests .rim { filter: drop-shadow(5px 0 0 #FFF6E6) drop-shadow(-5px 0 0 #FFF6E6) drop-shadow(0 5px 0 #FFF6E6) drop-shadow(0 -5px 0 #FFF6E6); }
+        #s08-tests .st { background: #C9D3E6; border: 4px solid #16123A; box-shadow: 0 0 0 4px #FFF6E6; border-radius: 12px; }
+        #s08-tests .glow { border-radius: 50%; opacity: 0; }
+        #s08-tests .glow-r { background: radial-gradient(circle, rgba(255, 79, 139, 0.75) 0%, rgba(255, 79, 139, 0) 66%); }
+        #s08-tests .glow-m { background: radial-gradient(circle, rgba(43, 217, 159, 0.75) 0%, rgba(43, 217, 159, 0) 66%); }
+        #s08-tests .card { left: 680px; top: 532px; width: 560px; height: 140px; box-sizing: border-box; padding: 20px 20px 0 98px; background: #FFF6E6; border: 4px solid #16123A; border-radius: 24px; box-shadow: 8px 8px 0 #5B34F5; transform-origin: 50% 50%; }
+        #s08-tests .card-t { font-weight: 800; font-size: 34px; line-height: 1; color: #16123A; white-space: nowrap; }
+        #s08-tests .scr { position: absolute; left: 18px; top: 12px; width: 60px; height: 108px; border: 4px solid #16123A; border-radius: 14px; background: #5B34F5; overflow: hidden; box-sizing: border-box; }
+        #s08-tests .okb { right: -30px; top: -34px; width: 78px; height: 78px; border-radius: 50%; background: #2BD99F; border: 4px solid #16123A; box-shadow: 5px 5px 0 #5B34F5; }
+        #s08-tests .brk { position: absolute; width: 56px; height: 56px; border: 0 solid #FFF6E6; }
+        #s08-tests .sticker { left: 700px; top: 330px; padding: 10px 26px 12px; border: 4px dashed #FFF6E6; border-radius: 20px; color: #FFF6E6; font-weight: 700; font-size: 36px; line-height: 1.1; white-space: nowrap; }
+        #s08-tests .pill { display: flex; align-items: center; gap: 12px; background: #FFF6E6; color: #16123A; border: 4px solid #16123A; box-shadow: 0 0 0 4px #FFF6E6; border-radius: 999px; padding: 8px 28px; font-weight: 800; font-size: 36px; line-height: 44px; white-space: nowrap; }
+        #s08-tests .tick { display: block; height: 44px; overflow: hidden; }
+        #s08-tests .tick-in { display: block; font-family: "Unbounded", sans-serif; font-weight: 900; }
+        #s08-tests .tick-in span { display: block; height: 44px; line-height: 50px; }
+        #s08-tests .panel { background: #FFF6E6; color: #16123A; border: 4px solid #16123A; border-radius: 26px; box-shadow: 10px 10px 0 #5B34F5; box-sizing: border-box; }
+        #s08-tests .list { left: 192px; top: 136px; width: 480px; height: 290px; padding: 22px 26px; transform-origin: 50% 0%; }
+        #s08-tests .list-t { font-family: "Unbounded", sans-serif; font-weight: 800; font-size: 36px; line-height: 1; margin-bottom: 22px; }
+        #s08-tests .row { position: relative; display: flex; align-items: center; gap: 16px; height: 60px; }
+        #s08-tests .row-t { position: relative; font-weight: 700; font-size: 31px; white-space: nowrap; }
+        #s08-tests .mark { position: absolute; left: -6px; right: -6px; top: 22px; height: 20px; border-radius: 10px; background: #FF4F8B; transform-origin: 0% 50%; transform: scaleX(0); }
+        #s08-tests .mark-m { background: #2BD99F; opacity: 0; }
+        #s08-tests .row-t b { position: relative; font-weight: 700; }
+        #s08-tests .stat { position: relative; flex: none; width: 40px; height: 40px; }
+        #s08-tests .stat > * { position: absolute; inset: 0; }
+        #s08-tests .banner { left: 712px; top: 150px; width: 596px; height: 126px; background: #FF4F8B; border: 4px solid #16123A; box-shadow: 0 0 0 5px #FFF6E6, 12px 12px 0 5px #5B34F5; border-radius: 22px; display: flex; align-items: center; justify-content: center; font-family: "Unbounded", sans-serif; font-weight: 900; font-size: 78px; color: #16123A; }
+        #s08-tests .try { left: 1066px; top: 372px; background: #FF8A1F; border: 4px solid #16123A; box-shadow: 0 0 0 4px #FFF6E6, 8px 8px 0 4px #5B34F5; border-radius: 18px; padding: 6px 22px 8px; font-family: "Unbounded", sans-serif; font-weight: 800; font-size: 38px; color: #16123A; white-space: nowrap; }
+        #s08-tests .rule { left: 690px; top: 128px; width: 630px; padding: 18px 22px; display: flex; align-items: center; gap: 20px; background: #2C2472; border: 4px dashed #FFF6E6; border-radius: 26px; box-sizing: border-box; color: #FFF6E6; }
+        #s08-tests .rule-k { font-weight: 700; font-size: 26px; line-height: 1; opacity: 0.85; margin-bottom: 6px; white-space: nowrap; }
+        #s08-tests .rule-q { font-weight: 700; font-size: 30px; line-height: 1.15; margin-bottom: 8px; white-space: nowrap; }
+        #s08-tests .stop { position: relative; width: 120px; height: 120px; flex: none; }
+        #s08-tests .stop b { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: "Unbounded", sans-serif; font-weight: 900; font-size: 27px; color: #16123A; }
+        #s08-tests .wait { font-family: "Unbounded", sans-serif; font-weight: 800; font-size: 44px; line-height: 1.05; color: #FFDA4F; white-space: nowrap; }
+        #s08-tests .ghostph { border-radius: 58px; mix-blend-mode: screen; opacity: 0; }
+        #s08-tests .tear { position: absolute; left: -30px; width: 400px; height: 16px; border-radius: 4px; mix-blend-mode: screen; opacity: 0; }
+        #s08-tests .spk { position: absolute; display: block; width: 46px; height: 46px; }
+      </style>
+      <div id="s08-tests" data-composition-id="%%ID%%" data-width="1920" data-height="1080" data-duration="%%DUR%%">
+        <div class="fill" id="s08-tests-sky" data-layout-allow-overflow> <div class="ghost" id="s08-tests-ghost" data-layout-ignore>ИСПЫТАНИЯ</div> </div> <div class="ab floor"></div>
+        <div class="fill" id="s08-tests-stage"> <div class="ab glow glow-r" id="s08-tests-gr" style="left:680px;top:120px;width:560px;height:560px"></div>
+          <div class="ab glow glow-m" id="s08-tests-gm" style="left:680px;top:120px;width:560px;height:560px"></div>
+          <!-- the test bench and the «Стенд» automat -->
+          <div class="ab st" style="left:680px;top:700px;width:24px;height:46px;border-radius:4px"></div>
+          <div class="ab st" style="left:1216px;top:700px;width:24px;height:46px;border-radius:4px"></div> <div class="ab" id="s08-tests-standw" style="left:770px;top:264px;width:380px;height:443px">
+            <div class="ab rim" style="left:0;top:0">%%MACHINE:stend:380#s08-tests-stand%%</div> <svg class="ab" style="left:0;top:0" width="380" height="443" viewBox="0 0 120 140">
+              <path id="s08-tests-d-off" d="M49.5 49C49.5 33 70.5 33 70.5 49Z" fill="#8E9BB8" stroke="#16123A" stroke-width="3.4" stroke-linejoin="round"/>
+              <path id="s08-tests-d-sky" d="M49.5 49C49.5 33 70.5 33 70.5 49Z" fill="#3EC5FF" stroke="#16123A" stroke-width="3.4" stroke-linejoin="round" opacity="0"/>
+              <path id="s08-tests-d-mint" d="M49.5 49C49.5 33 70.5 33 70.5 49Z" fill="#2BD99F" stroke="#16123A" stroke-width="3.4" stroke-linejoin="round" opacity="0"/>
+              <path d="M54 44Q55 38.5 59 37" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"/> </svg> </div>
+          <div class="ab st" style="left:640px;top:672px;width:640px;height:30px;border-radius:10px"></div>
+          <!-- the task card from the belt -->
+          <div class="ab card" id="s08-tests-card">
+            <div class="scr"><svg class="ab" style="left:6px;top:10px" width="40" height="40" viewBox="0 0 24 24"><path d="M12 3.5a5.5 5.5 0 0 0-5.5 5.5v4l-2 3h15l-2-3V9A5.5 5.5 0 0 0 12 3.5z" fill="#FFF6E6" stroke="#16123A" stroke-width="1.8" stroke-linejoin="round"/></svg>
+              <span class="ab" style="left:5px;top:58px;width:42px;height:30px;border-radius:7px;background:#FFF6E6;border:3px solid #16123A"></span></div>
+            <div class="card-t">Напоминание о поливе</div>
+            <svg class="ab" style="left:98px;top:66px" width="84" height="50" viewBox="0 0 84 50"><rect x="2" y="2" width="80" height="46" rx="10" fill="#FFF6E6" stroke="#16123A" stroke-width="3.5"/><path d="M12 14h44" stroke-linecap="round" stroke-width="7" stroke="#3EC5FF"/><path d="M20 25h46" stroke-linecap="round" stroke-width="7" stroke="#2BD99F"/><path d="M20 36h26" stroke-linecap="round" stroke-width="7" stroke="#FF4F8B"/></svg>
+            <span class="ab okb"><svg width="70" height="70" viewBox="0 0 24 24"><path d="M6.5 12.5l3.6 3.6 7.4-8" fill="none" stroke="#16123A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </div> <div class="ab" id="s08-tests-brk" style="left:652px;top:504px;width:616px;height:196px">
+            <span class="brk" style="left:0;top:0;border-left-width:8px;border-top-width:8px;border-top-left-radius:14px"></span>
+            <span class="brk" style="right:0;top:0;border-right-width:8px;border-top-width:8px;border-top-right-radius:14px"></span>
+            <span class="brk" style="left:0;bottom:0;border-left-width:8px;border-bottom-width:8px;border-bottom-left-radius:14px"></span>
+            <span class="brk" style="right:0;bottom:0;border-right-width:8px;border-bottom-width:8px;border-bottom-right-radius:14px"></span> </div>
+          <div class="ab sticker" id="s08-tests-risk">только если рискованно</div>
+          <div class="ab pill" id="s08-tests-rounds" style="left:806px;top:428px">круг <span class="tick"><span class="tick-in" id="s08-tests-tick" data-layout-allow-overflow><span>1</span><span>2</span></span></span> из 2</div>
+          <!-- cast -->
+          <div class="ab rim" id="s08-tests-revw" style="left:190px;top:430px">%%CHAR:revizor:270:focus#s08-tests-rev%%</div>
+          <div class="ab rim" id="s08-tests-arcw" style="left:440px;top:500px">%%CHAR:arkhitektor:210#s08-tests-arc%%</div>
+          <div class="ab rim" id="s08-tests-tstw" style="left:430px;top:465px">%%CHAR:ispytatel:240#s08-tests-tst%%</div>
+          <svg class="ab" style="left:0;top:0" width="1920" height="1080" viewBox="0 0 1920 1080">
+            <path id="s08-tests-cable" d="M1146 612C1250 612 1262 748 1370 752C1440 755 1470 752 1508 748" fill="none" stroke="#FFF6E6" stroke-width="9" stroke-linecap="round"/> </svg>
+          <div class="ab rim" id="s08-tests-mstw" style="left:1086px;top:427px">%%CHAR:master:210:focus#s08-tests-mst%%</div>
+          <svg class="ab" id="s08-tests-wrench" style="left:1195px;top:600px" width="96" height="96" viewBox="-24 -24 48 48"><g transform="rotate(-40)"><path d="M-3.4 -19V-12H3.4V-19A9 9 0 1 1 -3.4 -19Z" fill="#C9D3E6" stroke="#16123A" stroke-width="3"/><rect x="-3.8" y="-10" width="7.6" height="30" rx="3.8" fill="#C9D3E6" stroke="#16123A" stroke-width="3"/></g></svg>
+          <div class="ab" id="s08-tests-spk" style="left:1243px;top:648px;width:0;height:0"></div>
+          <!-- the phone under test -->
+          <div class="ab" id="s08-tests-phonew" style="left:1340px;top:118px;width:340px;height:631px">
+            <div class="ab ghostph" id="s08-tests-gh1" style="left:0;top:0;width:340px;height:631px;background:#FF4F8B"></div>
+            <div class="ab ghostph" id="s08-tests-gh2" style="left:0;top:0;width:340px;height:631px;background:#3EC5FF"></div>
+            <div class="ab rim" id="s08-tests-ph" style="left:0;top:0"><div class="ab" style="left:0;top:0">%%PHONE:notify:340#s08-tests-day%%</div><div class="ab" id="s08-tests-blank" style="left:0;top:0">%%PHONE:blank:340#s08-tests-off%%</div></div>
+            <div class="ab rim" id="s08-tests-nightw" style="left:0;top:0;opacity:0">%%PHONE:notify-night:340#s08-tests-night%%</div>
+            <span class="tear" style="background:#FF4F8B;top:120px"></span><span class="tear" style="background:#3EC5FF;top:300px;height:24px"></span><span class="tear" style="background:#FFF6E6;top:420px;height:8px"></span><span class="tear" style="background:#FF4F8B;top:520px;height:12px"></span>
+          </div>
+          <!-- kinetic words / stickers -->
+          <div class="ab banner" id="s08-tests-red">КРАСНЫЙ!</div> <div class="ab try" id="s08-tests-try">1 попытка</div>
+          <!-- the test checklist (agent receipt) -->
+          <div class="ab panel list" id="s08-tests-list"> <div class="list-t">Испытания</div>
+            <div class="row"><span class="stat" id="s08-tests-s0"></span><span class="row-t" id="s08-tests-r0">Напомнит в 09:00</span></div>
+            <div class="row"><span class="stat" id="s08-tests-s1"></span><span class="row-t" id="s08-tests-r1"><i class="mark" id="s08-tests-mk"></i><i class="mark mark-m" id="s08-tests-mkm"></i></span></div>
+            <div class="row"><span class="stat" id="s08-tests-s2"></span><span class="row-t" id="s08-tests-r2">Работает без интернета</span></div> </div>
+          <!-- the rule (what WOULD happen): dimmed dashed side panel -->
+          <div class="ab rule" id="s08-tests-rule">
+            <span class="stop" id="s08-tests-stop"><svg width="120" height="120" viewBox="0 0 120 120"><path d="M36 4H84L116 36V84L84 116H36L4 84V36Z" fill="#FFDA4F" stroke="#16123A" stroke-width="5" stroke-linejoin="round"/></svg><b>СТОП</b></span>
+            <div> <div class="rule-k">Правило фабрики</div> <div class="rule-q">Не вышло с одной попытки?</div> <div class="wait" id="s08-tests-wait">Ждём вас</div> </div> </div> </div> </div>
+      <script>
+        (function () {
+          %%HELPERS%%
+          var C = %%CUES%%; var D = %%DUR%%; var W = %%WORDS%%; var H = window.MPV; var tl = gsap.timeline({ paused: true }); var P = "#s08-tests-"; var root = document.getElementById("s08-tests");
+          var $ = function (s) { return root.querySelector(s); }; var $$ = function (s) { return root.querySelectorAll(s); };
+          function to(el, from, vars, t) { var v = {}, k; for (k in vars) v[k] = vars[k]; v.immediateRender = false; return tl.fromTo(el, from, v, t); }
+          function on(el, t, d) { return tl.fromTo(el, { opacity: 0 }, { opacity: 1, duration: d || 0.12, immediateRender: false }, t); }
+          function wd(stem, after, fb) { for (var q = 0; q < W.length; q++) if (W[q].start >= after && W[q].text.toLowerCase().replace(/[^а-яёa-z0-9-]/g, "").indexOf(stem) === 0) return W[q].start; return fb; }   /* start of the first spoken word beginning with stem at/after «after» (scene-local s) */
+          var T_THEN = wd("потом", C.arch, C.tester - 0.35), T_BUZZ = wd("напоминание", C.red, C.night - 1.2) - 0.49, T_MST = wd("у", C.night, C.fix - 0.9) - 0.44,
+            T_HALT = wd("остановится", C.stop, C.stop + 1.2), T_YOU = wd("вас", T_HALT, C._speechEnd - 0.4);   /* beats that have no cue of their own */
+          function off(el, t, d) { return tl.fromTo(el, { opacity: 1 }, { opacity: 0, duration: d || 0.12, immediateRender: false }, t); } var i, kt = $$(P + "rev text"); for (i = 0; i < kt.length; i++) kt[i].setAttribute("data-layout-allow-overlap", ""); /* the kit draws note cards «1» «2» overlapping on purpose */
+          // ---- night sky: seeded stars that twinkle (finite, phase-offset)
+          var r = H.rng(808), sky = $(P + "sky"), html = ""; for (i = 0; i < 46; i++) { var x = Math.round(r() * 1900), y = Math.round(20 + r() * 700), s = (r() * 4 + 3).toFixed(1);
+            html += '<span class="star" style="left:' + x + "px;top:" + y + "px;width:" + s + "px;height:" + s + 'px;opacity:.15"></span>'; } sky.insertAdjacentHTML("beforeend", html);   /* = the twinkle's from-state, so playing and jumping agree before it starts */
+          var stars = sky.querySelectorAll(".star"); gsap.set(stars, { scale: 0.7 }); for (i = 0; i < stars.length; i++) { var per = 1.4 + (i % 5) * 0.35;
+            to(stars[i], { opacity: 0.15, scale: 0.7 }, { opacity: 0.8, scale: 1.2, duration: per / 2, ease: "sine.inOut", yoyo: true, repeat: H.repeats(D - (i % 7) * 0.2, per / 2) }, (i % 7) * 0.2);
+          } H.drift(tl, P + "ghost", 0, D, { x: -90 });
+          // ---- the row texts / status icons are built once (typewriter needs char spans)
+          var rows = ["Напомнит в 09:00", "Не будит ночью", "Работает без интернета"], rowSpans = []; for (i = 0; i < 3; i++) {
+            var el = $(P + "r" + i), txt = i === 1 ? rows[1] : el.textContent, holder = i === 1 ? document.createElement("b") : el; if (i !== 1) el.textContent = ""; var arr = [];
+            for (var k = 0; k < txt.length; k++) { var sp = document.createElement("span"); sp.textContent = txt.charAt(k); sp.style.whiteSpace = "pre"; holder.appendChild(sp); arr.push(sp); }
+            if (i === 1) el.appendChild(holder); rowSpans.push(arr); $(P + "s" + i).innerHTML =
+              '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="none" stroke="#16123A" stroke-opacity=".35" stroke-width="4"/></svg>' +
+              '<svg viewBox="0 0 40 40" style="opacity:0"><circle cx="20" cy="20" r="16" fill="none" stroke="#3EC5FF" stroke-width="5" stroke-dasharray="60 41" stroke-linecap="round"/></svg>' +
+              '<svg viewBox="0 0 40 40" style="opacity:0"><circle cx="20" cy="20" r="17" fill="#2BD99F" stroke="#16123A" stroke-width="3.5"/><path d="M12 20.5l5.4 5.4 11-11.5" fill="none" stroke="#16123A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+              '<svg viewBox="0 0 40 40" style="opacity:0"><circle cx="20" cy="20" r="17" fill="#FF4F8B" stroke="#16123A" stroke-width="3.5"/><path d="M13.5 13.5l13 13M26.5 13.5l-13 13" fill="none" stroke="#16123A" stroke-width="4" stroke-linecap="round"/></svg>';
+          } function st(row) { return $(P + "s" + row).children; } function spin(row, t0, t1) { var s = st(row); on(s[1], t0, 0.08); off(s[0], t0, 0.08);
+            tl.fromTo(s[1], { rotation: 0 }, { rotation: 360, duration: 0.5, ease: "none", repeat: H.repeats(t1 - t0, 0.5), immediateRender: false }, t0); } function done(row, t, fail, from) {
+            var s = st(row), icon = s[fail ? 3 : 2]; off(s[from == null ? 1 : from], t, 0.06); to(icon, { opacity: 0, scale: 0.3 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(3)" }, t); }
+          // ---- 1: Ревизор re-reads the risky work (tracking brackets, dashed sticker, rounds ticker)
+          H.arrive(tl, P + "revw", 0.25, { y: 40 }); H.bob(tl, P + "revw", 0.9, C._out, { y: 6, period: 2.3 }); var brk = $(P + "brk");
+          tl.fromTo(brk, { scale: 1.25, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "power3.out" }, C.auditor);
+          to(brk, { scale: 1 }, { scale: 1.03, duration: 0.45, ease: "sine.inOut", yoyo: true, repeat: 5 }, C.auditor + 0.3); off(brk, T_THEN - 0.1, 0.2);
+          var revL = $(P + "rev .c-arm-l"), revR = $(P + "rev .c-arm-r"); to(revL, { rotation: 0 }, { rotation: 50, duration: 0.3, ease: "back.out(2)" }, C.auditor - 0.05);
+          to(revL, { rotation: 50 }, { rotation: 0, duration: 0.4, ease: "power2.inOut" }, T_THEN - 0.2); H.slam(tl, P + "risk", C.auditor + 0.3); H.arrive(tl, P + "rounds", C.rounds, { from: 0.5 });
+          to(revR, { rotation: 0 }, { rotation: -105, duration: 0.3, ease: "back.out(2)" }, C.rounds + 0.05); to(revR, { rotation: -105 }, { rotation: 0, duration: 0.4, ease: "power2.inOut" }, T_THEN - 0.2);
+          to(P + "tick", { y: 0 }, { y: -44, duration: 0.5, ease: "back.out(2.2)" }, C.rounds + 0.7); /* vertical-spring-ticker: 1 → 2 */
+          // «а не сошлись — решает Архитектор»: the pill shakes, the Архитектор steps in with the blueprint roll raised,
+          // then makes room for the Испытатель on «Потом» (after two rounds he writes the decision; one final round follows)
+          var T_NO = wd("сошлись", C.rounds, C.arch - 0.9), nope = [[-9, 0], [8, 0], [-6, 0], [4, 0], [0, 0]];
+          for (i = 0; i < nope.length; i++) tl.set(P + "rounds", { x: nope[i][0] }, T_NO + i * 0.05);
+          H.arrive(tl, P + "arcw", C.arch - 0.35, { y: 40 }); H.blink(tl, P + "arc .c-lid", C.arch + 0.2, T_THEN, { seed: 84 });
+          to(P + "arc .c-arm-l", { rotation: 0 }, { rotation: 95, duration: 0.3, ease: "back.out(2)" }, C.arch + 0.02);
+          to(P + "arcw", { y: 0, opacity: 1 }, { y: 70, opacity: 0, duration: 0.25, ease: "power2.in" }, T_THEN);
+          to([P + "risk", P + "rounds"], { scale: 1, opacity: 1 }, { scale: 0.6, opacity: 0, duration: 0.22, ease: "power2.in" }, C.stand - 0.35);
+          // ---- 2: Испытатель invents the tests; the checklist springs open and rows type in
+          H.arrive(tl, P + "tstw", C.tester, { y: 60, from: 0.3 }); H.bob(tl, P + "tstw", C.tester + 0.6, C._out, { y: 6, period: 2.0 });
+          tl.fromTo(P + "list", { scaleY: 0.08, scaleX: 0.6, opacity: 0 }, { scaleY: 1, scaleX: 1, opacity: 1, duration: 0.45, ease: "back.out(1.6)" }, C.tester + 0.1);
+          for (i = 0; i < 3; i++) H.type(tl, rowSpans[i], C.tester + 0.45 + i * 0.5, { cps: 34 }); var watch = $(P + "tst .c-needle");
+          to(watch, { rotation: 0 }, { rotation: 360, duration: 1, ease: "none", repeat: 2 }, C.tester + 0.3);
+          // ---- 3: the «Стенд» drops in and runs them — lamps cycle, the first test passes
+          tl.fromTo(P + "standw", { y: -760 }, { y: 0, duration: 0.34, ease: "power3.in" }, C.stand - 0.1);
+          to(P + "standw", { scaleY: 0.9, scaleX: 1.05 }, { scaleY: 1, scaleX: 1, duration: 0.4, ease: "back.out(3)" }, C.stand + 0.24); gsap.set(P + "standw", { transformOrigin: "50% 100%" });
+          to(P + "card", { x: 0, y: 0, scale: 1, opacity: 1 }, { x: -55, y: -82, scale: 0.18, opacity: 0, duration: 0.3, ease: "power2.in" }, C.stand + 0.3);
+          H.arrive(tl, P + "phonew", 0.35, { from: 0.85, y: 40 }); off(P + "blank", C.stand + 0.75, 0.1);
+          to(P + "ph", { scale: 1 }, { scale: 1.03, duration: 0.12, ease: "power2.out", yoyo: true, repeat: 1 }, C.stand + 0.75); var cable = $(P + "cable"), clen = 520;
+          gsap.set(cable, { strokeDasharray: clen, strokeDashoffset: clen }); to(cable, { strokeDashoffset: clen }, { strokeDashoffset: 0, duration: 0.5, ease: "power2.out" }, C.stand + 0.45);
+          off(P + "d-off", C.red, 0.05); for (i = 0; i < 6; i++) { /* siren flashes sky / mint over the grey «off» dome while the tests run (automat: snap on/off); the kit's raspberry dome only shows from C.red */
+            tl.fromTo(P + (i % 2 ? "d-mint" : "d-sky"), { opacity: 0 }, { opacity: 1, duration: 0.05, immediateRender: false }, C.stand + 0.5 + i * 0.26);
+            tl.fromTo(P + (i % 2 ? "d-mint" : "d-sky"), { opacity: 1 }, { opacity: 0, duration: 0.05, immediateRender: false }, C.stand + 0.72 + i * 0.26); } var needles = $$(P + "stand .c-needle");
+          to(needles, { rotation: -25 }, { rotation: 35, duration: 0.18, ease: "sine.inOut", yoyo: true, repeat: 9 }, C.stand + 0.4);
+          H.wait(tl, $$(P + "stand .c-lamp--mint"), C.stand + 0.4, C.red, { lo: 0.35, period: 0.4, scale: 1.15 }); spin(0, C.stand + 0.5, C.stand + 1.2); done(0, C.stand + 1.2);
+          spin(1, C.stand + 1.3, C.red);
+          // ---- 4: «Красный свет!» — raspberry glow, the banner slams, the stage jolts, test 2 fails
+          tl.fromTo(P + "gr", { opacity: 0, scale: 0.8 }, { opacity: 0.45, scale: 1, duration: 0.5, ease: "power2.out", immediateRender: false }, C.red);
+          to(P + "gr", { opacity: 0.45, scale: 1 }, { opacity: 0.3, scale: 1.05, duration: 0.7, ease: "sine.inOut", yoyo: true, repeat: 3 }, C.red + 0.5); H.slam(tl, P + "red", C.red);
+          to(P + "red", { rotation: 0 }, { rotation: -4, duration: 0.3, ease: "back.out(3)" }, C.red); var stage = $(P + "stage"), shake = [[10, -6], [-12, 5], [8, 7], [-6, -4], [4, 3], [0, 0]];
+          for (i = 0; i < shake.length; i++) tl.set(stage, { x: shake[i][0], y: shake[i][1] }, C.red + 0.03 + i * 0.045); done(1, C.red, true);
+          to(P + "mk", { scaleX: 0 }, { scaleX: 1, duration: 0.35, ease: "power2.out" }, C.red + 0.1);
+          // «Напоминание пришло…»: the phone buzzes
+          for (i = 0; i < 8; i++) tl.set(P + "ph", { x: i % 2 ? -6 : 6 }, T_BUZZ + i * 0.05); tl.set(P + "ph", { x: 0 }, T_BUZZ + 0.4);
+          // ---- 5: «в три часа ночи» — chromatic glitch; the phone jumps to 03:00
+          function hash(n) { var v = Math.sin(n * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); } function glitch(t0, dur, seed, swapAt, toNight) {
+            var steps = Math.round(dur / 0.04), g1 = $(P + "gh1"), g2 = $(P + "gh2"), ph = $(P + "phonew"), tears = $$(".tear"); for (var q = 0; q <= steps; q++) {
+              var a = Math.pow(1 - q / steps, 1.4), t = t0 + q * 0.04;
+              tl.set(g1, { x: (hash(seed + q * 13) * 2 - 1) * 44 * a, y: (hash(seed + q * 29) * 2 - 1) * 14 * a, opacity: 0.9 * (a > 0.02 ? 1 : 0) }, t);
+              tl.set(g2, { x: (hash(seed + q * 17 + 7) * 2 - 1) * 44 * a, y: (hash(seed + q * 31 + 7) * 2 - 1) * 14 * a, opacity: 0.9 * (a > 0.02 ? 1 : 0) }, t);
+              tl.set(ph, { x: (hash(seed + q * 5 + 3) * 2 - 1) * 14 * a, skewX: (hash(seed + q * 3) * 2 - 1) * 7 * a }, t);
+              for (var b = 0; b < tears.length; b++) tl.set(tears[b], { y: (hash(seed + q * 7 + b * 19) * 2 - 1) * 90, x: (hash(seed + q * 11 + b * 5) * 2 - 1) * 40 * a, opacity: hash(seed + q * 23 + b) < 0.6 * a + 0.1 ? 0.8 : 0 }, t);
+            } tl.set([g1, g2], { x: 0, y: 0, opacity: 0 }, t0 + dur + 0.04); tl.set(tears, { opacity: 0 }, t0 + dur + 0.04); tl.set(ph, { x: 0, skewX: 0 }, t0 + dur + 0.04);
+            tl.set(P + "nightw", { opacity: toNight ? 1 : 0 }, swapAt); } glitch(C.night - 0.12, 0.56, 11, C.night + 0.06, true);
+          // ---- 6: one attempt to fix: the master drops in, the wrench spins, sparkle, back to 09:00
+          tl.fromTo(P + "mstw", { y: -700 }, { y: 0, duration: 0.32, ease: "power3.in" }, T_MST);
+          to(P + "mstw", { scaleY: 0.86, scaleX: 1.08 }, { scaleY: 1, scaleX: 1, duration: 0.4, ease: "back.out(3)" }, T_MST + 0.32); gsap.set(P + "mstw", { transformOrigin: "50% 100%" });
+          H.blink(tl, P + "mst .c-lid", T_MST + 0.5, C._out, { seed: 83 });
+          tl.fromTo(P + "try", { scale: 1.5, rotation: -14, opacity: 0 }, { scale: 1, rotation: -6, opacity: 1, duration: 0.32, ease: "back.out(2.4)" }, C.fix);
+          tl.fromTo(P + "wrench", { scale: 0, rotation: 0 }, { scale: 1, rotation: 0, duration: 0.25, ease: "back.out(2)" }, C.fix + 0.05);
+          to(P + "wrench", { rotation: 0 }, { rotation: 720, duration: 0.7, ease: "power2.inOut" }, C.fix + 0.25);
+          to(P + "wrench", { scale: 1 }, { scale: 0, duration: 0.2, ease: "back.in(2)" }, C.fix + 0.95); var spk = $(P + "spk"), sh = "";
+          for (i = 0; i < 8; i++) sh += '<svg class="spk" viewBox="-12 -12 24 24"><path d="M0 -11C1.4 -3 3 -1.4 11 0C3 1.4 1.4 3 0 11C-1.4 3 -3 1.4 -11 0C-3 -1.4 -1.4 -3 0 -11Z" fill="' + (i % 2 ? "#FFF6E6" : "#2BD99F") + '" stroke="#16123A" stroke-width="1.6"/></svg>';
+          spk.innerHTML = sh; var spks = spk.querySelectorAll(".spk"); for (i = 0; i < spks.length; i++) { var ang = i * 45 * Math.PI / 180, dist = 110 + (i % 3) * 30;
+            tl.fromTo(spks[i], { x: -23, y: -23, scale: 0, opacity: 1 }, { x: -23 + Math.cos(ang) * dist, y: -23 + Math.sin(ang) * dist, scale: 1, opacity: 1, duration: 0.45, ease: "power2.out" }, C.fix + 0.9);
+            to(spks[i], { opacity: 1, scale: 1 }, { opacity: 0, scale: 0.4, duration: 0.3, ease: "power1.in" }, C.fix + 1.3); } glitch(C.fix + 0.95, 0.36, 41, C.fix + 1.05, false);
+          to(P + "gr", { opacity: 0.45 }, { opacity: 0, duration: 0.3 }, C.fix + 1.15);
+          to(P + "red", { scale: 1, opacity: 1 }, { scale: 0.5, opacity: 0, duration: 0.25, ease: "back.in(2)" }, C.fix + 1.1); on(P + "d-mint", C.fix + 1.2, 0.05);
+          tl.fromTo(P + "gm", { opacity: 0, scale: 0.8 }, { opacity: 0.42, scale: 1, duration: 0.6, ease: "power2.out", immediateRender: false }, C.fix + 1.2);
+          to(P + "gm", { opacity: 0.42, scale: 1 }, { opacity: 0.3, scale: 1.05, duration: 1.1, ease: "sine.inOut", yoyo: true, repeat: 3 }, C.fix + 1.8); done(1, C.fix + 1.35, false, 3);
+          to(P + "mk", { opacity: 1 }, { opacity: 0, duration: 0.2 }, C.fix + 1.35); to(P + "mkm", { opacity: 0, scaleX: 1 }, { opacity: 1, scaleX: 1, duration: 0.2 }, C.fix + 1.35);
+          spin(2, C.fix + 1.3, C.fix + 1.75); done(2, C.fix + 1.75); to(P + "mst .c-arm-r", { rotation: 0 }, { rotation: -95, duration: 0.25, ease: "back.out(2)" }, C.fix + 1.3);
+          // ---- 7: the rule, not what happens: «Не вышло — СТОП, ждём вас» (dashed, dimmed side panel)
+          // the dashed border + darker violet fill mark it hypothetical; the lemon octagon (your decision) stays full strength
+          tl.fromTo(P + "rule", { y: -40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, C.stop);
+          tl.fromTo(P + "stop", { scale: 1.6, rotation: -30, opacity: 0 }, { scale: 1, rotation: 0, opacity: 1, duration: 0.35, ease: "back.out(2.2)" }, T_HALT - 0.01); H.slam(tl, P + "wait", T_YOU - 0.03);
+          H.wait(tl, P + "stop", T_HALT + 0.49, C._out, { lo: 1, scale: 1.07, period: 1.0 });
+          // ---- idle life
+          H.blink(tl, P + "rev .c-lid", 0.6, C._out, { seed: 81 }); H.blink(tl, P + "tst .c-lid", C.tester + 0.6, C._out, { seed: 82 }); H.bob(tl, P + "mstw", T_MST + 0.9, C._out, { y: 5, period: 1.9 });
+          window.__timelines["%%ID%%"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

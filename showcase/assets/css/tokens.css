@@ -1,0 +1,48 @@
+/* Design tokens — shared by «Просто» and «Схема». Source of truth: docs/brand.md */
+:root {
+  --ink: #16123A;
+  --cream: #FFF6E6;
+  --violet: #5B34F5;
+  --lemon: #FFDA4F;
+  --mint: #2BD99F;
+  --raspberry: #FF4F8B;
+  --sky: #3EC5FF;
+  --tangerine: #FF8A1F;
+  --steel: #C9D3E6;        /* automat bodies (metal) */
+  --steel-dark: #8E9BB8;
+
+  /* Схема category hues (headers are derived with color-mix in blueprint.css) */
+  --cat-agent: #2BD99F;
+  --cat-script: #3EC5FF;
+  --cat-human: #FFDA4F;
+  --cat-artifact: #B79CFF;
+
+  --font-display: 'Unbounded', 'Arial Black', system-ui, sans-serif;
+  --font-text: 'Golos Text', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  --fs-h1: clamp(44px, 11vw, 150px);
+  --fs-h2: clamp(30px, 6vw, 80px);
+  --fs-h3: clamp(24px, 3vw, 36px);
+  --fs-lead: clamp(21px, 2.3vw, 30px);
+  --fs-body: clamp(18px, 1.55vw, 22px);
+  --fs-btn: clamp(18px, 1.4vw, 20px);
+  --fs-small: 16px;
+
+  --outline: 4px;
+  --outline-thin: 3px;
+  --shadow-hard: 6px 6px 0 var(--ink);
+  --shadow-hard-lg: 10px 10px 0 var(--ink);
+  --radius-card: 28px;
+  --radius-btn: 18px;
+
+  --header-h: 72px;
+  --gutter: clamp(16px, 4vw, 56px);
+  --maxw: 1320px;
+
+  --ease-pop: cubic-bezier(.34, 1.8, .64, 1);
+  --ease-out: cubic-bezier(.22, 1, .36, 1);
+}
+@media (max-width: 760px) {
+  :root { --header-h: 64px; }
+}

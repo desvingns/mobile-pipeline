@@ -1,0 +1,34 @@
+/* chars.css — transform boxes for the illustration kit (assets/js/chars.js, belt.js).
+ * 1) Every structure class gets transform-box:fill-box + a sensible origin, so GSAP (which reads the computed
+ *    transform-origin relative to the bbox) pivots arms at the shoulder, lids at the eye, needles at the hub…
+ *    without scenes passing transformOrigin. Arms, needles, levers and leaves carry an invisible .c-pivot box that
+ *    centres their bbox on the joint, hence 50% 50% there.
+ * 2) Once GSAP owns an element it bakes that pivot into the matrix, marks it with data-svg-origin and sets an inline
+ *    transform-origin:0 0 that assumes the SVG default view-box — so hand the box back to view-box then. */
+.c-char, .c-plant, .c-phone, .c-stamphand, .c-seal, .c-sub,
+.c-body, .c-hat, .c-face, .c-eyes, .c-lid, .c-pupil, .c-mouth, .c-brows,
+.c-arm-l, .c-arm-r, .c-prop, .c-shadow, .c-legs,
+.c-lamp, .c-needle, .c-gear, .c-lever, .c-siren, .c-bulb, .c-rays,
+.c-pot, .c-leaf, .c-flower, .c-bud, .c-sparkle, .c-drop, .c-stem, .c-stamp, .c-hand, .c-sleeve,
+.ph-notif, .ph-icon, .belt-roller, .belt-station, .belt-label {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+/* grounded things squash / hop / pop from the floor */
+.c-char, .c-plant, .c-sub, .c-body, .c-hat, .c-pot, .c-stamp, .c-stamphand, .c-bud, .c-stem, .c-siren,
+.belt-station { transform-origin: 50% 100%; }
+
+.c-char[data-svg-origin], .c-plant[data-svg-origin], .c-phone[data-svg-origin], .c-stamphand[data-svg-origin],
+.c-seal[data-svg-origin], .c-sub[data-svg-origin], .c-body[data-svg-origin], .c-hat[data-svg-origin],
+.c-face[data-svg-origin], .c-eyes[data-svg-origin], .c-lid[data-svg-origin], .c-pupil[data-svg-origin],
+.c-mouth[data-svg-origin], .c-brows[data-svg-origin], .c-arm-l[data-svg-origin], .c-arm-r[data-svg-origin],
+.c-prop[data-svg-origin], .c-shadow[data-svg-origin], .c-legs[data-svg-origin], .c-lamp[data-svg-origin],
+.c-needle[data-svg-origin], .c-gear[data-svg-origin], .c-lever[data-svg-origin], .c-siren[data-svg-origin],
+.c-bulb[data-svg-origin], .c-rays[data-svg-origin], .c-pot[data-svg-origin], .c-leaf[data-svg-origin],
+.c-flower[data-svg-origin], .c-bud[data-svg-origin], .c-sparkle[data-svg-origin], .c-drop[data-svg-origin],
+.c-stem[data-svg-origin], .c-stamp[data-svg-origin], .c-hand[data-svg-origin], .c-sleeve[data-svg-origin],
+.ph-notif[data-svg-origin], .ph-icon[data-svg-origin], .belt-roller[data-svg-origin],
+.belt-station[data-svg-origin], .belt-label[data-svg-origin] { transform-box: view-box; }
+
+/* standalone art (cast cards): let strokes breathe past the viewBox */
+.c-svg { display: block; overflow: visible; }

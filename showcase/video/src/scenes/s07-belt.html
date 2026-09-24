@@ -1,0 +1,247 @@
+<!doctype html>
+<!-- s07-belt «Конвейер» — scene pack V4. Blueprint spatial-pan-stations (rules: viewport-change = pan legs on ONE
+     .world wrapper + parallax layers, multi-phase-camera = settle/push + micro-drift on .cam, stat-bars-and-fills =
+     the program bars). One wide world (~7400px): the card «Напоминание о поливе» rides the belt through 5 stations.
+     World: lower belt top y 620, upper line y 440 (camera drops 180 px for it), ground y 770. -->
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>s07-belt</title>
+  </head>
+  <body>
+    <template id="s07-belt-template">
+      <style>
+        %%FONTS%%
+        %%KITCSS%%
+        #s07-belt { position: absolute; inset: 0; overflow: hidden; background: %%FIELD%%; color: %%INK%%; font-family: "Golos Text", sans-serif; }
+        #s07-belt .lay { position: absolute; left: 0; top: 0; width: 7400px; height: 1080px; }
+        #s07-belt .cam { position: absolute; inset: 0; transform-origin: 50% 50%; }
+        #s07-belt .ab { position: absolute; display: block; }
+        #s07-belt .ghost { position: absolute; font-family: "Unbounded", sans-serif; font-weight: 900; font-size: 300px; line-height: 1; white-space: nowrap; color: #FFF6E6; opacity: 0.13; }
+        #s07-belt .dots { opacity: 0.32; }
+        #s07-belt .dot { position: absolute; display: block; border-radius: 50%; background: #FFF6E6; }
+        #s07-belt .plus { position: absolute; display: block; background: linear-gradient(#FFF6E6, #FFF6E6) center / 100% 4px no-repeat, linear-gradient(#FFF6E6, #FFF6E6) center / 4px 100% no-repeat; }
+        #s07-belt .gear { position: absolute; display: block; opacity: 0.13; }
+        #s07-belt .floor { left: -400px; top: 770px; width: 9000px; height: 420px; background: rgba(22, 18, 58, 0.2); border-top: 4px solid rgba(255, 246, 230, 0.22); }
+        #s07-belt .rim { filter: drop-shadow(6px 0 0 #FFF6E6) drop-shadow(-6px 0 0 #FFF6E6) drop-shadow(0 6px 0 #FFF6E6) drop-shadow(0 -6px 0 #FFF6E6); }
+        #s07-belt .panel { background: #FFF6E6; border: 4px solid #16123A; border-radius: 26px; box-shadow: 8px 8px 0 #16123A; color: #16123A; }
+        #s07-belt .board { left: 200px; top: 262px; width: 470px; height: 318px; padding: 20px 26px; box-sizing: border-box; }
+        #s07-belt .board-t { font-family: "Unbounded", sans-serif; font-weight: 800; font-size: 32px; line-height: 1; }
+        #s07-belt .mini { position: absolute; width: 150px; height: 70px; border: 4px solid #16123A; border-radius: 14px; }
+        #s07-belt .mini i { position: absolute; left: 60px; top: -13px; width: 20px; height: 20px; border-radius: 50%; border: 3px solid #16123A; background: #FF4F8B; }
+        #s07-belt .mini b { position: absolute; left: 16px; right: 30px; top: 22px; height: 7px; border-radius: 4px; background: #16123A; opacity: 0.35; box-shadow: 0 16px 0 #16123A; }
+        #s07-belt .leg { position: absolute; width: 18px; background: #8E9BB8; border: 4px solid #16123A; border-radius: 4px; }
+        #s07-belt .crate { background: #FF8A1F; border: 4px solid #16123A; border-radius: 10px; }
+        #s07-belt .card { left: 720px; top: 480px; width: 560px; height: 140px; box-sizing: border-box; padding: 20px 20px 0 98px; background: #FFF6E6; border: 4px solid #16123A; border-radius: 24px; box-shadow: 8px 8px 0 #16123A; transform-origin: 50% 100%; }
+        #s07-belt .card-t { font-weight: 800; font-size: 34px; line-height: 1; color: #16123A; white-space: nowrap; }
+        #s07-belt .scr { position: absolute; left: 18px; top: 12px; width: 60px; height: 108px; border: 4px solid #16123A; border-radius: 14px; background: #261F5E; overflow: hidden; box-sizing: border-box; }
+        #s07-belt .scr-paint { position: absolute; inset: 0; background: #5B34F5; clip-path: circle(0% at 85% 15%); }
+        #s07-belt .pin { left: 268px; top: -16px; width: 24px; height: 24px; border-radius: 50%; border: 3px solid #16123A; background: #FF4F8B; }
+        #s07-belt .prog-mini { left: 98px; top: 66px; width: 84px; height: 50px; }
+        #s07-belt .slot { left: 98px; top: 66px; width: 84px; height: 50px; box-sizing: border-box; border: 3px dashed rgba(22, 18, 58, 0.4); border-radius: 10px; }
+        #s07-belt .okb { right: -30px; top: -34px; width: 78px; height: 78px; border-radius: 50%; background: #2BD99F; border: 4px solid #16123A; box-shadow: 5px 5px 0 #16123A; }
+        #s07-belt .chip { display: inline-flex; align-items: center; gap: 12px; border-radius: 999px; border: 4px solid #16123A; white-space: nowrap; }
+        #s07-belt .cmd { left: 200px; top: 168px; background: #16123A; color: #FFF6E6; font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 32px; padding: 10px 28px; border-color: #FFF6E6; gap: 0; }
+        #s07-belt .plate { display: flex; align-items: center; gap: 14px; white-space: nowrap; }
+        #s07-belt .num { width: 70px; height: 70px; border-radius: 18px; background: #FF8A1F; border: 4px solid #16123A; box-shadow: 5px 5px 0 #16123A; display: flex; align-items: center; justify-content: center; font-family: "Unbounded", sans-serif; font-weight: 900; font-size: 40px; color: #16123A; }
+        #s07-belt .name { background: #FFF6E6; border: 4px solid #16123A; border-radius: 20px; box-shadow: 6px 6px 0 #16123A; padding: 8px 26px 10px; font-family: "Unbounded", sans-serif; font-weight: 800; font-size: 46px; line-height: 1.1; color: #16123A; }
+        #s07-belt .tag { background: #3EC5FF; color: #16123A; font-weight: 700; font-size: 28px; padding: 5px 20px; border-width: 3px; }
+        #s07-belt .bub { background: #FFF6E6; color: #16123A; border: 4px solid #16123A; border-radius: 26px; box-shadow: 6px 6px 0 #16123A; padding: 12px 26px 14px; font-weight: 700; font-size: 34px; line-height: 1.1; white-space: nowrap; }
+        #s07-belt .bub::after { content: ""; position: absolute; left: 40px; bottom: -17px; width: 26px; height: 26px; background: #FFF6E6; border-right: 4px solid #16123A; border-bottom: 4px solid #16123A; transform: rotate(45deg); }
+        #s07-belt .bub.r::after { left: auto; right: 44px; }
+        #s07-belt .bub.e::after { left: auto; right: -17px; bottom: auto; top: 20px; transform: rotate(-45deg); }
+        #s07-belt .lane { background: #FFF6E6; color: #16123A; font-weight: 800; font-size: 32px; padding: 8px 24px 8px 12px; box-shadow: 5px 5px 0 #16123A; }
+        #s07-belt .lamp { position: relative; width: 32px; height: 32px; border-radius: 50%; border: 4px solid #16123A; background: #8E9BB8; box-sizing: border-box; }
+        #s07-belt .lamp-on { position: absolute; inset: -4px; border-radius: 50%; border: 4px solid #16123A; background: #2BD99F; opacity: 0; }
+        #s07-belt .prog { left: 5940px; top: 50px; width: 410px; height: 312px; box-sizing: border-box; padding: 22px 28px; }
+        #s07-belt .prog-t { font-family: "Unbounded", sans-serif; font-weight: 800; font-size: 32px; line-height: 1; margin-bottom: 24px; }
+        #s07-belt .bar { display: block; height: 26px; border-radius: 13px; border: 3px solid #16123A; margin-bottom: 16px; transform-origin: 0% 50%; box-sizing: border-box; }
+        #s07-belt .splat { position: absolute; display: block; border-radius: 50%; border: 3px solid #16123A; opacity: 0; }
+        #s07-belt .spark { position: absolute; display: block; width: 30px; height: 8px; border-radius: 4px; background: #FFF6E6; border: 2px solid #16123A; transform-origin: 0% 50%; }
+        #s07-belt .post { position: absolute; width: 38px; background: #C9D3E6; border: 4px solid #16123A; border-radius: 10px; box-sizing: border-box; }
+        #s07-belt .beam { left: 6490px; top: 60px; width: 580px; height: 58px; background: #C9D3E6; border: 4px solid #16123A; border-radius: 16px; box-sizing: border-box; display: flex; align-items: center; justify-content: space-around; padding: 0 90px; }
+        #s07-belt .scan { left: 6552px; top: 130px; width: 456px; height: 16px; border-radius: 8px; background: #3EC5FF; border: 3px solid #16123A; opacity: 0; }
+        #s07-belt .glow { border-radius: 50%; background: radial-gradient(circle, rgba(43, 217, 159, 0.6) 0%, rgba(43, 217, 159, 0) 68%); opacity: 0; }
+      </style>
+      <div id="s07-belt" data-composition-id="%%ID%%" data-width="1920" data-height="1080" data-duration="%%DUR%%">
+        <div class="lay" id="s07-belt-far" data-layout-allow-overflow data-layout-allow-orbit> <div class="ghost" data-layout-ignore style="left:300px;top:250px">КОНВЕЙЕР</div> <div class="ghost" data-layout-ignore style="left:2500px;top:250px">КОНВЕЙЕР</div>
+          <svg class="gear" id="s07-belt-g1" style="left:1500px;top:40px" width="300" height="300" viewBox="-50 -50 100 100"><path d="M-6 -48h12l2 10 8 3 8-6 9 9-6 8 3 8 10 2v12l-10 2-3 8 6 8-9 9-8-6-8 3-2 10h-12l-2-10-8-3-8 6-9-9 6-8-3-8-10-2v-12l10-2 3-8-6-8 9-9 8 6 8-3z" fill="none" stroke="#FFF6E6" stroke-width="5"/><circle r="14" fill="none" stroke="#FFF6E6" stroke-width="5"/></svg>
+          <svg class="gear" id="s07-belt-g2" style="left:2340px;top:620px" width="240" height="240" viewBox="-50 -50 100 100"><path d="M-6 -48h12l2 10 8 3 8-6 9 9-6 8 3 8 10 2v12l-10 2-3 8 6 8-9 9-8-6-8 3-2 10h-12l-2-10-8-3-8 6-9-9 6-8-3-8-10-2v-12l10-2 3-8-6-8 9-9 8 6 8-3z" fill="none" stroke="#FFF6E6" stroke-width="5"/><circle r="14" fill="none" stroke="#FFF6E6" stroke-width="5"/></svg>
+          <svg class="gear" id="s07-belt-g3" style="left:3150px;top:70px" width="360" height="360" viewBox="-50 -50 100 100"><path d="M-6 -48h12l2 10 8 3 8-6 9 9-6 8 3 8 10 2v12l-10 2-3 8 6 8-9 9-8-6-8 3-2 10h-12l-2-10-8-3-8 6-9-9 6-8-3-8-10-2v-12l10-2 3-8-6-8 9-9 8 6 8-3z" fill="none" stroke="#FFF6E6" stroke-width="5"/><circle r="14" fill="none" stroke="#FFF6E6" stroke-width="5"/></svg>
+        </div> <div class="lay dots" id="s07-belt-mid" data-layout-allow-overflow></div> <div class="cam" id="s07-belt-cam" data-layout-allow-overflow> <div class="lay" id="s07-belt-world" data-layout-allow-overflow data-layout-allow-orbit>
+            <div class="ab floor"></div>
+            <!-- station 0: the task board + the command that starts the line -->
+            <div class="ab chip cmd" id="s07-belt-cmd"></div> <div class="ab leg" style="left:260px;top:560px;height:212px"></div> <div class="ab leg" style="left:590px;top:560px;height:212px"></div>
+            <div class="ab panel board" id="s07-belt-board"><div class="board-t">Доска заданий</div> <div class="mini" style="left:24px;top:88px;background:#3EC5FF"><i></i><b></b></div>
+              <div class="mini" style="left:24px;top:190px;background:#FF8A1F"><i style="background:#2BD99F"></i><b></b></div> </div>
+            <!-- plates (one kinetic word per station) -->
+            <div class="ab plate" id="s07-belt-p1" style="left:1290px;top:150px"><span class="num">1</span><span class="name">Весы</span><span class="chip tag">автомат</span></div>
+            <div class="ab plate" id="s07-belt-p2" style="left:2560px;top:150px"><span class="num">2</span><span class="name">Стрелочник</span><span class="chip tag">автомат</span></div>
+            <div class="ab plate" id="s07-belt-p3" style="left:4250px;top:60px"><span class="num">3</span><span class="name">Художник</span></div>
+            <div class="ab plate" id="s07-belt-p4" style="left:4910px;top:-50px"><span class="num">4</span><span class="name">Главный мастер</span></div>
+            <div class="ab plate" id="s07-belt-p5" style="left:6150px;top:-30px"><span class="num">5</span><span class="name">Порядок</span><span class="chip tag">автомат · без ИИ</span></div>
+            <!-- machines & masters behind the belts -->
+            <div class="ab" style="left:1770px;top:240px">%%MACHINE:vesy:460#s07-belt-vesy%%</div> <div class="ab" style="left:2470px;top:293px">%%MACHINE:strelochnik:440#s07-belt-str%%</div>
+            <div class="ab crate" style="left:4600px;top:352px;width:200px;height:120px"></div>
+            <div class="ab rim" id="s07-belt-artw" style="left:4570px;top:57px">%%CHAR:khudozhnik:260#s07-belt-art%%</div>
+            <div class="ab rim" id="s07-belt-chiefw" style="left:5520px;top:32px">%%CHAR:master/chief:360:focus#s07-belt-chief%%</div>
+            <div class="ab glow" id="s07-belt-porglow" style="left:7140px;top:-12px;width:240px;height:240px"></div>
+            <div class="ab rim" style="left:7100px;top:79px">%%MACHINE:poryadok:320#s07-belt-por{"lamp":"off"}%%</div>
+            <div class="ab lamp-on" id="s07-belt-porlamp" style="left:7237px;top:84px;right:auto;bottom:auto;width:38px;height:38px"></div>
+            <!-- belts: upper line, lower line, the siding, the switch ramp -->
+            <div class="ab" style="left:3786px;top:436px">%%BELT:3310:48:282#s07-belt-b3%%</div> <div class="ab" style="left:-304px;top:616px">%%BELT:3604:48:102#s07-belt-b1%%</div>
+            <div class="ab" style="left:3856px;top:616px">%%BELT:264:48:102#s07-belt-b2%%</div>
+            <div class="ab rim" id="s07-belt-plainw" style="left:4063px;top:537px">%%CHAR:master:200#s07-belt-plain%%</div>
+            <div class="ab" id="s07-belt-ramp" style="left:3296px;top:616px;transform-origin:28px 28px">%%BELT:564:48#s07-belt-rampb%%</div>
+            <svg class="ab" style="left:3304px;top:624px" width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="15" fill="#FF8A1F" stroke="#16123A" stroke-width="4"/><circle cx="20" cy="20" r="5" fill="#16123A"/></svg>
+            <div class="ab chip lane" id="s07-belt-lane1" style="left:3780px;top:196px"><span class="lamp"><span class="lamp-on" id="s07-belt-lane1on"></span></span><svg width="36" height="36" viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.8-4.9 4.5 1.3 6.6L12 17.2l-5.9 3.2 1.3-6.6-4.9-4.5 6.6-.8z" fill="#FFF6E6" stroke="#16123A" stroke-width="2.2" stroke-linejoin="round"/></svg>Главный мастер</div>
+            <div class="ab chip lane" id="s07-belt-lane2" style="left:3660px;top:690px"><span class="lamp"></span>обычный мастер</div>
+            <!-- the program being written (stat bars) -->
+            <div class="ab panel prog" id="s07-belt-prog"><div class="prog-t">Программа</div>
+              <span class="bar" style="width:74%;background:#3EC5FF"></span><span class="bar" style="width:58%;margin-left:12%;background:#FF8A1F"></span>
+              <span class="bar" style="width:80%;margin-left:12%;background:#2BD99F"></span><span class="bar" style="width:46%;margin-left:24%;background:#FF4F8B"></span>
+              <span class="bar" style="width:66%;background:#5B34F5"></span> </div> <div class="ab" id="s07-belt-sparks" style="left:5972px;top:145px;width:0;height:0"></div>
+            <!-- the scanner arch of «Порядок» -->
+            <div class="post" style="left:6508px;top:100px;height:392px"></div> <div class="post" style="left:7014px;top:100px;height:392px"></div>
+            <div class="ab glow" id="s07-belt-archglow" style="left:6630px;top:-61px;width:300px;height:300px"></div>
+                        <div class="ab beam" id="s07-belt-beam"><span class="lamp"><span class="lamp-on"></span></span><span class="lamp"><span class="lamp-on"></span></span><span class="lamp"><span class="lamp-on"></span></span></div>
+            <!-- the task card -->
+            <div class="ab card" id="s07-belt-card">
+              <div class="scr"><svg class="ab" style="left:12px;top:36px" width="28" height="28" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="none" stroke="#FFF6E6" stroke-opacity=".3" stroke-width="2.5"/></svg>
+                <div class="scr-paint" id="s07-belt-paint"><svg class="ab" style="left:6px;top:10px" width="40" height="40" viewBox="0 0 24 24"><path d="M12 3.5a5.5 5.5 0 0 0-5.5 5.5v4l-2 3h15l-2-3V9A5.5 5.5 0 0 0 12 3.5z" fill="#FFF6E6" stroke="#16123A" stroke-width="1.8" stroke-linejoin="round"/><path d="M9.8 18.5a2.3 2.3 0 0 0 4.4 0" fill="none" stroke="#FFF6E6" stroke-width="2"/></svg>
+                  <span class="ab" style="left:5px;top:58px;width:42px;height:30px;border-radius:7px;background:#FFF6E6;border:3px solid #16123A"></span></div> </div>
+              <div class="card-t">Напоминание о поливе</div>
+              <span class="ab slot" id="s07-belt-slot"></span>
+              <svg class="ab prog-mini" id="s07-belt-pmini" viewBox="0 0 84 50"><rect x="2" y="2" width="80" height="46" rx="10" fill="#FFF6E6" stroke="#16123A" stroke-width="3.5"/><path d="M12 14h44" stroke-linecap="round" stroke-width="7" stroke="#3EC5FF"/><path d="M20 25h46" stroke-linecap="round" stroke-width="7" stroke="#2BD99F"/><path d="M20 36h26" stroke-linecap="round" stroke-width="7" stroke="#FF4F8B"/></svg>
+              <span class="ab pin" id="s07-belt-pin"></span>
+              <span class="ab okb" id="s07-belt-ok"><svg width="70" height="70" viewBox="0 0 24 24"><path d="M6.5 12.5l3.6 3.6 7.4-8" fill="none" stroke="#16123A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </div> <div class="ab scan" id="s07-belt-scan"></div> <div class="ab" id="s07-belt-splat" style="left:4490px;top:326px;width:0;height:0"></div>
+            <!-- bubbles (≤5 words; automats start with «Бип.») -->
+            <div class="ab bub" id="s07-belt-bub1" style="left:2092px;top:196px">Бип. Размер в норме.</div> <div class="ab bub e" id="s07-belt-bub2" style="left:5210px;top:190px">Люблю трудное!</div>
+            <div class="ab bub r" id="s07-belt-bub3" style="left:7080px;top:-15px">Бип. Всё по полочкам.</div> </div> </div> </div>
+      <script>
+        (function () {
+          %%HELPERS%%
+          var C = %%CUES%%; var D = %%DUR%%; var H = window.MPV; var tl = gsap.timeline({ paused: true }); var P = "#s07-belt-"; var root = document.getElementById("s07-belt");
+          var $ = function (s) { return root.querySelector(s); }; var $$ = function (s) { return root.querySelectorAll(s); };
+          function to(el, from, vars, t) { var v = {}, k; for (k in vars) v[k] = vars[k]; v.immediateRender = false; return tl.fromTo(el, from, v, t); } var i, k;
+          // ---- background: seeded dots / pluses on the mid parallax layer
+          var r = H.rng(707), html = ""; for (i = 0; i < 80; i++) { var x = Math.round(r() * 5200), y = Math.round(120 + r() * 660), s = Math.round(10 + r() * 16);
+            html += i % 3 ? '<span class="dot" style="left:' + x + "px;top:" + y + "px;width:" + s + "px;height:" + s + 'px"></span>'
+              : '<span class="plus" style="left:' + x + "px;top:" + y + "px;width:" + (s + 12) + "px;height:" + (s + 12) + 'px"></span>'; } var mid = $(P + "mid"); mid.innerHTML = html;
+          // ---- the command types itself (per-char spans)
+          var cmd = $(P + "cmd"), txt = "/mp --feature --next", spans = []; var cin = document.createElement("span"); cin.style.whiteSpace = "pre"; cmd.appendChild(cin);
+          for (i = 0; i < txt.length; i++) { var sp = document.createElement("span"); sp.textContent = txt.charAt(i); cin.appendChild(sp); spans.push(sp); }
+          H.arrive(tl, cmd, 0.3, { from: 0.8, dur: 0.4 }); H.type(tl, spans, 0.5, { cps: 24 });
+          // ---- ambient life: belts, rollers, gears, camera micro-drift + multi-phase scale
+          tl.fromTo($$(".belt-chev"), { x: 0 }, { x: 28, duration: 0.4, ease: "none", repeat: H.repeats(D, 0.4), immediateRender: false }, 0);
+          tl.fromTo($$(".belt-roller"), { rotation: 0 }, { rotation: 360, duration: 1.2, ease: "none", repeat: H.repeats(D, 1.2), immediateRender: false }, 0);
+          to(P + "g1", { rotation: 0 }, { rotation: 140, duration: D, ease: "none" }, 0); to(P + "g2", { rotation: 0 }, { rotation: -200, duration: D, ease: "none" }, 0);
+          to(P + "g3", { rotation: 0 }, { rotation: 110, duration: D, ease: "none" }, 0); var cam = $(P + "cam");
+          tl.fromTo(cam, { x: 0 }, { x: 5, duration: 1.9, ease: "sine.inOut", yoyo: true, repeat: H.repeats(D, 1.9), immediateRender: false }, 0);
+          tl.fromTo(cam, { y: 0 }, { y: -3, duration: 2.5, ease: "sine.inOut", yoyo: true, repeat: H.repeats(D, 2.5), immediateRender: false }, 0);
+          tl.fromTo(cam, { scale: 1.07 }, { scale: 1, duration: 1.4, ease: "power2.out" }, 0); to(cam, { scale: 1 }, { scale: 1.045, duration: 1.7, ease: "power1.inOut" }, 19.9);
+          // ---- viewport-change: pan legs move the world (+ parallax layers at 0.5 / 0.2)
+          var world = $(P + "world"), far = $(P + "far"), camX = 960, camY = 0; function pan(t, dur, x1, y1) { var e = "power2.inOut";
+            to(world, { x: 960 - camX, y: camY }, { x: 960 - x1, y: y1, duration: dur, ease: e }, t);
+            to(mid, { x: (960 - camX) * 0.5, y: camY * 0.5 }, { x: (960 - x1) * 0.5, y: y1 * 0.5, duration: dur, ease: e }, t);
+            to(far, { x: (960 - camX) * 0.2, y: camY * 0.2 }, { x: (960 - x1) * 0.2, y: y1 * 0.2, duration: dur, ease: e }, t); camX = x1; camY = y1; }
+          // the card: bottom-centre in world coords; CSS base = (1000, 620)
+          var card = $(P + "card"), cx = 535, cy = 556, crot = -3; gsap.set(card, { x: cx - 1000, y: cy - 620, scale: 0.45, rotation: crot }); function ride(t, dur, x1, y1, ease, rot) {
+            var v = { x: cx - 1000, y: cy - 620 }, w = { x: x1 - 1000, y: y1 - 620, duration: dur, ease: ease || "power2.inOut" }; if (rot != null) { v.rotation = crot; w.rotation = rot; crot = rot; }
+            to(card, v, w, t); cx = x1; cy = y1; }
+          // ---- 0: the factory takes the next card off the board
+          to(P + "pin", { y: 0, opacity: 1, rotation: 0 }, { y: -80, opacity: 0, rotation: 120, duration: 0.35, ease: "power2.out" }, C.card);
+          to(card, { y: -64, rotation: -3, scale: 0.45 }, { y: -120, rotation: 5, scale: 0.6, duration: 0.24, ease: "power2.out" }, C.card);
+          to(card, { x: -465 }, { x: 0, duration: 0.6, ease: "power1.inOut" }, C.card + 0.24); to(card, { y: -120 }, { y: -260, duration: 0.26, ease: "power2.out" }, C.card + 0.24);
+          to(card, { y: -260 }, { y: 0, duration: 0.34, ease: "power2.in" }, C.card + 0.5);
+          to(card, { scale: 0.6, rotation: 5 }, { scale: 1, rotation: 0, duration: 0.6, ease: "power1.out" }, C.card + 0.24);
+          to(card, { scaleX: 1.08, scaleY: 0.86 }, { scaleX: 1, scaleY: 1, duration: 0.45, ease: "back.out(3)" }, C.card + 0.84); cx = 1000; cy = 620; crot = 0; ride(C.card + 1.0, 4.35 - C.card - 1.0, 1130, 620, "none");
+          // ---- 1: «Весы» weigh the card — the needle teases the red zone, then settles in mint
+          pan(4.35, 1.2, 2000, 0); ride(4.35, 1.2, 2000, 620); H.slam(tl, P + "p1", C.scales); var needle = $(P + "vesy .c-needle");
+          to(needle, { rotation: 0 }, { rotation: 72, duration: 0.34, ease: "power3.out" }, C.scales + 0.05);
+          to(needle, { rotation: 72 }, { rotation: 46, duration: 0.3, ease: "sine.inOut" }, C.scales + 0.4);
+          to(needle, { rotation: 46 }, { rotation: 66, duration: 0.42, ease: "sine.inOut" }, C.scales + 0.72);
+          to(needle, { rotation: 66 }, { rotation: 4, duration: 0.7, ease: "elastic.out(1, 0.45)" }, C.scales + 1.4);
+          to(needle, { rotation: 4 }, { rotation: 8, duration: 0.9, ease: "sine.inOut", yoyo: true, repeat: 5 }, C.scales + 2.2);
+          to(card, { y: 0 }, { y: 8, duration: 0.12, ease: "power2.in" }, C.scales + 0.05); to(card, { y: 8 }, { y: 0, duration: 0.4, ease: "back.out(2.5)" }, C.scales + 0.17);
+          H.arrive(tl, P + "bub1", C.scales + 1.45, { from: 0.4 });   // as the needle settles in mint
+          // the bubble leaves while the camera pans on, instead of lingering half-cut at the frame edge at station 2
+          to(P + "bub1", { scale: 1, opacity: 1 }, { scale: 0.6, opacity: 0, duration: 0.22, ease: "back.in(2)" }, 7.95 + 0.5);
+          // ---- 2: «Стрелочник» weighs up who gets it, then sends the hard card up the ramp to the chief
+          pan(7.95, 1.1, 3380, 0); ride(7.95, 1.1, 3170, 620); H.slam(tl, P + "p2", C.switch); var lever = $(P + "str .c-lever");
+          to(lever, { rotation: 0 }, { rotation: 36, duration: 0.3, ease: "power2.inOut" }, C.switch + 0.25);
+          to(lever, { rotation: 36 }, { rotation: -20, duration: 0.36, ease: "power2.inOut" }, C.switch + 0.6);
+          to(lever, { rotation: -20 }, { rotation: 0, duration: 0.3, ease: "power2.inOut" }, C.switch + 1.0); H.arrive(tl, P + "lane1", C.switch + 0.55, { y: 20 });
+          H.arrive(tl, P + "lane2", C.switch + 0.8, { y: 20 }); H.snap(tl, lever, C.chief, { rotation: 58 }, { fromVars: { rotation: 0 } });
+          // «кому её поручить: трудное —» the automat weighs it up: the card looks lane to lane, the chips answer in turn,
+          // and on «трудное» the card turns heavy and leans to the chief. Word times from %%WORDS%% (cue fallbacks).
+          var W = %%WORDS%%, wt = function (s, fb) { for (k = 0; k < W.length; k++) if (W[k].text.toLowerCase().replace(/[^а-яё]/g, "") === s) return W[k].start; return fb; };
+          var tK = Math.max(C.switch + 1.3, wt("кому", C.chief - 1.85)), tP = wt("поручить", tK + 0.44), tT = wt("трудное", C.chief - 0.63), lean = 0, beats = [[tK, 2, 5], [tP, 1, -5], [(tP + tT) / 2, 2, 4], [tT, 1, -6]];
+          beats.forEach(function (b, n) { var big = n === 3 ? 1.14 : 1.08, ln = P + "lane" + b[1];
+            to(ln, { scale: 1 }, { scale: big, duration: 0.13, ease: "power2.out", yoyo: true, repeat: 1 }, b[0]);
+            to(card, { rotation: lean }, { rotation: b[2], duration: 0.18, ease: "back.out(2)" }, b[0]); lean = b[2]; });
+          to(card, { y: 0 }, { y: -22, duration: 0.14, ease: "power2.out", yoyo: true, repeat: 1 }, tK);
+          to(card, { scaleX: 1, scaleY: 1 }, { scaleX: 1.07, scaleY: 0.88, duration: 0.1, ease: "power2.in", yoyo: true, repeat: 1 }, tT + 0.02);
+          to(card, { y: 0 }, { y: 7, duration: 0.1, ease: "power2.in", yoyo: true, repeat: 1 }, tT + 0.02);
+          to(card, { rotation: lean }, { rotation: 0, duration: Math.max(0.1, C.chief - tT - 0.3), ease: "power2.inOut" }, tT + 0.25);
+          to(P + "lane1on", { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.25, ease: "back.out(3)" }, C.chief + 0.05); H.press(tl, P + "lane1", C.chief + 0.05);
+          to(P + "ramp", { rotation: 0 }, { rotation: -20, duration: 0.42, ease: "back.out(1.5)" }, C.chief + 0.08); ride(C.chief + 0.36, 0.3, 3340, 613, "power1.in");
+          ride(C.chief + 0.66, 0.5, 3780, 452, "none", -20); ride(C.chief + 1.16, 0.3, 3880, 440, "power2.out", 0);
+          // «простое — обычному»: the plain master waves from the siding
+          var arm = $(P + "plain .c-arm-r"); to(arm, { rotation: 0 }, { rotation: -100, duration: 0.22, ease: "power2.out" }, 13.35);
+          to(arm, { rotation: -100 }, { rotation: -70, duration: 0.18, ease: "sine.inOut", yoyo: true, repeat: 3 }, 13.57);
+          to(arm, { rotation: -100 }, { rotation: 0, duration: 0.3, ease: "power2.inOut" }, 14.3);
+          to(P + "lane2", { rotation: 0 }, { rotation: -3, duration: 0.12, ease: "sine.inOut", yoyo: true, repeat: 3 }, 13.4);
+          // ---- 3 (silent station, its narration line was trimmed): a short real stop at «Художник» between the switch
+          // and the chief — leg A drops the camera onto the upper line, the brush hits as the card lands, leg B moves on.
+          // The lane chips leave first: after the camera drop «обычный мастер» would sit in the caption band.
+          to([P + "lane1", P + "lane2"], { opacity: 1 }, { opacity: 0, duration: 0.25, ease: "power1.in" }, 14.05);
+          var tA = 14.05, dA = 0.8, tB = 15.25, dB = 0.65, hit = tA + dA + 0.02; pan(tA, dA, 4700, 180); ride(tA, dA, 4700, 440);
+          H.slam(tl, P + "p3", tA + 0.5); var brush = $(P + "art .c-arm-r");   /* camY is ~140 by then: the plate clears the HUD */
+          // two dabs (arm raised = brush up, lowered toward the card = the stroke), then rest
+          to(brush, { rotation: 0 }, { rotation: -80, duration: 0.2, ease: "power2.out" }, hit - 0.3); to(brush, { rotation: -80 }, { rotation: -22, duration: 0.1, ease: "power3.in" }, hit - 0.08);
+          to(brush, { rotation: -22 }, { rotation: -68, duration: 0.12, ease: "power2.out" }, hit + 0.06); to(brush, { rotation: -68 }, { rotation: -22, duration: 0.1, ease: "power3.in" }, hit + 0.18);
+          to(brush, { rotation: -22 }, { rotation: 0, duration: 0.4, ease: "back.out(2)" }, hit + 0.32);
+          var spl = $(P + "splat"), sc = ["#5B34F5", "#3EC5FF", "#2BD99F", "#FF8A1F", "#FF4F8B", "#FFF6E6", "#5B34F5"], sr = H.rng(4711), shh = "";
+          for (i = 0; i < sc.length; i++) { var sz = Math.round(18 + sr() * 10); shh += '<span class="splat" style="left:' + (-sz / 2) + "px;top:" + (-sz / 2) + "px;width:" + sz + "px;height:" + sz + "px;background:" + sc[i] + '"></span>'; }
+          spl.innerHTML = shh; var sps = spl.querySelectorAll(".splat"); for (i = 0; i < sps.length; i++) { var sa = (-172 + i * 26 + sr() * 10) * Math.PI / 180, sd = 58 + sr() * 40, st0 = hit + (i % 2) * 0.12;
+            tl.fromTo(sps[i], { x: 0, y: 0, scale: 0.3, opacity: 1 }, { x: Math.cos(sa) * sd, y: Math.sin(sa) * sd, scale: 1, opacity: 1, duration: 0.3, ease: "power2.out", immediateRender: false }, st0);
+            to(sps[i], { opacity: 1, scale: 1 }, { opacity: 0, scale: 0.5, duration: 0.2, ease: "power1.in" }, st0 + 0.3); }
+          to(P + "paint", { clipPath: "circle(0% at 85% 15%)" }, { clipPath: "circle(150% at 85% 15%)", duration: 0.3, ease: "power2.out" }, hit);
+          to(card, { scaleX: 1, scaleY: 1 }, { scaleX: 1.04, scaleY: 0.94, duration: 0.07, ease: "power2.in", yoyo: true, repeat: 1 }, hit);
+          pan(tB, dB, 5620, 180); ride(tB, dB, 5330, 440);
+          to(P + "p3", { opacity: 1 }, { opacity: 0, duration: 0.25, ease: "power1.in" }, tB + 0.3);   // no plate sliver peeking at station 4
+          // ---- 4: the chief writes the program — every hit lands one bar (stat-bars-and-fills)
+          H.slam(tl, P + "p4", C.master); H.arrive(tl, P + "prog", C.master - 0.15, { from: 0.7, y: 30 }); H.arrive(tl, P + "bub2", C.master + 0.3, { from: 0.4 });
+          var wr = $(P + "chief .c-arm-r"), bars = $$(".bar"), sparks = $(P + "sparks"), sh = ""; for (i = 0; i < 30; i++) sh += '<span class="spark"></span>'; sparks.innerHTML = sh;
+          var sk6 = sparks.querySelectorAll(".spark"); for (i = 0; i < 5; i++) { var th = C.master + 0.1 + i * 0.26;
+            to(wr, { rotation: 0 }, { rotation: -80, duration: 0.14, ease: "power2.out" }, th - 0.2); to(wr, { rotation: -80 }, { rotation: 6, duration: 0.07, ease: "power3.in" }, th - 0.06);
+            tl.fromTo(bars[i], { scaleX: 0 }, { scaleX: 1, duration: 0.32, ease: "power3.out" }, th); for (k = 0; k < 6; k++) {
+              var sk = sk6[i * 6 + k], a = -150 + k * 42 + (i % 2) * 18, rad = a * Math.PI / 180; gsap.set(sk, { rotation: a, x: 0, y: i * 42, opacity: 0 });
+              to(sk, { opacity: 1, scaleX: 0.3, x: 0, y: i * 42 }, { opacity: 0, scaleX: 1.2, x: Math.cos(rad) * 50, y: i * 42 + Math.sin(rad) * 50, duration: 0.32, ease: "power2.out" }, th); } }
+          to(wr, { rotation: 6 }, { rotation: 0, duration: 0.3, ease: "back.out(2)" }, C.master + 1.2);
+          // the finished program folds into the card
+          to(P + "prog", { x: 0, y: 0, scale: 1, opacity: 1 }, { x: -955, y: 185, scale: 0.16, opacity: 0, duration: 0.25, ease: "power2.in" }, C.master + 1.26);
+          tl.fromTo(P + "pmini", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.35, ease: "back.out(2.5)" }, C.master + 1.46);
+          to(P + "slot", { opacity: 1 }, { opacity: 0, duration: 0.12 }, C.master + 1.46);
+          // ---- 5: automat «Порядок» scans the card under its arch; the lamps go mint
+          pan(17.1, 0.9, 6860, 180); ride(17.1, 0.9, 6780, 440); H.slam(tl, P + "p5", C.order); var scan = $(P + "scan");
+          for (i = 0; i < 2; i++) to(scan, { y: 0, opacity: 1 }, { y: 290, opacity: 1, duration: 0.34, ease: "sine.inOut" }, C.order + 0.1 + i * 0.4);
+          to(scan, { opacity: 1 }, { opacity: 0, duration: 0.12 }, C.order + 0.86); var beamOn = $$(P + "beam .lamp-on");
+          for (i = 0; i < 3; i++) to(beamOn[i], { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.2, ease: "back.out(3)" }, C.order + 0.2 + i * 0.22);
+                    to(P + "porlamp", { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.25, ease: "back.out(3)" }, C.order + 0.95);
+          to(P + "archglow", { opacity: 0, scale: 0.8 }, { opacity: 0.72, scale: 1, duration: 0.6, ease: "power2.out" }, C.order + 0.9);
+          to(P + "porglow", { opacity: 0, scale: 0.8 }, { opacity: 0.72, scale: 1, duration: 0.6, ease: "power2.out" }, C.order + 0.95);
+          to(P + "archglow", { opacity: 0.72, scale: 1 }, { opacity: 0.5, scale: 1.06, duration: 0.8, ease: "sine.inOut", yoyo: true, repeat: H.repeats(C._out - C.order - 1.6, 0.8) }, C.order + 1.6); H.arrive(tl, P + "bub3", C.order + 1.25, { from: 0.4 });
+          tl.fromTo(P + "ok", { scale: 0, rotation: -40 }, { scale: 1, rotation: 0, duration: 0.45, ease: "back.out(2.6)" }, C.order + 2.0);
+          // ---- idle life on the cast
+          H.bob(tl, P + "artw", 0.4, C._out, { y: 6, period: 2.2 }); H.bob(tl, P + "chiefw", 0.2, C._out, { y: 7, period: 2.0 }); H.bob(tl, P + "plainw", 0.3, C._out, { y: 6, period: 2.3 });
+          H.blink(tl, P + "art .c-lid", 0.2, C._out, { seed: 71 }); H.blink(tl, P + "chief .c-lid", 0.2, C._out, { seed: 72 }); H.blink(tl, P + "plain .c-lid", 0.2, C._out, { seed: 73 });
+          H.wait(tl, P + "str .c-lamp--main", 1.02, C._out, { lo: 0.55, period: 1.2 });   // off the frame grid: a loop that starts exactly on a frame renders its from-state on play but not on a jump
+          window.__timelines["%%ID%%"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

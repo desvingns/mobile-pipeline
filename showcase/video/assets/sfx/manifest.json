@@ -1,0 +1,86 @@
+{
+ "pop": {
+  "file": "assets/sfx/pop.wav",
+  "duration": 0.72,
+  "peakAt": 0.115,
+  "gainDb": 0.16
+ },
+ "click": {
+  "file": "assets/sfx/click.wav",
+  "duration": 0.366,
+  "peakAt": 0.05,
+  "gainDb": 2.294
+ },
+ "click-soft": {
+  "file": "assets/sfx/click-soft.wav",
+  "duration": 0.366,
+  "peakAt": 0.05,
+  "gainDb": 2.294
+ },
+ "chime": {
+  "file": "assets/sfx/chime.wav",
+  "duration": 2.5,
+  "peakAt": 0.415,
+  "gainDb": 9.347
+ },
+ "sparkle": {
+  "file": "assets/sfx/sparkle.wav",
+  "duration": 1.802,
+  "peakAt": 0.025,
+  "gainDb": -3.109
+ },
+ "whoosh": {
+  "file": "assets/sfx/whoosh.wav",
+  "duration": 0.575,
+  "peakAt": 0.16,
+  "gainDb": -0.949
+ },
+ "whoosh-short": {
+  "file": "assets/sfx/whoosh-short.wav",
+  "duration": 0.575,
+  "peakAt": 0.16,
+  "gainDb": -0.949
+ },
+ "error": {
+  "file": "assets/sfx/error.wav",
+  "duration": 1.62,
+  "peakAt": 0.65,
+  "gainDb": 18.182
+ },
+ "notification": {
+  "file": "assets/sfx/notification.wav",
+  "duration": 2.456,
+  "peakAt": 0.23,
+  "gainDb": -0.73
+ },
+ "impact-bass-1": {
+  "file": "assets/sfx/impact-bass-1.wav",
+  "duration": 2.116,
+  "peakAt": 0.085,
+  "gainDb": -2.553
+ },
+ "ping": {
+  "file": "assets/sfx/ping.wav",
+  "duration": 1.32,
+  "peakAt": 0.32,
+  "gainDb": 1.498
+ },
+ "typing": {
+  "file": "assets/sfx/typing.wav",
+  "duration": 1.5,
+  "peakAt": 0.455,
+  "gainDb": 6.13
+ },
+ "key-press": {
+  "file": "assets/sfx/key-press.wav",
+  "duration": 0.4,
+  "peakAt": 0.07,
+  "gainDb": 5.667
+ },
+ "glitch-3": {
+  "file": "assets/sfx/glitch-3.wav",
+  "duration": 3.096,
+  "peakAt": 1.815,
+  "gainDb": 1.636
+ }
+}

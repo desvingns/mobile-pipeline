@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Схема — тестовый стенд</title>
+  <!-- Test bench for the «Схема» engine: same CSS stack and height rule as index.html #panel-skhema,
+       fixture data (tools/bp-fixture.js) instead of assets/js/blueprint-data.js.
+       Usage: tools/bp-test.html#feature/fn-dev · #overview/~c-plan · #feature/!ft-autofix · ?data=real -->
+  <link rel="stylesheet" href="../assets/css/fonts.css">
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <link rel="stylesheet" href="../assets/css/blueprint.css">
+  <style>
+    body { background: #17191c; }
+    .fake-header { height: var(--header-h); background: var(--ink); color: var(--cream); display: flex; align-items: center;
+      padding: 0 var(--gutter); font-family: var(--font-display); font-weight: 800; font-size: 18px; gap: 12px; }
+    .fake-header small { font-family: var(--font-text); font-weight: 500; font-size: 14px; color: var(--sky); }
+    #root { height: calc(100dvh - var(--header-h)); background: #17191c; color: #e6e9ed; }
+  </style>
+</head>
+<body>
+<header class="fake-header">Фабрика приложений <small>тестовый стенд «Схемы»</small></header>
+<main id="root" role="tabpanel" aria-label="Схема"></main>
+<div id="mp-live" class="sr-only" aria-live="polite"></div>
+<script src="../assets/vendor/gsap/gsap.min.js"></script>
+<script src="../assets/vendor/gsap/MotionPathPlugin.min.js"></script>
+<script src="../assets/vendor/gsap/DrawSVGPlugin.min.js"></script>
+<script src="../assets/js/core.js"></script>
+<script>
+  /* ?data=real loads the real blueprint-data.js instead of the fixture */
+  (function () {
+    var real = /[?&]data=real\b/.test(location.search);
+    document.write('<script src="' + (real ? '../assets/js/blueprint-data.js' : 'bp-fixture.js') + '"><\/script>');
+  })();
+</script>
+<script src="../assets/js/bp-core.js"></script>
+<script src="../assets/js/bp-ui.js"></script>
+<script src="../assets/js/bp-sim.js"></script>
+<script src="../assets/js/bp-outline.js"></script>
+<script>
+  (function () {
+    if (window.gsap) gsap.registerPlugin(window.MotionPathPlugin, window.DrawSVGPlugin);
+    /* router stub: the real router.js prefixes «skhema/»; here the hash IS the route */
+    window.MP.router = { setSkhemaRoute: function (r) { try { history.replaceState(null, '', '#' + r); } catch (e) {} } };
+    var root = document.getElementById('root');
+    var route = location.hash.slice(1);
+    window.MP_SKHEMA.mount(root, route);
+    window.MP_SKHEMA.show(route);
+    window.addEventListener('hashchange', function () { window.MP_SKHEMA.show(location.hash.slice(1)); });
+  })();
+</script>
+</body>
+</html>

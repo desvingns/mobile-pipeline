@@ -1,0 +1,10 @@
+node_modules/
+.venv/
+.hyperframes/
+.media/
+.thumbnails/
+.waveform-cache/
+renders/
+snapshots/
+beats/
+*.log

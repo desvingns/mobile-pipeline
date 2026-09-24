@@ -1,0 +1,240 @@
+<!doctype html>
+<!-- s01-hook «Фиалка поникла» (scene pack v2) · blueprint kinetic-type-beats (hook; a beat may be a non-text element) · rules discrete-text-sequence, spring-pop-entrance, svg-path-draw, particle-burst. One fixed right-hand SLOT carries the beats (kinetic-type-beats triptych, non-text payloads): q «Знакомо?» · app phone draws + bell rings, «вовремя» an alarm clock spins to 09:00 in the slot · coder the clock is swapped for a «</>» sticker that gets a raspberry cross · bulb the sticker is flicked away and the idea pops in the same slot at the T1 origin (1500,360) with 24 seeded sparks. Also: wilt leaves flop + tear · forgot note scribbled. -->
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>s01-hook</title>
+  </head>
+  <body>
+    <template id="s01-hook-template">
+      <style>
+        %%FONTS%%
+        %%KITCSS%%
+        #s01-hook { position: absolute; inset: 0; overflow: hidden; background: %%FIELD%%; color: %%INK%%; font-family: "Golos Text", sans-serif; }
+        #s01-hook .abs { position: absolute; display: block; }
+        #s01-hook-world { position: absolute; inset: 0; transform-origin: 960px 540px; }
+        #s01-hook-ghost { left: 790px; top: 470px; font: 900 250px/1 "Unbounded", sans-serif; letter-spacing: -0.02em; white-space: nowrap; opacity: 0.1; }
+        #s01-hook-deco { inset: 0; }
+        #s01-hook .dot { position: absolute; border-radius: 50%; background: %%INK%%; opacity: 0.2; }
+        #s01-hook .plus { position: absolute; opacity: 0.24;
+          background: linear-gradient(%%INK%%, %%INK%%) center / 100% 4px no-repeat, linear-gradient(%%INK%%, %%INK%%) center / 4px 100% no-repeat; }
+        #s01-hook .drop { position: absolute; width: 22px; height: 30px; opacity: 0.55; }
+        #s01-hook-floor { left: 0; right: 0; top: 736px; height: 6px; background: %%INK%%; opacity: 0.12; }
+        #s01-hook-win { left: 196px; top: 150px; width: 548px; height: 540px; border: 8px solid %%INK%%; border-radius: 22px; background: #3EC5FF; overflow: hidden; box-shadow: 10px 10px 0 %%INK%%; }
+        #s01-hook .mull { position: absolute; background: #FFF6E6; border: 4px solid %%INK%%; }
+        #s01-hook-sun { left: 368px; top: 74px; width: 120px; height: 120px; }
+        #s01-hook .cloud { position: absolute; width: 190px; height: 90px; }
+        #s01-hook-valance { left: 172px; top: 124px; width: 596px; height: 86px; }
+        #s01-hook-sill { left: 150px; top: 682px; width: 640px; height: 50px; background: #FFF6E6; border: 6px solid %%INK%%; border-radius: 14px; box-shadow: 8px 8px 0 %%INK%%; }
+        #s01-hook-plant { left: 240px; top: 182px; width: 460px; height: 537px; }
+        #s01-hook-tear { left: 508px; top: 598px; width: 26px; height: 34px; }
+        #s01-hook-note { left: 226px; top: 204px; width: 236px; height: 176px; }
+        #s01-hook-note .paper { position: absolute; inset: 0; background: #2BD99F; border: 5px solid %%INK%%; border-radius: 10px; box-shadow: 7px 7px 0 %%INK%%;
+          display: flex; align-items: center; justify-content: center; font: 800 50px/1 "Golos Text", sans-serif; letter-spacing: -0.01em; }
+        #s01-hook-note .tape { left: 78px; top: -16px; width: 84px; height: 30px; background: #FFF6E6; border: 4px solid %%INK%%; border-radius: 6px; }
+        #s01-hook-scrib { left: 16px; top: 44px; width: 204px; height: 96px; overflow: visible; }
+        #s01-hook-q { left: 826px; top: 246px; font: 900 132px/1 "Unbounded", sans-serif; letter-spacing: -0.035em; white-space: nowrap; }
+        #s01-hook-q .qm { display: inline-block; }         #s01-hook-uline { left: 838px; top: 396px; width: 780px; height: 60px; overflow: visible; }
+        #s01-hook-phonewrap { inset: 0; }
+        #s01-hook-phone { left: 985px; top: 124px; width: 345px; height: 598px; overflow: visible; }
+        #s01-hook-notif { left: 1026px; top: 470px; width: 262px; height: 128px; background: #FFF6E6; border: 4px solid %%INK%%; border-radius: 22px;
+          display: flex; align-items: center; justify-content: center; gap: 16px; font: 800 39px/1.05 "Golos Text", sans-serif; box-shadow: 5px 5px 0 %%INK%%; }
+        #s01-hook-notif i { display: block; flex: none; width: 44px; height: 44px; border-radius: 13px; background: #2BD99F; border: 4px solid %%INK%%; }
+        #s01-hook-sticker { left: 1322px; top: 262px; width: 320px; height: 200px; }
+        #s01-hook-sticker .face { position: absolute; inset: 0; background: %%INK%%; color: #FFF6E6; border-radius: 30px; border: 8px solid #FFF6E6; box-shadow: 0 0 0 5px %%INK%%, 10px 10px 0 5px %%INK%%;
+          display: flex; align-items: center; justify-content: center; font: 800 124px/1 "JetBrains Mono", monospace; letter-spacing: -0.06em; }
+        #s01-hook-cross { left: -7px; top: -8px; width: 334px; height: 216px; overflow: visible; }
+        #s01-hook-clk { left: 1318px; top: 150px; width: 364px; height: 480px; } #s01-hook-clock { left: 32px; top: 0; width: 300px; height: 330px; overflow: visible; }
+        #s01-hook-time { left: 0; right: 0; top: 352px; display: flex; justify-content: center; }
+        #s01-hook-time span { display: block; padding: 14px 30px 12px; background: #FFF6E6; border: 5px solid %%INK%%; border-radius: 999px; box-shadow: 7px 7px 0 %%INK%%;
+          font: 800 64px/1 "Unbounded", sans-serif; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+        #s01-hook-bulb { left: 1281.7px; top: 176.1px; width: 400px; height: 440px; overflow: visible; }
+        #s01-hook-sparks { left: 1481.7px; top: 366.1px; width: 0; height: 0; }
+        #s01-hook .spark { position: absolute; left: 0; top: 0; opacity: 0; }
+        /* pivots for SVG-internal parts (view-box user units) */
+        #s01-hook .vb { transform-box: view-box; } #s01-hook-sunrays { transform-origin: 60px 60px; } #s01-hook-bell { transform-origin: 150px 104px; } #s01-hook-arcs { transform-origin: 150px 186px; }
+        #s01-hook-hh, #s01-hook-mh { transform-origin: 150px 182px; } #s01-hook-rings { transform-origin: 150px 70px; } #s01-hook-glass { transform-origin: 200px 330px; }
+        #s01-hook-glow { transform-origin: 200px 196px; } #s01-hook-halo, #s01-hook-rays, #s01-hook .ray { transform-origin: 200px 190px; }
+      </style>
+      <div id="s01-hook" data-composition-id="%%ID%%" data-width="1920" data-height="1080" data-duration="%%DUR%%">
+        <div id="s01-hook-world" data-layout-allow-overflow>
+          <div class="abs" id="s01-hook-ghost" data-layout-allow-overflow data-layout-ignore>ПОЛИВ</div>
+          <div class="abs" id="s01-hook-deco" data-layout-allow-overflow></div>
+          <div class="abs" id="s01-hook-floor"></div>
+          <div class="abs" id="s01-hook-win">
+            <svg class="abs" id="s01-hook-sun" viewBox="0 0 120 120" data-layout-allow-overflow><g class="vb" id="s01-hook-sunrays" stroke="#16123A" stroke-width="6" stroke-linecap="round"><path d="M60 6V20M60 100V114M6 60H20M100 60H114M22 22L32 32M88 88L98 98M98 22L88 32M32 88L22 98" /></g><circle cx="60" cy="60" r="30" fill="#FF8A1F" stroke="#16123A" stroke-width="6" /></svg>
+            <svg class="cloud" id="s01-hook-cloud1" style="left:-40px;top:96px" viewBox="0 0 190 90"><path d="M30 78 Q6 78 8 58 Q10 38 34 40 Q40 12 72 14 Q100 4 118 30 Q150 22 162 46 Q186 50 182 68 Q180 80 160 80 Z" fill="#FFF6E6" stroke="#16123A" stroke-width="6" stroke-linejoin="round" /></svg>
+            <svg class="cloud" id="s01-hook-cloud2" style="left:250px;top:300px;width:150px;height:72px" viewBox="0 0 190 90"><path d="M30 78 Q6 78 8 58 Q10 38 34 40 Q40 12 72 14 Q100 4 118 30 Q150 22 162 46 Q186 50 182 68 Q180 80 160 80 Z" fill="#FFF6E6" stroke="#16123A" stroke-width="7" stroke-linejoin="round" /></svg>
+            <span class="mull" data-layout-allow-overflow style="left:252px;top:-10px;width:26px;height:560px"></span><span class="mull" data-layout-allow-overflow style="left:-10px;top:236px;width:560px;height:26px"></span>
+          </div>
+          <svg class="abs" id="s01-hook-valance" viewBox="0 0 596 86"><path d="M8 8 H588 V50 Q561 80 534 50 Q507 80 480 50 Q453 80 426 50 Q399 80 372 50 Q345 80 318 50 Q291 80 264 50 Q237 80 210 50 Q183 80 156 50 Q129 80 102 50 Q75 80 48 50 Q28 74 8 56 Z" fill="#5B34F5" stroke="#16123A" stroke-width="7" stroke-linejoin="round" /><path d="M24 24 H300" stroke="#FFF6E6" stroke-width="6" stroke-linecap="round" opacity="0.55" /></svg>
+          <div class="abs" id="s01-hook-note"><div class="paper">полить!</div><span class="tape abs"></span>
+            <svg class="abs" id="s01-hook-scrib" viewBox="0 0 204 96"><path pathLength="1" d="M6 56 C48 30 84 66 124 42 C152 26 178 36 198 30 C176 50 132 66 90 60 C60 56 32 62 12 72" fill="none" stroke="#FF4F8B" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" /></svg></div>
+          <div class="abs" id="s01-hook-sill"></div>
+          <div class="abs kit-rim" id="s01-hook-plant">%%PLANT:sad:460#s01-hook-kit%%</div>
+          <svg class="abs" id="s01-hook-tear" viewBox="0 0 22 30"><path d="M11 2 C8 10 3 14 3 20 A8 8 0 0 0 19 20 C19 14 14 10 11 2 Z" fill="#3EC5FF" stroke="#16123A" stroke-width="3" /></svg>
+          <div class="abs" id="s01-hook-q">Знакомо<span class="qm" id="s01-hook-qm">?</span></div>
+          <svg class="abs" id="s01-hook-uline" viewBox="0 0 780 60"><path pathLength="1" d="M6 34 C170 14 370 50 540 26 C630 14 710 22 774 30" fill="none" stroke="#5B34F5" stroke-width="16" stroke-linecap="round" /></svg>
+          <div class="abs" id="s01-hook-sparks" data-layout-allow-overflow></div>
+          <div class="abs" id="s01-hook-clk" data-layout-allow-overflow>
+            <svg class="abs" id="s01-hook-clock" viewBox="0 0 300 330"> <g class="vb" id="s01-hook-rings" fill="none" stroke="#16123A" stroke-width="8" stroke-linecap="round"><path d="M22 58 Q8 34 22 10" /><path d="M44 64 Q34 44 44 24" /><path d="M278 58 Q292 34 278 10" /><path d="M256 64 Q266 44 256 24" /></g> <path d="M96 286 L72 318 M204 286 L228 318" stroke="#16123A" stroke-width="16" stroke-linecap="round" /> <circle cx="84" cy="74" r="38" fill="#FF8A1F" stroke="#16123A" stroke-width="8" /><circle cx="216" cy="74" r="38" fill="#FF8A1F" stroke="#16123A" stroke-width="8" /> <path d="M150 50 V72" stroke="#16123A" stroke-width="10" stroke-linecap="round" /><circle cx="150" cy="44" r="12" fill="#FFF6E6" stroke="#16123A" stroke-width="7" /> <circle cx="150" cy="182" r="112" fill="#3EC5FF" stroke="#16123A" stroke-width="9" /><circle cx="150" cy="182" r="84" fill="#FFF6E6" stroke="#16123A" stroke-width="7" />
+              <path d="M150 108 V124 M150 240 V256 M76 182 H92 M208 182 H224" stroke="#16123A" stroke-width="9" stroke-linecap="round" /> <path d="M70 130 Q88 96 124 82" fill="none" stroke="#FFFFFF" stroke-width="11" stroke-linecap="round" /> <path class="vb" id="s01-hook-hh" d="M150 182 H104" stroke="#16123A" stroke-width="15" stroke-linecap="round" /> <path class="vb" id="s01-hook-mh" d="M150 182 V120" stroke="#16123A" stroke-width="10" stroke-linecap="round" /> <circle cx="150" cy="182" r="11" fill="#FF4F8B" stroke="#16123A" stroke-width="6" /> </svg>
+            <div class="abs" id="s01-hook-time"><span>09:00</span></div>
+          </div>
+          <div class="abs" id="s01-hook-phonewrap">
+            <svg class="abs" id="s01-hook-phone" viewBox="0 0 300 520">
+              <g id="s01-hook-pbody"><rect x="8" y="8" width="284" height="504" rx="52" fill="#16123A" /><rect x="26" y="26" width="248" height="468" rx="36" fill="#5B34F5" /><circle cx="262" cy="80" r="70" fill="#FFF6E6" opacity="0.08" /><circle cx="46" cy="440" r="60" fill="#FFF6E6" opacity="0.08" /><rect x="118" y="42" width="64" height="20" rx="10" fill="#16123A" /><rect x="112" y="472" width="76" height="8" rx="4" fill="#FFF6E6" opacity="0.5" />
+                <g class="vb" id="s01-hook-arcs" fill="none" stroke="#FFF6E6" stroke-width="9" stroke-linecap="round"><path d="M80 146 Q64 186 80 226" /><path d="M58 128 Q34 186 58 244" opacity="0.6" /><path d="M220 146 Q236 186 220 226" /><path d="M242 128 Q266 186 242 244" opacity="0.6" /></g>
+                <g class="vb" id="s01-hook-bell"><path d="M150 112 C114 112 104 144 104 178 L104 214 L88 236 L212 236 L196 214 L196 178 C196 144 186 112 150 112 Z" fill="#FFF6E6" stroke="#16123A" stroke-width="8" stroke-linejoin="round" /><circle cx="150" cy="104" r="11" fill="#FF8A1F" stroke="#16123A" stroke-width="7" /><path d="M132 244 A18 18 0 0 0 168 244 Z" fill="#FF8A1F" stroke="#16123A" stroke-width="7" stroke-linejoin="round" /><path d="M122 150 Q126 132 140 126" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" /></g></g>
+              <path id="s01-hook-pline" pathLength="1" d="M60 8 H240 A52 52 0 0 1 292 60 V460 A52 52 0 0 1 240 512 H60 A52 52 0 0 1 8 460 V60 A52 52 0 0 1 60 8 Z" fill="none" stroke="#16123A" stroke-width="14" stroke-linejoin="round" />
+            </svg>
+            <div class="abs" id="s01-hook-notif"><i></i><span data-layout-allow-overlap>Пора полить!</span></div>
+          </div>
+          <div class="abs" id="s01-hook-sticker" data-layout-allow-overlap data-layout-allow-orbit><div class="face" data-layout-allow-overlap>&lt;/&gt;</div>
+            <svg class="abs" id="s01-hook-cross" viewBox="0 0 334 216"><g fill="none" stroke-linecap="round"><path id="s01-hook-x1" pathLength="1" d="M40 34 L294 182" stroke="#16123A" stroke-width="32" /><path id="s01-hook-x1c" pathLength="1" d="M40 34 L294 182" stroke="#FF4F8B" stroke-width="17" /><path id="s01-hook-x2" pathLength="1" d="M294 34 L40 182" stroke="#16123A" stroke-width="32" /><path id="s01-hook-x2c" pathLength="1" d="M294 34 L40 182" stroke="#FF4F8B" stroke-width="17" /></g></svg></div>
+          <svg class="abs" id="s01-hook-bulb" viewBox="0 0 400 440" data-layout-allow-overflow>
+            <circle class="vb" id="s01-hook-halo" cx="200" cy="190" r="124" fill="none" stroke="#5B34F5" stroke-width="12" /><g class="vb" id="s01-hook-rays" stroke="#16123A" stroke-width="16" stroke-linecap="round"></g>
+            <g class="vb" id="s01-hook-glass"><path d="M160 300 C160 272 118 250 104 215 A100 100 0 1 1 296 215 C282 250 240 272 240 300 Z" fill="#FFF6E6" stroke="#16123A" stroke-width="9" stroke-linejoin="round" /><circle class="vb" id="s01-hook-glow" cx="200" cy="196" r="84" fill="#FF8A1F" /><path d="M178 300 L178 244 L190 216 L200 242 L210 216 L222 244 L222 300" fill="none" stroke="#16123A" stroke-width="8" stroke-linejoin="round" stroke-linecap="round" /><path d="M138 160 Q148 124 182 110" fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" /><path d="M160 300 C160 272 118 250 104 215 A100 100 0 1 1 296 215 C282 250 240 272 240 300 Z" fill="none" stroke="#16123A" stroke-width="9" stroke-linejoin="round" /><rect x="156" y="298" width="88" height="62" rx="12" fill="#C9D3E6" stroke="#16123A" stroke-width="8" /><path d="M158 320 H242 M158 340 H242" stroke="#16123A" stroke-width="6" /><path d="M178 360 Q200 392 222 360 Z" fill="#16123A" /></g>
+          </svg>
+        </div>
+      </div>
+      <script>
+        (function () {
+          %%HELPERS%%
+          var C = %%CUES%%;
+          var D = %%DUR%%, W = %%WORDS%%;
+          var H = window.MPV;
+          var tl = gsap.timeline({ paused: true });
+          var P = H.C, NS = "http://www.w3.org/2000/svg", i, el;
+          var id = function (s) { return document.getElementById("s01-hook-" + s); };
+          function ext(a, b) { var r = {}, n; for (n in a) r[n] = a[n]; for (n in b) r[n] = b[n]; return r; }
+          function wt(txt, fb) { for (var k = 0; k < W.length; k++) if (W[k].text.toLowerCase() === txt) return W[k].start; return fb; }
+          function to(e, f, v, t) { return tl.fromTo(e, f, ext({ immediateRender: false }, v), t); }
+          // xf(): SVG parts move by a CSS transform written from a GSAP-tweened proxy; the pivot comes from CSS transform-box/origin (kit chars.css / .vb), never from a build-time bbox (0 there)
+          function xf(tg, init) { var els = typeof tg === "string" ? document.querySelectorAll(tg) : (tg.length != null ? tg : [tg]), st = ext({ x: 0, y: 0, h: 0, r: 0, s: 1, sx: 1, sy: 1, o: null }, init || {});
+            st.apply = function () { var t = "translate(" + st.x.toFixed(2) + "px," + (st.y + st.h).toFixed(2) + "px) rotate(" + st.r.toFixed(2) + "deg) scale(" + (st.s * st.sx).toFixed(4) + "," + (st.s * st.sy).toFixed(4) + ")";
+              for (var m = 0; m < els.length; m++) { els[m].style.transform = t; if (st.o != null) els[m].style.opacity = String(Math.round(st.o * 1000) / 1000); } };
+            st.apply(); return st; }
+          function xt(st, f, v, t) { return tl.fromTo(st, f, ext(v, { immediateRender: false, onUpdate: st.apply }), t); }
+          function blink(lids, from, until, seed) { for (var st = xf(lids), r = H.rng(seed), t = from + 0.4 + r() * 1.2; t + 0.12 < until; t += 2.6 + r() * 1.6) { xt(st, { sy: 1 }, { sy: 0.1, duration: 0.05, ease: "power1.in" }, t); xt(st, { sy: 0.1 }, { sy: 1, duration: 0.06, ease: "power1.out" }, t + 0.05); } }
+          function draw(sel, t, dur, ease) {   // svg-path-draw on pathLength="1" paths; dash "1 2" leaves no cap dot at rest
+            var p = document.querySelector(sel); p.style.strokeDasharray = "1 2"; p.style.strokeDashoffset = "1";
+            return tl.fromTo(p, { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: dur, ease: ease || "power2.out", immediateRender: false }, t);
+          }
+
+          // ---- setup (seeded): background dots/pluses/drops, bulb rays, the 24-spark pool (particle-burst) ----
+          for (var rng = H.rng(101), deco = id("deco"), i = 0; i < 30; i++) {
+            var kind = i % 3, x = 80 + rng() * 1760, y = 100 + rng() * 660;
+            if (x < 800) x += 880 * rng() + 40;
+            if (kind === 2) { el = document.createElementNS(NS, "svg"); el.setAttribute("class", "drop"); el.setAttribute("viewBox", "0 0 22 30"); el.innerHTML = '<path d="M11 2 C8 10 3 14 3 20 A8 8 0 0 0 19 20 C19 14 14 10 11 2 Z" fill="#3EC5FF" stroke="#16123A" stroke-width="3"/>'; }
+            else { el = document.createElement("span"); el.className = kind ? "plus" : "dot"; el.style.width = el.style.height = (kind ? 18 + rng() * 12 : 9 + rng() * 14).toFixed(0) + "px"; }
+            el.style.left = x.toFixed(0) + "px"; el.style.top = y.toFixed(0) + "px"; deco.appendChild(el);
+          }
+          [-140, -115, -90, -65, -40, -15, 12].forEach(function (a) { var t = a * Math.PI / 180, ln = document.createElementNS(NS, "line");
+            ln.setAttribute("x1", (200 + 142 * Math.cos(t)).toFixed(1)); ln.setAttribute("y1", (190 + 142 * Math.sin(t)).toFixed(1)); ln.setAttribute("x2", (200 + 178 * Math.cos(t)).toFixed(1)); ln.setAttribute("y2", (190 + 178 * Math.sin(t)).toFixed(1));
+            ln.setAttribute("class", "ray vb"); id("rays").appendChild(ln); });
+          for (var field = id("sparks"), parts = [], pr = H.rng(24), cols = [P.violet, P.tangerine, P.mint, P.sky, P.raspberry, P.cream], i = 0; i < 24; i++) {
+            var star = i % 3 === 0, s = star ? 30 + pr() * 14 : 13 + pr() * 9, ang = (i / 24) * Math.PI * 2 + (pr() - 0.5) * 0.4;
+            el = document.createElementNS(NS, "svg"); el.setAttribute("class", "spark"); el.setAttribute("viewBox", "-12 -12 24 24");
+            el.style.width = el.style.height = s.toFixed(0) + "px"; el.style.marginLeft = el.style.marginTop = (-s / 2).toFixed(1) + "px";
+            el.innerHTML = star ? '<path d="M0 -11 Q2.5 -2.5 11 0 Q2.5 2.5 0 11 Q-2.5 2.5 -11 0 Q-2.5 -2.5 0 -11 Z" fill="' + cols[i % 6] + '" stroke="#16123A" stroke-width="2.4"/>' : '<circle r="8.5" fill="' + cols[i % 6] + '" stroke="#16123A" stroke-width="3"/>';
+            field.appendChild(el); parts.push({ el: el, dx: Math.cos(ang), dy: Math.sin(ang), sp: 250 + pr() * 230, spin: (pr() * 2 - 1) * 420 });
+          }
+
+          // ---- background life: slow camera push (ends as T1 starts), drifts, clouds, sun ----
+          to("#s01-hook-world", { scale: 1 }, { scale: 1.035, duration: C._out, ease: "sine.inOut" }, 0);
+          H.drift(tl, "#s01-hook-ghost", 0, D, { x: -150 }); H.drift(tl, "#s01-hook-deco", 0, D, { y: 44, x: -24 }); H.drift(tl, "#s01-hook-cloud1", 0, D, { x: 360 }); H.drift(tl, "#s01-hook-cloud2", 0, D, { x: -220 });
+          xt(xf("#s01-hook-sunrays"), { r: 0 }, { r: 90, duration: D, ease: "none" }, 0);
+
+          // ---- the фиалка: leaves/bud held up before the wilt (kit 'sad' = drooped end state); kit leaf order back-l, back-r, hang-r, hang-l ----
+          var kit = id("kit"), leaves = kit.querySelectorAll(".c-leaf"), lift = [24, -22, -62, 62], sag = [-10, 10, 0, 0], lf = [];
+          for (i = 0; i < leaves.length; i++) lf.push(xf(leaves[i], { r: lift[i] || 0 }));
+          var bud = xf(kit.querySelector(".c-bud"), { r: -150 }); xf(kit.querySelector(".c-drop"), { o: 0 });
+          var plantS = xf(kit.querySelector(".c-plant")), eyes = xf(kit.querySelector(".c-eyes")), pot = xf(kit.querySelector(".c-pot"));
+          H.arrive(tl, "#s01-hook-plant", 0.12, { from: 0.5, y: 40, dur: 0.55 });
+          xt(pot, { y: 0 }, { y: -3, duration: 1.1, ease: "sine.inOut", yoyo: true, repeat: H.repeats(C._out - 0.8, 1.1) }, 0.8);
+          for (i = 0; i < lf.length; i++) xt(lf[i], { r: lift[i] }, { r: lift[i] + (i % 2 ? -5 : 5), duration: 0.7, ease: "sine.inOut", yoyo: true, repeat: H.repeats(C.wilt - 0.9 - i * 0.12, 0.7) }, 0.7 + i * 0.12);
+          xt(bud, { r: -150 }, { r: -140, duration: 0.8, ease: "sine.inOut", yoyo: true, repeat: H.repeats(C.wilt - 0.9, 0.8) }, 0.7);
+          blink(kit.querySelectorAll(".c-lid"), 0.9, C._out, 5);
+
+          // ---- q: «Знакомо?» slams right, a violet underline draws, the «?» keeps rocking; «Фиалка»: the pot hops ----
+          H.slam(tl, "#s01-hook-q", C.q, { dur: 0.36 });
+          draw("#s01-hook-uline path", C.q + 0.32, 0.45);           to("#s01-hook-qm", { rotation: 0 }, { rotation: 14, duration: 0.34, ease: "sine.inOut", yoyo: true, repeat: H.repeats(C.app - C.q - 0.6, 0.34), transformOrigin: "50% 85%" }, C.q + 0.35);
+          xt(plantS, { sy: 1, sx: 1 }, { sy: 0.92, sx: 1.05, duration: 0.12, ease: "power2.in", yoyo: true, repeat: 1 }, C.q + 1.74);
+
+          // ---- wilt: leaves flop down, the pot sighs, pupils drop, one tear ----
+          for (i = 0; i < lf.length; i++) xt(lf[i], { r: lift[i] }, { r: sag[i], duration: 0.9, ease: "bounce.out" }, C.wilt + i * 0.05);
+          xt(bud, { r: -150 }, { r: 0, duration: 1.0, ease: "bounce.out" }, C.wilt + 0.08);
+          xt(plantS, { sy: 1, sx: 1 }, { sy: 0.88, sx: 1.07, duration: 0.18, ease: "power2.out", yoyo: true, repeat: 1 }, C.wilt + 0.05);
+          xt(eyes, { y: 0, x: 0 }, { y: 1.8, x: 0, duration: 0.3, ease: "power2.out" }, C.wilt + 0.1);
+          tl.fromTo("#s01-hook-tear", { opacity: 0, y: -8, scale: 0.4 }, { opacity: 1, y: 0, scale: 1, duration: 0.25, ease: "power2.out" }, C.wilt + 0.3);
+          to("#s01-hook-tear", { y: 0, opacity: 1 }, { y: 70, opacity: 0, duration: 0.85, ease: "power2.in" }, C.wilt + 0.6);
+
+          // ---- forgot: a sticky note slaps on the glass, «полить!» is scribbled out on the word ----
+          tl.fromTo("#s01-hook-note", { opacity: 0, scale: 1.5, rotation: -22, y: -40 }, { opacity: 1, scale: 1, rotation: -6, y: 0, duration: 0.42, ease: "back.out(1.9)" }, C.forgot - 0.05);
+          draw("#s01-hook-scrib path", C.forgot + 0.55, 0.5, "power1.inOut");
+          to("#s01-hook-note", { rotation: -6 }, { rotation: -2, duration: 1.3, ease: "sine.inOut", yoyo: true, repeat: H.repeats(C._out - C.forgot - 1.2, 1.3) }, C.forgot + 1.1);
+
+          // ---- app: «Знакомо?» clears, the phone outline draws, the bell rings, the reminder slides in ----
+          to("#s01-hook-q", { scale: 1, opacity: 1, y: 0 }, { scale: 0.7, opacity: 0, y: -60, duration: 0.28, ease: "power3.in" }, C.app - 0.3); to("#s01-hook-uline", { opacity: 1 }, { opacity: 0, duration: 0.2, ease: "power1.in" }, C.app - 0.3);
+          draw("#s01-hook-pline", C.app - 0.02, 0.62, "power2.inOut");
+          tl.fromTo("#s01-hook-pbody", { opacity: 0 }, { opacity: 1, duration: 0.24, ease: "power1.out" }, C.app + 0.5);
+          var bell = xf("#s01-hook-bell", { s: 0 }), arcs = xf("#s01-hook-arcs", { o: 0, s: 0.7 });
+          xt(bell, { s: 0, r: -30 }, { s: 1, r: 0, duration: 0.5, ease: "back.out(2.2)" }, C.app + 0.62);
+          xt(bell, { r: 0 }, { r: -16, duration: 0.07, ease: "sine.out" }, C.app + 1.13);
+          xt(bell, { r: -16 }, { r: 16, duration: 0.14, ease: "sine.inOut", yoyo: true, repeat: 7 }, C.app + 1.2);
+          xt(bell, { r: 16 }, { r: 0, duration: 0.3, ease: "power2.out" }, C.app + 2.32);
+          xt(arcs, { o: 0, s: 0.7 }, { o: 1, s: 1, duration: 0.3, ease: "power2.out" }, C.app + 1.2);
+          xt(arcs, { o: 1, s: 1 }, { o: 0.3, s: 1.08, duration: 0.28, ease: "sine.inOut", yoyo: true, repeat: H.repeats(C.coder - C.app - 1.6, 0.28) }, C.app + 1.6);
+          tl.fromTo("#s01-hook-notif", { opacity: 0, y: 40, scale: 0.8 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "back.out(1.8)" }, C.app + 1.74);
+          H.bob(tl, "#s01-hook-phonewrap", C.app + 2.4, C._out, { y: 8, period: 2.4 });
+
+          // ---- «вовремя»: the slot fills with an alarm clock whose hands spin to 09:00; «напомнит» it rings with the phone ----
+          var tV = wt("вовремя", C.app + 1.35), tN = wt("напомнит", tV + 0.38);
+          var hh = xf("#s01-hook-hh", { r: -75 }), mh = xf("#s01-hook-mh", { r: -540 }), rings = xf("#s01-hook-rings", { o: 0, s: 0.6 });
+          tl.fromTo("#s01-hook-clock", { scale: 0, rotation: -24, opacity: 0 }, { scale: 1, rotation: 0, opacity: 1, duration: Math.min(0.5, tN - tV + 0.06), ease: "back.out(1.8)" }, tV - 0.06);
+          xt(mh, { r: -540 }, { r: 0, duration: 0.62, ease: "power3.out" }, tV + 0.02); xt(hh, { r: -75 }, { r: 0, duration: 0.62, ease: "power3.out" }, tV + 0.02);
+          tl.fromTo("#s01-hook-time span", { scale: 0.3, opacity: 0, y: -30 }, { scale: 1, opacity: 1, y: 0, duration: 0.4, ease: "back.out(2)" }, tV + 0.34);
+          to("#s01-hook-clock", { rotation: 0 }, { rotation: -7, duration: 0.05, ease: "sine.out" }, tN); to("#s01-hook-clock", { rotation: -7 }, { rotation: 7, duration: 0.1, ease: "sine.inOut", yoyo: true, repeat: 7 }, tN + 0.05);
+          to("#s01-hook-clock", { rotation: 7 }, { rotation: 0, duration: 0.25, ease: "power2.out" }, tN + 0.85);
+          xt(rings, { o: 0, s: 0.6 }, { o: 1, s: 1, duration: 0.18, ease: "power2.out" }, tN); xt(rings, { o: 1, s: 1 }, { o: 0, s: 1.25, duration: 0.3, ease: "power1.in" }, tN + 0.8);
+          H.bob(tl, "#s01-hook-clk", tN + 1.1, C.coder - 0.15, { y: 7, period: 1.4 });
+
+          // ---- coder: the clock is swapped out and a «</>» sticker slams into the same slot, then gets a raspberry cross ----
+          to("#s01-hook-clock", { scale: 1, opacity: 1 }, { scale: 0.2, opacity: 0, duration: 0.2, ease: "power3.in" }, C.coder - 0.2);
+          to("#s01-hook-time span", { scale: 1, opacity: 1 }, { scale: 0.2, opacity: 0, duration: 0.18, ease: "power3.in" }, C.coder - 0.22);
+          tl.fromTo("#s01-hook-sticker", { opacity: 0, scale: 1.7, rotation: -24 }, { opacity: 1, scale: 1, rotation: -6, duration: 0.34, ease: "expo.out" }, C.coder - 0.04);
+          ["x1", "x1c", "x2", "x2c"].forEach(function (p, k) { draw("#s01-hook-" + p, C.coder + (k < 2 ? 0.3 : 0.5), 0.18, "power2.in"); });
+          to("#s01-hook-sticker", { x: 0 }, { x: 9, duration: 0.06, ease: "none", yoyo: true, repeat: 5 }, C.coder + 0.72);
+          to("#s01-hook-sticker", { rotation: -6 }, { rotation: -3, duration: 0.5, ease: "sine.inOut", yoyo: true, repeat: H.repeats(C.bulb - C.coder - 1.2, 0.5) }, C.coder + 1.1);
+
+          // ---- bulb: the idea pops at the T1 origin (1500,360), rays + 24 sparks, the obstacle is flicked away ----
+          var glass = xf("#s01-hook-glass", { s: 0, r: 18 }), glow = xf("#s01-hook-glow", { o: 0, s: 0.4 }), halo = xf("#s01-hook-halo", { o: 0 }), rayG = xf("#s01-hook-rays");
+          xt(glass, { s: 0, r: 18 }, { s: 1, r: 0, duration: 0.55, ease: "back.out(2.2)" }, C.bulb - 0.08);
+          document.querySelectorAll("#s01-hook .ray").forEach(function (r, k) { xt(xf(r, { s: 0, o: 0 }), { s: 0, o: 0 }, { s: 1, o: 1, duration: 0.3, ease: "back.out(2.5)" }, C.bulb + 0.18 + k * 0.025); });
+          xt(rayG, { s: 1 }, { s: 1.08, duration: 0.3, ease: "sine.inOut", yoyo: true, repeat: H.repeats(C._out - C.bulb - 0.7, 0.3) }, C.bulb + 0.6);
+          xt(glow, { o: 0, s: 0.4 }, { o: 0.92, s: 1, duration: 0.3, ease: "power2.out" }, C.bulb + 0.12);
+          xt(glow, { o: 0.92 }, { o: 0.72, duration: 0.3, ease: "sine.inOut", yoyo: true, repeat: H.repeats(C._out - C.bulb - 0.7, 0.3) }, C.bulb + 0.6);
+          // three halo pulses as ONE driver (pure function of time): visible-start proxy tweens leaked the ring before the bulb after a seek
+          var hd = { T: 0 }, hT = Math.min(1, (D - 0.02 - C.bulb - 0.14) / 2.2); tl.fromTo(hd, { T: 0 }, { T: hT, duration: hT * 2.2, ease: "none", immediateRender: false, onUpdate: function () {
+            var t = hd.T * 2.2, k = Math.min(2, Math.floor(t / 0.75)), u = Math.min(1, (t - k * 0.75) / 0.7), e = 1 - (1 - u) * (1 - u);
+            halo.o = hd.T === 0 || hd.T === 1 ? 0 : 0.9 * (1 - e); halo.s = 0.8 + 0.95 * e; halo.apply();
+          } }, C.bulb + 0.14);
+          var drive = { T: 0 }, FL = 1.1;   // one ease:none driver, every spark a pure ballistic function of T
+          tl.fromTo(drive, { T: 0 }, { T: 1, duration: FL, ease: "none", immediateRender: false, onUpdate: function () {
+            for (var k = 0, t = drive.T * FL, fade = Math.min(1, (1 - drive.T) / 0.3); k < parts.length; k++) {
+              var p = parts[k], d = 112 + p.sp * t;
+              p.el.style.transform = "translate(" + (p.dx * d).toFixed(1) + "px," + (p.dy * d - 120 * t + 210 * t * t).toFixed(1) + "px) rotate(" + (p.spin * t).toFixed(0) + "deg)";
+              p.el.style.opacity = drive.T === 0 ? "0" : fade.toFixed(3);
+            } } }, C.bulb + 0.14);
+          to("#s01-hook-sticker", { x: 0, y: 0, rotation: -6 }, { x: 600, y: 360, rotation: 95, duration: 0.5, ease: "power3.out" }, C.bulb - 0.1); to("#s01-hook-sticker", { opacity: 1 }, { opacity: 0, duration: 0.16, ease: "power1.in" }, C.bulb + 0.08);
+          xt(eyes, { y: 1.8, x: 0 }, { y: -2.4, x: 2.6, duration: 0.3, ease: "power2.out" }, C.bulb + 0.25);
+          xt(plantS, { y: 0 }, { y: -12, duration: 0.16, ease: "power2.out", yoyo: true, repeat: 1 }, C.bulb + 0.3);
+          H.bob(tl, "#s01-hook-bulb", C.bulb + 0.7, C._out, { y: 8, period: 1.9 });
+
+          window.__timelines["%%ID%%"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

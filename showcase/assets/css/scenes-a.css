@@ -1,0 +1,243 @@
+/* scenes-a.css — package A: start (hero), konveyer, ideya, komanda. Everything is scoped by section id.
+ * Do not put transitions/keyframes on elements GSAP animates; kit classes (.c-*) keep their chars.css origins. */
+
+/* =====================================================================================================
+   1. start — hero with the idea machine
+   ===================================================================================================== */
+/* Type: a small «Сказано —» set-up line and a giant lemon «сделано.» punch line (fits its column at every width) */
+#start .h1 { font-size: clamp(54px, 14.6vw, 104px); }
+#start .h1 .w { display: block; width: fit-content; }
+#start .h1 .w:first-child { font-size: .6em; letter-spacing: -.02em; margin-bottom: .04em; }
+#start .h1 .hl { position: relative; isolation: isolate; text-shadow: .05em .05em 0 var(--ink); }
+@media (min-width: 1024px) { #start .h1 { font-size: min(7.9vw, 116px); } }
+
+/* slam FX around «сделано.» (all invisible in the resting state). The burst sits BEHIND the letters, centred on the
+   full stop (≈ .15em from the right edge, .69em from the top of the line box), so the splat reads as the stop splashing. */
+#start .st-slam { position: absolute; overflow: visible; pointer-events: none; max-width: none; }
+#start .st-slam--ring { left: -6%; top: -34%; width: 112%; height: 168%; }
+#start .st-ring { fill: none; stroke: var(--lemon); stroke-width: 5; }
+#start .st-slam--burst { z-index: -1; right: -.75em; top: -.21em; width: 1.8em; height: 1.8em; }
+#start .st-splat { fill: var(--lemon); stroke: var(--ink); stroke-width: 5; }
+#start .st-drop-fx { fill: var(--lemon); stroke: var(--ink); stroke-width: 3.5; }
+#start .st-ray { fill: none; stroke: var(--lemon); stroke-width: 9; stroke-linecap: round; }
+
+/* stage */
+#start .stage--hero { max-width: 620px; }
+#start .st-svg { overflow: visible; }
+#start .st-ov { position: absolute; inset: 0; pointer-events: none; }
+#start .st-drop { position: absolute; inset: 0; }
+#start .st-bubble {
+  position: absolute; left: 30.4%; bottom: 82.6%; translate: -50% 0; width: max-content; max-width: 62%;
+  padding: 10px 16px 11px; background: var(--cream); color: var(--ink); border: 3px solid var(--ink); border-radius: 20px;
+  box-shadow: 5px 5px 0 var(--ink); font-size: 18px; font-weight: 650; line-height: 1.25; text-align: center; text-wrap: balance;
+}
+#start .st-bubble::before, #start .st-bubble::after {
+  content: ""; position: absolute; left: 50%; top: 100%; width: 0; height: 0; border-style: solid;
+}
+#start .st-bubble::before { margin-left: -13px; border-width: 16px 13px 0; border-color: var(--ink) transparent transparent; }
+#start .st-bubble::after { margin-left: -8px; margin-top: -1px; border-width: 11px 8px 0; border-color: var(--cream) transparent transparent; }
+#start .st-tag {
+  position: absolute; right: 0; bottom: 0; margin: 0; display: flex; align-items: center; gap: 8px; white-space: nowrap;
+  padding: 6px 16px 6px 7px; background: var(--cream); color: var(--ink); border: 3px solid var(--ink); border-radius: 999px;
+  box-shadow: 4px 4px 0 var(--ink); font-family: var(--font-display); font-weight: 700; font-size: 16px; line-height: 1.2;
+}
+#start .st-tag .ico { width: 24px; height: 24px; padding: 3px; border-radius: 50%; background: var(--mint); border: 2px solid var(--ink); fill: var(--ink); }
+
+/* before the scene takes over: keep the choreographed parts invisible for at most 2.5 s (never forever) */
+@media (prefers-reduced-motion: no-preference) {
+  html.js:not(.is-calm) #start:not(.is-ready) .copy > *,
+  html.js:not(.is-calm) #start:not(.is-ready) .stage { opacity: 0; animation: st-reveal .01s 2.5s forwards; }
+}
+@keyframes st-reveal { to { opacity: 1; } }
+
+@media (max-width: 1023px) {
+  #start .hero-grid { gap: 12px; }
+  #start .stage--hero { order: -1; width: min(100%, 42svh, 520px); }
+}
+@media (max-width: 560px) {
+  #start .st-bubble { font-size: 16px; padding: 8px 12px 9px; border-radius: 16px; box-shadow: 4px 4px 0 var(--ink); }
+}
+
+/* =====================================================================================================
+   2. konveyer — pipe → belt (two layouts: wide ≥1024, tall serpentine below)
+   ===================================================================================================== */
+#konveyer .kv-svg { overflow: visible; }
+#konveyer .kv-svg--tall { display: none; }
+/* =====================================================================================================
+   3. ideya — windowsill, the phrase, the goal
+   ===================================================================================================== */
+#ideya .i-svg { overflow: visible; }
+#ideya .i-svg--tall { display: none; }
+#ideya .i-ov { position: absolute; inset: 0; pointer-events: none; }
+#ideya .i-bubble {
+  position: absolute; left: 6.5%; top: 7%; width: 60%; margin: 0; padding: 12px 16px 13px;
+  background: var(--cream); color: var(--ink); border: 3px solid var(--ink); border-radius: 22px 22px 22px 6px;
+  box-shadow: 5px 5px 0 var(--ink); font-size: 18px; font-weight: 650; line-height: 1.3;
+}
+#ideya .i-bubble::before, #ideya .i-bubble::after {
+  content: ""; position: absolute; top: 100%; left: 12px; width: 0; height: 0; border-style: solid;
+}
+#ideya .i-bubble::before { border-width: 18px 20px 0 0; border-color: var(--ink) transparent transparent; }
+#ideya .i-bubble::after { border-width: 11px 12px 0 0; border-color: var(--cream) transparent transparent; left: 15px; margin-top: -1px; }
+#ideya .i-caption {
+  position: absolute; right: 0; top: 4.5%; width: 29%; margin: 0; padding: 8px 12px 9px;
+  background: var(--cream); color: var(--ink); border: 3px solid var(--ink); border-radius: 16px;
+  box-shadow: 4px 4px 0 var(--ink); font-family: var(--font-text); font-weight: 800; font-size: 17px; line-height: 1.2;
+  text-align: center; transform: rotate(3deg);
+}
+/* the wide display face only once the stage is large enough for «получиться» on one line */
+@media (min-width: 1200px) { #ideya .i-caption { font-family: var(--font-display); font-weight: 700; font-size: 16px; } }
+@media (max-width: 1023px) {
+  #ideya .split { gap: 8px; }
+}
+/* phones: the stage is 4:5 (prosto.css) — the tall layout (viewBox 480×600) keeps the phone list ≥16px */
+@media (max-width: 759px) {
+  #ideya .i-svg--sq { display: none; }
+  #ideya .i-svg--tall { display: block; }
+  #ideya .i-bubble { left: 4%; top: 4%; width: 62%; }
+  #ideya .i-caption { top: 1.5%; width: 37%; }
+}
+@media (max-width: 560px) {
+  #ideya .i-bubble { font-size: 16px; padding: 9px 12px 10px; }
+  #ideya .i-caption { padding: 6px 8px 7px; font-size: 16px; }
+}
+
+/* =====================================================================================================
+   4. komanda — cast list → «доска почёта» character select (roster = tablist, spotlight = tabpanel)
+   ≥1024: the pick column (hint + roster board) sits LEFT of the spotlight, so a click changes what you see right next
+   to it. <1024: the roster is a full-bleed swipe strip above the spotlight.
+   ===================================================================================================== */
+#komanda .cast-art .c-svg { width: 100%; height: 100%; }
+#komanda .cast { --tab: 64px; --tgap: 10px; }
+#komanda .cast.is-upgraded .cast-ui { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+#komanda .cast-pick { display: grid; gap: 12px; align-content: start; min-width: 0; }
+#komanda .cast-hint {
+  display: flex; align-items: center; gap: 10px; margin: 0; color: var(--ink);
+  font-family: var(--font-display); font-weight: 700; font-size: 18px; line-height: 1.25;
+}
+#komanda .cast-hint .ico { width: 28px; height: 28px; padding: 5px; border-radius: 50%; background: var(--ink); fill: var(--cream); }
+/* roster: one violet board */
+#komanda .cast-roster {
+  display: flex; gap: 16px 28px; padding: 16px 22px 22px;
+  background: var(--violet); color: var(--cream);
+  border: 4px solid var(--ink); border-radius: var(--radius-card); box-shadow: var(--shadow-hard-lg);
+}
+#komanda .cast-group { flex: none; }
+#komanda .cast-group-label { margin: 0 0 10px; font-family: var(--font-display); font-weight: 700; font-size: 20px; line-height: 1.2; color: var(--cream); }
+#komanda .cast-tabs { display: flex; flex-wrap: wrap; gap: var(--tgap); }
+#komanda .cast-tab {
+  position: relative; flex: none; width: var(--tab); height: calc(var(--tab) * 1.12); padding: 4px 6px 2px; margin: 0;
+  border: 3px solid var(--ink); border-radius: 16px; background: var(--cream); box-shadow: 4px 4px 0 var(--ink); color: var(--ink);
+  cursor: pointer;
+}
+#komanda .cast-tab--you { background: var(--lemon); }
+#komanda .cast-tab-art { width: 100%; height: 100%; pointer-events: none; transition: transform .18s var(--ease-pop); }
+#komanda .cast-tab:hover .cast-tab-art { transform: translateY(-4px) rotate(-3deg); }
+#komanda .cast-tab[aria-selected="true"] { background: #FFFFFF; box-shadow: 4px 4px 0 var(--ink), 0 0 0 6px var(--tangerine); }
+#komanda .cast-tab--you[aria-selected="true"] { background: var(--lemon); }
+#komanda .cast-tab[aria-selected="true"] .cast-tab-art { transform: translateY(-3px) scale(1.06); }
+/* name tooltip: on hover AND on keyboard focus */
+#komanda .cast-tab::after {
+  content: attr(data-name); position: absolute; left: 50%; bottom: calc(100% + 10px); translate: -50% 4px; z-index: 3;
+  padding: 5px 11px; border-radius: 10px; background: var(--ink); color: var(--cream); font-size: 16px; font-weight: 700;
+  white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity .15s, translate .15s;
+}
+#komanda .cast-tab:hover::after, #komanda .cast-tab:focus-visible::after { opacity: 1; translate: -50% 0; }
+/* focus on the violet board: cream outline + lemon ring (brand §2) */
+#komanda .cast-tab:focus-visible { outline: 3px solid var(--cream); outline-offset: 3px; box-shadow: 4px 4px 0 var(--ink), 0 0 0 7px var(--lemon); }
+
+/* spotlight */
+#komanda .cast-spot {
+  position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: center; align-content: center;
+  padding: 16px 18px; background: var(--cream); color: var(--ink);
+  border: 4px solid var(--ink); border-radius: var(--radius-card); box-shadow: var(--shadow-hard-lg);
+}
+#komanda .cast-spot.is-you { background: var(--lemon); }
+#komanda .spot-stage { position: relative; aspect-ratio: 1 / 1; width: min(80%, 320px); justify-self: center; }
+#komanda .spot-back { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+#komanda .spot-poke {
+  position: absolute; left: 12%; right: 12%; top: 8%; bottom: 8%; padding: 0; margin: 0; border: 0; border-radius: 40%;
+  background: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+#komanda .spot-art { position: absolute; inset: 0; display: block; pointer-events: none; }
+#komanda .spot-figure { position: absolute; left: 8%; right: 8%; top: 6%; bottom: 7%; display: block; }
+#komanda .spot-figure > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+#komanda .spot-figure--duo > svg { width: 80%; height: 80%; inset: auto; bottom: 0; left: 26%; }
+#komanda .spot-figure--duo > .spot-chief { left: -6%; bottom: 10%; width: 72%; height: 72%; }
+#komanda .spot-bubble {
+  position: absolute; left: -3%; top: -4%; max-width: 60%; width: max-content; margin: 0; padding: 9px 14px 10px; z-index: 2;
+  background: #FFFFFF; color: var(--ink); border: 3px solid var(--ink); border-radius: 18px 18px 6px 18px;
+  box-shadow: 4px 4px 0 var(--ink); font-size: 18px; font-weight: 700; line-height: 1.25; pointer-events: none;
+}
+#komanda .spot-bubble::before, #komanda .spot-bubble::after {
+  content: ""; position: absolute; top: 100%; right: 14px; width: 0; height: 0; border-style: solid;
+}
+#komanda .spot-bubble::before { border-width: 16px 0 0 18px; border-color: var(--ink) transparent transparent; margin-top: 0; }
+#komanda .spot-bubble::after { border-width: 10px 0 0 11px; border-color: #FFFFFF transparent transparent; right: 18px; margin-top: -1px; }
+#komanda .cast.is-upgraded .cast-list { display: block; }
+#komanda .cast.is-upgraded .cast-card { padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; gap: 14px; }
+#komanda .cast.is-upgraded .cast-art { display: none; }
+#komanda .cast.is-upgraded .cast-name { font-size: clamp(28px, 3.4vw, 48px); line-height: 1.05; font-weight: 800; }
+#komanda .cast.is-upgraded .cast-line { font-size: var(--fs-body); font-weight: 500; line-height: 1.35; max-width: 30ch; }
+#komanda .cast.is-upgraded .cast-link { font-size: 18px; margin-top: 6px; }
+#komanda .spot-copy { display: grid; gap: clamp(18px, 2vw, 28px); min-width: 0; }
+#komanda .spot-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
+#komanda .spot-step {
+  display: inline-flex; align-items: center; gap: .5em; min-height: 48px; padding: 8px 18px; margin: 0;
+  border: 3px solid var(--ink); border-radius: 14px; background: #FFFFFF; color: var(--ink); box-shadow: 4px 4px 0 var(--ink);
+  font-family: var(--font-display); font-weight: 700; font-size: 16px; line-height: 1.1; cursor: pointer;
+  transition: transform .15s ease-out, box-shadow .15s ease-out;
+}
+#komanda .spot-step:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); }
+#komanda .spot-step:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--ink); }
+#komanda .spot-step--prev .ico { transform: scaleX(-1); }
+#komanda .spot-count { font-weight: 700; font-size: 17px; font-variant-numeric: tabular-nums; min-width: 4.5em; text-align: center; }
+
+/* ≥1024: pick column left (Мастера 6 per row, then Автоматы 3 per row + Вы), spotlight right, same height */
+@media (min-width: 1024px) {
+  #komanda .cast { --tab: clamp(56px, 4.6vw, 66px); }
+  #komanda .cast.is-upgraded .cast-ui { grid-template-columns: max-content minmax(0, 1fr); gap: 28px; align-items: stretch; }
+  #komanda .cast-hint { font-size: 20px; }
+  #komanda .cast-roster { flex-wrap: wrap; width: calc(6 * var(--tab) + 5 * var(--tgap) + 52px); }
+  #komanda .cast-group--master { flex-basis: 100%; }
+  #komanda .cast-group--automat .cast-tabs { width: calc(3 * var(--tab) + 2 * var(--tgap)); }
+  #komanda .cast-spot { padding: 22px 28px 24px; gap: 16px; }
+  #komanda .spot-stage { width: min(64%, 240px); }
+  #komanda .cast.is-upgraded .cast-name { font-size: clamp(28px, 2.7vw, 40px); }
+}
+@media (min-width: 1280px) {
+  #komanda .cast-spot {
+    grid-template-columns: minmax(0, clamp(230px, 21vw, 300px)) minmax(0, 1fr); gap: clamp(24px, 2.6vw, 40px);
+    padding: 28px 36px 28px 28px;
+  }
+  #komanda .spot-stage { width: 100%; justify-self: stretch; }
+}
+/* <1024: the roster becomes ONE full-bleed swipe strip (groups in a row, the next tile peeks at the edge) */
+@media (max-width: 1023px) {
+  #komanda .cast-roster {
+    flex-wrap: nowrap; justify-content: flex-start; gap: 24px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none;
+    scroll-padding: 0 var(--gutter);
+    margin: 0 calc(-1 * var(--gutter)); padding: 12px var(--gutter) 18px; border-width: 4px 0; border-radius: 0; box-shadow: none;
+  }
+  #komanda .cast-roster::-webkit-scrollbar { display: none; }
+  #komanda .cast-roster::after { content: ""; flex: none; width: 1px; }
+  #komanda .cast-group-label { font-size: 17px; margin-bottom: 8px; white-space: nowrap; }
+  #komanda .cast-tabs { flex-wrap: nowrap; }
+  #komanda .cast-tab::after { display: none; }
+}
+@media (max-width: 560px) {
+  #komanda .cast { --tab: 60px; }
+  #komanda .cast-hint { font-size: 17px; }
+  #komanda .spot-stage { width: min(76%, 280px); }
+  #komanda .spot-bubble { font-size: 16px; max-width: 70%; left: -10%; }
+  #komanda .cast.is-upgraded .cast-name { font-size: 30px; }
+  /* phones: the counter on its own line, the two step buttons share one row */
+  #komanda .spot-count { order: -1; flex: 1 1 100%; text-align: left; font-size: 16px; }
+  #komanda .spot-step { flex: 1 1 0; justify-content: center; padding: 8px 10px; }
+}
+
+@media (max-width: 1023px) {
+  #konveyer .stage--wide { aspect-ratio: 620 / 650; max-width: 600px; margin: 0 auto; }
+  #konveyer .kv-svg--wide { display: none; }
+  #konveyer .kv-svg--tall { display: block; }
+}

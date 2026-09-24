@@ -1,0 +1,232 @@
+<!doctype html>
+<!-- s02-factory «Фабрика» (scene pack v2) · blueprint grid-card-assemble (centre bloom) resolving on «вы» · rules counting-dynamic-scale, spring-pop-entrance, viewport-change. Beats: brand letters snap · factory chip + building · push into the catalogue · n49 count · team 7×7 grid «помощников» (catalogue templates, not all run per task), legend 22/27 · belt pan to the conveyor, 5 masters add their part · you lemon «ВЫ». -->
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>s02-factory</title>
+  </head>
+  <body>
+    <template id="s02-factory-template">
+      <style>
+        %%FONTS%%
+        %%KITCSS%%
+        #s02-factory { position: absolute; inset: 0; overflow: hidden; background: %%FIELD%%; color: %%INK%%; font-family: "Golos Text", sans-serif; }
+        #s02-factory .abs { position: absolute; display: block; }
+        #s02-factory-bg { left: 0; top: 0; width: 1920px; height: 1500px; }
+        #s02-factory .gear { position: absolute; opacity: 0.13; }
+        #s02-factory .dot { position: absolute; border-radius: 50%; background: #FFF6E6; opacity: 0.22; }
+        #s02-factory .plus { position: absolute; opacity: 0.28;
+          background: linear-gradient(#FFF6E6, #FFF6E6) center / 100% 4px no-repeat, linear-gradient(#FFF6E6, #FFF6E6) center / 4px 100% no-repeat; }
+        #s02-factory .ghost { position: absolute; font: 900 250px/1 "Unbounded", sans-serif; letter-spacing: -0.02em; white-space: nowrap; color: #FFF6E6; opacity: 0.09; }
+        #s02-factory-world { left: 0; top: 0; width: 1920px; height: 2160px; }
+        #s02-factory-ext { left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 970px 688px; }
+        #s02-factory-word { left: 0; right: 0; top: 178px; display: flex; justify-content: center; font: 900 122px/1 "Unbounded", sans-serif; letter-spacing: -0.03em; white-space: nowrap; }
+        #s02-factory-word span { display: inline-block; }
+        #s02-factory-word .sp { width: 0.32em; }
+        #s02-factory-bar { left: 330px; top: 318px; width: 1260px; height: 14px; border-radius: 7px; background: #FFF6E6; transform-origin: 0 50%; }
+        #s02-factory-chip { left: 0; right: 0; top: 346px; display: flex; justify-content: center; }
+        #s02-factory-chip .pill { display: flex; align-items: center; gap: 16px; padding: 14px 34px 14px 20px; background: #FFF6E6; border: 5px solid #16123A; border-radius: 999px;
+          box-shadow: 8px 8px 0 #16123A; font: 800 44px/1 "Golos Text", sans-serif; color: #16123A; }
+        #s02-factory-chip svg { width: 62px; height: 54px; display: block; }
+        #s02-factory-fac { left: 640px; top: 420px; width: 640px; height: 330px; overflow: visible; }
+        #s02-factory-cat { left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 960px 520px; }
+        #s02-factory-n49 { left: 180px; top: 158px; width: 640px; font: 900 290px/1 "Unbounded", sans-serif; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; transform-origin: 0% 85%; }
+        #s02-factory-lbl { left: 196px; top: 494px; font: 800 64px/1 "Golos Text", sans-serif; }
+        #s02-factory .leg { position: absolute; left: 196px; display: flex; align-items: center; padding: 14px 28px; border: 5px solid #16123A; border-radius: 999px;
+          box-shadow: 6px 6px 0 #16123A; font: 700 40px/1 "Golos Text", sans-serif; color: #16123A; }
+        #s02-factory-leg1 { top: 588px; background: #3EC5FF; }
+        #s02-factory-leg2 { top: 676px; background: #FF8A1F; }
+        #s02-factory-grid { left: 1110px; top: 162px; width: 510px; height: 594px; }
+        #s02-factory .tile { position: absolute; width: 66px; height: 78px; border: 4px solid #16123A; border-radius: 17px; overflow: hidden; box-shadow: 4px 4px 0 #16123A; }
+        #s02-factory .tile svg { position: absolute; left: -1px; top: 1px; width: 60px; height: 70px; }
+        #s02-factory-lib { display: none; }
+        #s02-factory .slot { position: absolute; width: 66px; height: 78px; border: 4px dashed #FFF6E6; border-radius: 17px; opacity: 0.3; }
+        #s02-factory-floor2 { left: 0; top: 1080px; width: 1920px; height: 1080px; }
+        #s02-factory-belt { left: 146px; top: 612px; }
+        #s02-factory .mst { position: absolute; top: 334px; width: 190px; height: 222px; }
+        #s02-factory-deck { left: 128px; top: 544px; width: 1400px; height: 196px; }
+        #s02-factory-deck .top { position: absolute; left: 0; right: 0; top: 0; height: 16px; border-radius: 8px; background: #16123A; }
+        #s02-factory-deck .face { position: absolute; left: 14px; right: 14px; top: 16px; bottom: 0; background: #16123A; opacity: 0.2; }
+        #s02-factory .hop { position: absolute; top: 280px; width: 190px; display: flex; justify-content: center; }
+        #s02-factory .hop i { display: block; width: 44px; height: 44px; border-radius: 50%; border: 5px solid #16123A; box-shadow: 4px 4px 0 #16123A; }
+        #s02-factory-card { left: -240px; top: 508px; width: 190px; height: 112px; background: #FFF6E6; border: 5px solid #16123A; border-radius: 18px; box-shadow: 6px 6px 0 #16123A;
+          display: flex; align-items: center; justify-content: center; gap: 8px; }
+        #s02-factory-card i { display: block; width: 26px; height: 26px; border-radius: 50%; border: 4px solid #16123A; background: #FFF6E6; }
+        #s02-factory-vy { left: 1532px; top: 488px; width: 220px; height: 257px; }
+        #s02-factory-you { left: 1270px; top: 158px; width: 440px; display: flex; justify-content: center; font: 900 220px/1 "Unbounded", sans-serif; color: #FFDA4F;
+          -webkit-text-stroke: 9px #16123A; paint-order: stroke fill; text-shadow: 12px 12px 0 #16123A; letter-spacing: -0.02em; }
+        #s02-factory-ring { left: 1320px; top: 100px; width: 340px; height: 340px; border-radius: 50%; border: 12px solid #FFDA4F; opacity: 0; }
+        #s02-factory .vb { transform-box: view-box; }
+        #s02-factory .puff { transform-origin: 598px 30px; }
+        #s02-factory-fgear { transform-origin: 471px 104px; }
+        #s02-factory-kw { left: 196px; top: 140px; font: 900 112px/1 "Unbounded", sans-serif; letter-spacing: -0.03em; white-space: nowrap; }
+      </style>
+      <div id="s02-factory" data-composition-id="%%ID%%" data-width="1920" data-height="1080" data-duration="%%DUR%%">
+        <div class="abs" id="s02-factory-bg" data-layout-allow-overflow><div class="abs" id="s02-factory-dots" style="left:0;top:0;width:1920px;height:1500px"></div></div>
+        <div class="abs" id="s02-factory-world" data-layout-allow-overflow>
+          <div class="ghost" data-layout-ignore style="left:560px;top:520px">ФАБРИКА</div>
+          <div class="abs" id="s02-factory-ext">
+            <div class="abs" id="s02-factory-word"><span>M</span><span>O</span><span>B</span><span>I</span><span>L</span><span>E</span><span class="sp"></span><span>P</span><span>I</span><span>P</span><span>E</span><span>L</span><span>I</span><span>N</span><span>E</span></div>
+            <div class="abs" id="s02-factory-bar"></div>
+            <div class="abs" id="s02-factory-chip"><div class="pill" id="s02-factory-pill"><svg viewBox="0 0 62 54"><path d="M4 50 V24 L18 16 V24 L32 16 V24 L46 16 V6 H56 V50 Z" fill="#FF8A1F" stroke="#16123A" stroke-width="4.5" stroke-linejoin="round" /><rect x="12" y="32" width="10" height="10" rx="2" fill="#3EC5FF" stroke="#16123A" stroke-width="3.5" /><rect x="30" y="32" width="10" height="10" rx="2" fill="#3EC5FF" stroke="#16123A" stroke-width="3.5" /></svg><span>фабрика приложений</span></div></div>
+            <svg class="abs" id="s02-factory-fac" viewBox="0 0 640 330">
+              <g fill="#FFF6E6" stroke="#16123A" stroke-width="6"><circle class="puff vb" cx="598" cy="30" r="24" /><circle class="puff vb" cx="598" cy="30" r="19" /><circle class="puff vb" cx="598" cy="30" r="14" /></g>
+              <rect x="570" y="40" width="56" height="130" rx="6" fill="#FF4F8B" stroke="#16123A" stroke-width="7" /><rect x="570" y="72" width="56" height="16" fill="#FFF6E6" stroke="#16123A" stroke-width="5" /><rect x="560" y="30" width="76" height="22" rx="7" fill="#FF4F8B" stroke="#16123A" stroke-width="7" /><rect x="466" y="120" width="10" height="30" fill="#16123A" /><g class="vb" id="s02-factory-fgear"></g>
+              <path d="M30 322 V150 L130 96 V150 L230 96 V150 L330 96 V150 H610 V322 Z" fill="#FFF6E6" stroke="#16123A" stroke-width="8" stroke-linejoin="round" /><path d="M30 150 L130 96 V150 Z M130 150 L230 96 V150 Z M230 150 L330 96 V150 Z" fill="#FF8A1F" stroke="#16123A" stroke-width="7" stroke-linejoin="round" /><rect x="330" y="143" width="280" height="15" rx="6" fill="#3EC5FF" stroke="#16123A" stroke-width="6" />
+              <g id="s02-factory-wins" stroke="#16123A" stroke-width="6"><rect x="62" y="190" width="62" height="54" rx="12" fill="#3EC5FF" /><rect x="170" y="190" width="62" height="54" rx="12" fill="#3EC5FF" /><rect x="420" y="190" width="62" height="54" rx="12" fill="#3EC5FF" /><rect x="516" y="190" width="62" height="54" rx="12" fill="#3EC5FF" /><circle cx="330" cy="182" r="20" fill="#3EC5FF" /></g>
+              <path d="M298 322 V246 A32 32 0 0 1 362 246 V322 Z" fill="#16123A" /><circle id="s02-factory-knob" cx="350" cy="280" r="5" fill="#FFF6E6" /><path d="M22 322 H618" stroke="#16123A" stroke-width="8" stroke-linecap="round" />
+            </svg>
+          </div>
+          <div class="abs" id="s02-factory-cat"><div class="abs" id="s02-factory-n49">0</div><div class="abs" id="s02-factory-lbl">помощников</div>
+            <div class="leg" id="s02-factory-leg1">22 — для чертежа</div><div class="leg" id="s02-factory-leg2">27 — для сборки</div><div class="abs" id="s02-factory-grid"></div></div>
+          <div class="abs" id="s02-factory-floor2">
+            <div class="abs" id="s02-factory-kw">конвейер</div>
+            <div class="abs" id="s02-factory-deck"><span class="face"></span><span class="top"></span></div>
+            <div class="abs kit-rim mst" style="left:165px">%%CHAR:pisar:190%%</div><div class="abs kit-rim mst" style="left:415px">%%CHAR:khudozhnik:190%%</div><div class="abs kit-rim mst" style="left:665px">%%CHAR:master:190%%</div>
+            <div class="abs kit-rim mst" style="left:915px">%%CHAR:ispytatel:190%%</div><div class="abs kit-rim mst" style="left:1165px">%%CHAR:priyomshchik:190%%</div>
+            <div class="abs" id="s02-factory-belt">%%BELT:1360:40:80#s02-factory-beltsvg%%</div>
+            <div class="hop" style="left:165px"><i></i></div><div class="hop" style="left:415px"><i></i></div><div class="hop" style="left:665px"><i></i></div><div class="hop" style="left:915px"><i></i></div><div class="hop" style="left:1165px"><i></i></div>
+            <div class="abs" id="s02-factory-card"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="abs" id="s02-factory-ring"></div>
+            <div class="abs kit-rim" id="s02-factory-vy">%%CHAR:vy:220#s02-factory-vykit%%</div>
+            <div class="abs" id="s02-factory-you">ВЫ</div>
+          </div>
+        </div>
+        <div id="s02-factory-lib">%%CHAR:razvedchik:70%% %%CHAR:syshchik:70%% %%CHAR:obkhodchik:70%% %%CHAR:pisar:70%% %%CHAR:sovetnik/speed:70%% %%CHAR:sovetnik/glasses:70%% %%CHAR:sovetnik/lock:70%% %%CHAR:sovetnik/abacus:70%% %%CHAR:sovetnik/umbrella:70%% %%CHAR:pridira:70%%
+          %%CHAR:planirovshchik:70%% %%CHAR:khudozhnik:70%% %%CHAR:master:70%% %%CHAR:master/chief:70%% %%CHAR:revizor:70%% %%CHAR:arkhitektor:70%% %%CHAR:ispytatel:70%% %%CHAR:priyomshchik:70%% %%CHAR:letopisets:70%% %%CHAR:bibliotekar:70%% %%CHAR:ratsionalizator:70%%</div>
+      </div>
+      <script>
+        (function () {
+          %%HELPERS%%
+          var C = %%CUES%%;
+          var D = %%DUR%%;
+          var H = window.MPV;
+          var tl = gsap.timeline({ paused: true });
+          var P = H.C, NS = "http://www.w3.org/2000/svg", i, k, el;
+          var id = function (s) { return document.getElementById("s02-factory-" + s); }, all = function (s) { return document.querySelectorAll("#s02-factory " + s); };
+          function ext(a, b) { var r = {}, n; for (n in a) r[n] = a[n]; for (n in b) r[n] = b[n]; return r; }
+          function to(e, f, v, t) { return tl.fromTo(e, f, ext({ immediateRender: false }, v), t); }
+          // xf(): SVG-internal parts move by a CSS transform written from a GSAP-tweened proxy, so the pivot comes from CSS
+          // transform-box/origin (kit chars.css or the .vb rules) and never from a bbox GSAP would read at build time (it is 0 there).
+          function xf(tg, init) {
+            var els = typeof tg === "string" ? document.querySelectorAll(tg) : (tg.length != null ? tg : [tg]), st = ext({ x: 0, y: 0, h: 0, r: 0, s: 1, sx: 1, sy: 1, o: null }, init || {});
+            st.apply = function () { var t = "translate(" + st.x.toFixed(2) + "px," + (st.y + st.h).toFixed(2) + "px) rotate(" + st.r.toFixed(2) + "deg) scale(" + (st.s * st.sx).toFixed(4) + "," + (st.s * st.sy).toFixed(4) + ")";
+              for (var m = 0; m < els.length; m++) { els[m].style.transform = t; if (st.o != null) els[m].style.opacity = String(Math.round(st.o * 1000) / 1000); } };
+            st.apply(); return st;
+          }
+          function xt(st, f, v, t) { return tl.fromTo(st, f, ext(v, { immediateRender: false, onUpdate: st.apply }), t); }
+          function blink(lids, from, until, seed) {
+            for (var st = xf(lids), r = H.rng(seed), t = from + 0.3 + r() * 1.2; t + 0.12 < until; t += 2.4 + r() * 1.8) { xt(st, { sy: 1 }, { sy: 0.1, duration: 0.05, ease: "power1.in" }, t); xt(st, { sy: 0.1 }, { sy: 1, duration: 0.06, ease: "power1.out" }, t + 0.05); }
+          }
+          function gearPath(r, teeth) {
+            for (var d = "", n = teeth * 2, j = 0; j < n; j++) { var a0 = (j / n) * Math.PI * 2, a1 = ((j + 1) / n) * Math.PI * 2, rr = j % 2 ? r * 0.8 : r; d += (j ? "L" : "M") + (rr * Math.cos(a0)).toFixed(1) + " " + (rr * Math.sin(a0)).toFixed(1) + "L" + (rr * Math.cos(a1)).toFixed(1) + " " + (rr * Math.sin(a1)).toFixed(1); }
+            return d + "Z";
+          }
+
+          // ---- setup (seeded): gears, dots, pluses; the factory gear; 49 catalogue tiles cloned from the kit library ----
+          var bg = id("bg"), rng = H.rng(202), gears = [];
+          [[60, 120, 190], [1640, 60, 240], [1720, 760, 170], [90, 900, 210], [1500, 1260, 230], [120, 1380, 180]].forEach(function (g) {
+            el = document.createElementNS(NS, "svg"); el.setAttribute("class", "gear"); el.setAttribute("viewBox", "-110 -110 220 220");
+            el.style.left = g[0] + "px"; el.style.top = g[1] + "px"; el.style.width = el.style.height = g[2] + "px";
+            el.innerHTML = '<path d="' + gearPath(100, 10) + '" fill="#FFF6E6"/><circle r="34" fill="#5B34F5"/>'; bg.appendChild(el); gears.push(xf(el));
+          });
+          for (i = 0; i < 34; i++) {
+            el = document.createElement("span"); el.className = i % 2 ? "plus" : "dot"; el.style.width = el.style.height = (i % 2 ? 18 + rng() * 12 : 9 + rng() * 12).toFixed(0) + "px";
+            el.style.left = (60 + rng() * 1800).toFixed(0) + "px"; el.style.top = (130 + rng() * 1300).toFixed(0) + "px"; id("dots").appendChild(el);
+          }
+          id("fgear").innerHTML = '<path d="' + gearPath(26, 8) + '" transform="translate(471 104)" fill="#2BD99F" stroke="#16123A" stroke-width="5" stroke-linejoin="round"/><circle cx="471" cy="104" r="8" fill="#FFF6E6" stroke="#16123A" stroke-width="4"/>';
+          for (var lib = id("lib").querySelectorAll("svg.kit"), grid = id("grid"), tiles = [], tr = H.rng(49), i = 0; i < 49; i++) {   // 22 blueprint masters (sky), 27 build masters (tangerine)
+            var spec = i < 22, pick = spec ? (i * 7 + Math.floor(tr() * 10)) % 10 : 10 + (i * 7 + Math.floor(tr() * 11)) % 11, tile = document.createElement("div");
+            el = document.createElement("div"); el.className = "slot"; el.style.left = ((i % 7) * 74) + "px"; el.style.top = (Math.floor(i / 7) * 86) + "px"; grid.appendChild(el);
+            tile.className = "tile"; tile.style.left = ((i % 7) * 74) + "px"; tile.style.top = (Math.floor(i / 7) * 86) + "px"; tile.style.background = spec ? P.sky : P.tangerine;
+            tile.appendChild(lib[pick].cloneNode(true)); grid.appendChild(tile); tiles.push(tile);
+          }
+
+          // ---- background life ----
+          gears.forEach(function (g, n) { xt(g, { r: 0 }, { r: (n % 2 ? -1 : 1) * 70, duration: D, ease: "none" }, 0); });
+          H.drift(tl, "#s02-factory-dots", 0, D, { x: -60, y: -30 });
+          xt(xf("#s02-factory-beltsvg .belt-chev"), { x: 0 }, { x: 28, duration: 0.3, ease: "none", repeat: H.repeats(D, 0.3) }, 0);
+          xt(xf("#s02-factory-beltsvg .belt-roller"), { r: 0 }, { r: 360, duration: 1.2, ease: "none", repeat: H.repeats(D, 1.2) }, 0);
+          xt(xf("#s02-factory-fgear"), { r: 0 }, { r: 240, duration: D, ease: "none" }, 0);
+
+          // ---- 0.1 -> brand: the letters float in scattered, then snap together on «Мобайл Пайплайн» (logo-assemble) ----
+          all("#s02-factory-word span:not(.sp)").forEach(function (L, n, lr) {
+            lr = H.rng(7 + n * 13);
+            var sx = (lr() - 0.5) * 1300, sy = -30 + lr() * 400, rot = (lr() - 0.5) * 160, t0 = 0.12 + n * 0.05;
+            tl.fromTo(L, { x: sx, y: sy, rotation: rot, scale: 0, opacity: 0 }, { x: sx * 0.86, y: sy * 0.86, rotation: rot * 0.8, scale: 0.72, opacity: 1, duration: 0.45, ease: "back.out(2)" }, t0);
+            to(L, { x: sx * 0.86, y: sy * 0.86, rotation: rot * 0.8, scale: 0.72 }, { x: sx * 0.7, y: sy * 0.7, rotation: rot * 0.6, scale: 0.78, duration: C.brand - 0.26 - t0 - 0.45, ease: "sine.inOut" }, t0 + 0.45);
+            to(L, { x: sx * 0.7, y: sy * 0.7, rotation: rot * 0.6, scale: 0.78 }, { x: 0, y: 0, rotation: 0, scale: 1, duration: 0.26, ease: "power4.in" }, C.brand - 0.26);
+          });
+          to("#s02-factory-word", { scale: 1, y: 0 }, { scale: 1.07, y: -6, duration: 0.09, ease: "power2.out", yoyo: true, repeat: 1 }, C.brand);
+          tl.fromTo("#s02-factory-bar", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power3.out" }, C.brand + 0.08);
+
+          // ---- factory: the chip and the factory rise, windows switch on, smoke puffs ----
+          tl.fromTo("#s02-factory-pill", { scale: 0.4, opacity: 0, y: 30 }, { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: "back.out(1.9)" }, C.factory - 0.05);
+          tl.fromTo("#s02-factory-fac", { y: 140, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "back.out(1.5)" }, C.factory + 0.05);
+          document.querySelectorAll("#s02-factory-wins rect, #s02-factory-wins circle").forEach(function (w, n) { tl.fromTo(w, { attr: { fill: P.cream } }, { attr: { fill: n % 2 ? P.mint : P.sky }, duration: 0.01 }, C.factory + 0.55 + n * 0.12); });
+          document.querySelectorAll("#s02-factory .puff").forEach(function (p, n) {
+            var st = xf(p, { s: 0.4, o: 0 }), pd = { p: 0 };
+            tl.fromTo(pd, { p: 0 }, { p: 1, duration: 1.5, ease: "none", immediateRender: false, repeat: H.repeats(C.n49 - C.factory - 0.8 - n * 0.5, 1.5), onUpdate: function () {
+              var q = pd.p; st.y = -50 * q; st.x = 160 * q; st.s = 0.4 + q; st.o = q < 0.15 ? q / 0.15 * 0.95 : 0.95 * (1 - (q - 0.15) / 0.85); st.apply(); } }, C.factory + 0.6 + n * 0.5);
+          });
+
+          // ---- «В её каталоге»: the camera dives through the factory door (it fills the frame with ink), the catalogue opens behind it ----
+          to("#s02-factory-ext", { scale: 1 }, { scale: 34, duration: 0.62, ease: "power3.in" }, C.n49 - 1.1);
+          to("#s02-factory-ext", { opacity: 1 }, { opacity: 0, duration: 0.3, ease: "power1.out" }, C.n49 - 0.48);
+          to("#s02-factory-knob", { opacity: 1 }, { opacity: 0, duration: 0.2, ease: "none" }, C.n49 - 0.9);
+          tl.fromTo("#s02-factory-cat", { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "power3.out" }, C.n49 - 0.46);
+
+          // ---- n49: «49» counts up while it grows (counting-dynamic-scale) · team: the grid blooms from the centre ----
+          var n49 = id("n49"), box = { v: 0 };
+          tl.fromTo(box, { v: 0 }, { v: 49, duration: 1.2, ease: "power3.out", immediateRender: false, onUpdate: function () { n49.textContent = String(Math.round(box.v)); } }, C.n49);
+          tl.fromTo("#s02-factory-n49", { scale: 0.5 }, { scale: 1, duration: 1.2, ease: "power3.out" }, C.n49);
+          H.slam(tl, "#s02-factory-lbl", C.team, { dur: 0.34 });
+          tiles.forEach(function (t, n) {
+            var col = n % 7, row = Math.floor(n / 7), ring = Math.max(Math.abs(col - 3), Math.abs(row - 3));
+            tl.fromTo(t, { x: (3 - col) * 74 * 0.55, y: (3 - row) * 86 * 0.55, scale: 0, opacity: 0 }, { x: 0, y: 0, scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.6)" }, C.team - 0.05 + ring * 0.1 + tr() * 0.06);
+            to(t, { y: 0 }, { y: -14, duration: 0.14, ease: "power2.out", yoyo: true, repeat: 1 }, (n < 22 ? C.team + 0.78 : C.team + 1.18) + col * 0.025);
+          });
+          tl.fromTo("#s02-factory-leg1", { scale: 0.3, opacity: 0, x: -40 }, { scale: 1, opacity: 1, x: 0, duration: 0.42, ease: "back.out(2)" }, C.team + 0.72);
+          tl.fromTo("#s02-factory-leg2", { scale: 0.3, opacity: 0, x: -40 }, { scale: 1, opacity: 1, x: 0, duration: 0.42, ease: "back.out(2)" }, C.team + 1.12);
+
+          // ---- belt: the camera pans down to the conveyor (viewport-change); the card visits five masters, each adds a colour ----
+          to("#s02-factory-world", { y: 0 }, { y: -1080, duration: 0.8, ease: "power2.inOut" }, C.belt - 0.45);
+          to("#s02-factory-bg", { y: 0 }, { y: -300, duration: 0.8, ease: "power2.inOut" }, C.belt - 0.45);
+          to("#s02-factory-cat", { opacity: 1 }, { opacity: 0, duration: 0.3, ease: "power2.out" }, C.belt - 0.6);   // scrolls out with the world, gone before it crosses the HUD band
+          H.slam(tl, "#s02-factory-kw", C.belt, { dur: 0.34 });
+          var colors = [P.mint, P.raspberry, P.tangerine, P.mint, P.sky], dots = all("#s02-factory-card i"), hops = all(".hop i"), cx = [405, 655, 905, 1155, 1405], card = id("card");
+          all(".mst").forEach(function (m, n) {
+            var root = xf(m.querySelector(".c-char")), arm = xf(m.querySelector(".c-arm-r")), at = C.belt + 0.67 + n * 0.55;
+            xt(root, { y: 0 }, { y: -6, duration: 1.05, ease: "sine.inOut", yoyo: true, repeat: H.repeats(C._out - C.belt, 1.05) }, C.belt - 0.6 + n * 0.21);
+            blink(m.querySelectorAll(".c-lid"), C.belt - 0.6, C._out, 30 + n);
+            xt(arm, { r: 0 }, { r: -110, duration: 0.14, ease: "power2.out", yoyo: true, repeat: 1 }, at - 0.12);
+            xt(root, { h: 0 }, { h: -22, duration: 0.13, ease: "power2.out", yoyo: true, repeat: 1 }, at - 0.12);
+            var tok = hops[n];
+            tok.style.background = colors[n];
+            tl.fromTo(tok, { y: 40, scale: 0, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.2, ease: "back.out(2.4)" }, at - 0.14);
+            to(tok, { y: 0, scale: 1, opacity: 1 }, { y: 236, scale: 0.55, opacity: 0, duration: 0.2, ease: "power2.in" }, at + 0.04);
+            tl.fromTo(dots[n], { backgroundColor: P.cream, scale: 1 }, { backgroundColor: colors[n], scale: 1.45, duration: 0.1, ease: "power2.out" }, at + 0.22);
+            to(dots[n], { scale: 1.45 }, { scale: 1, duration: 0.24, ease: "back.out(3)" }, at + 0.32);
+          });
+          tl.fromTo(card, { x: 0 }, { x: cx[0], duration: 0.45, ease: "power2.out" }, C.belt + 0.22);
+          for (k = 1; k < 5; k++) to(card, { x: cx[k - 1] }, { x: cx[k], duration: 0.28, ease: "power2.inOut" }, C.belt + 0.67 + (k - 1) * 0.55 + 0.3);
+          to(card, { x: cx[4] }, { x: 1555, duration: 0.4, ease: "power2.inOut" }, C.belt + 2.87 + 0.3);
+          to(card, { rotation: 0 }, { rotation: -4, duration: 0.12, ease: "power1.out", yoyo: true, repeat: 1 }, C.belt + 2.87 + 0.7);
+
+          // ---- «А главные решения…»: «вы» steps up at the end of the belt · you: the lemon «ВЫ» slams ----
+          H.arrive(tl, "#s02-factory-vy", C.you - 1.75, { from: 0.4, y: 50, dur: 0.55 });
+          var vy = id("vykit"), vroot = xf(vy.querySelector(".c-char")), varm = xf(vy.querySelector(".c-arm-r"));
+          blink(vy.querySelectorAll(".c-lid"), C.you - 1.2, C._out, 77);
+          xt(vroot, { y: 0 }, { y: -7, duration: 0.9, ease: "sine.inOut", yoyo: true, repeat: H.repeats(C._out - C.you + 1.1, 0.9) }, C.you - 1.1);
+          H.slam(tl, "#s02-factory-you", C.you, { dur: 0.34 });
+          xt(varm, { r: 0 }, { r: -105, duration: 0.3, ease: "back.out(2.5)" }, C.you + 0.02);
+          tl.fromTo("#s02-factory-ring", { opacity: 0, scale: 0.4 }, { opacity: 0.95, scale: 0.4, duration: 0.01 }, C.you + 0.08);
+          to("#s02-factory-ring", { scale: 0.4, opacity: 0.95 }, { scale: 1.5, opacity: 0, duration: 0.7, ease: "power2.out" }, C.you + 0.09);
+          to("#s02-factory-you", { rotation: 0 }, { rotation: -3, duration: 0.6, ease: "sine.inOut", yoyo: true, repeat: H.repeats(C._out - C.you - 0.4, 0.6) }, C.you + 0.4);
+
+          window.__timelines["%%ID%%"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

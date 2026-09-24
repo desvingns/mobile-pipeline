@@ -1,0 +1,20 @@
+{
+ "source": ".media/music/lyria-raw.wav (Google Lyria RealTime)",
+ "offset": 0,
+ "duration": 179.4,
+ "fadeIn": 1,
+ "fadeOut": 3,
+ "targetLufs": -20,
+ "gainDb": -4.7,
+ "limiter": false,
+ "measured": {
+  "before": {
+   "I": -15.3,
+   "TP": 1.67
+  },
+  "after": {
+   "I": -20,
+   "TP": -3.03
+  }
+ }
+}

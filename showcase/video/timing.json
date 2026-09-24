@@ -1,0 +1,787 @@
+{
+ "total": 178.9,
+ "fps": 30,
+ "width": 1920,
+ "height": 1080,
+ "scenes": [
+  {
+   "n": 1,
+   "id": "s01-hook",
+   "title": "Фиалка поникла",
+   "field": "#FFF6E6",
+   "ink": "#16123A",
+   "start": 0,
+   "duration": 15.7,
+   "end": 15.7,
+   "lead": 1.2,
+   "tail": 0.6,
+   "voice": {
+    "file": "assets/voice/s01-hook.wav",
+    "start": 1.2,
+    "duration": 13.824
+   },
+   "speech": {
+    "start": 1.3,
+    "end": 14.155
+   },
+   "words": 25,
+   "wordsPerSecond": 1.945,
+   "cues": {
+    "q": 1.3,
+    "wilt": 4.329,
+    "forgot": 5.313,
+    "app": 7.569,
+    "coder": 11.285,
+    "bulb": 13.507,
+    "_voice": 1.2,
+    "_speechEnd": 14.155,
+    "_out": 15.18,
+    "_end": 15.7
+   },
+   "cuesGlobal": {
+    "q": 1.3,
+    "wilt": 4.329,
+    "forgot": 5.313,
+    "app": 7.569,
+    "coder": 11.285,
+    "bulb": 13.507,
+    "_voice": 1.2,
+    "_speechEnd": 14.155,
+    "_out": 15.18,
+    "_end": 15.7
+   }
+  },
+  {
+   "n": 2,
+   "id": "s02-factory",
+   "title": "Фабрика",
+   "field": "#5B34F5",
+   "ink": "#FFF6E6",
+   "start": 15.7,
+   "duration": 16.6,
+   "end": 32.3,
+   "lead": 0.5,
+   "tail": 0.6,
+   "voice": {
+    "file": "assets/voice/s02-factory.wav",
+    "start": 16.2,
+    "duration": 15.456
+   },
+   "speech": {
+    "start": 0.6,
+    "end": 15.11
+   },
+   "words": 28,
+   "wordsPerSecond": 1.93,
+   "cues": {
+    "brand": 1.676,
+    "factory": 2.822,
+    "n49": 5.735,
+    "team": 6.418,
+    "belt": 8.872,
+    "you": 14.856,
+    "_voice": 0.5,
+    "_speechEnd": 15.11,
+    "_out": 16.29,
+    "_end": 16.6
+   },
+   "cuesGlobal": {
+    "brand": 17.376,
+    "factory": 18.522,
+    "n49": 21.435,
+    "team": 22.118,
+    "belt": 24.572,
+    "you": 30.556,
+    "_voice": 16.2,
+    "_speechEnd": 30.81,
+    "_out": 31.99,
+    "_end": 32.3
+   }
+  },
+  {
+   "n": 3,
+   "id": "s03-talk",
+   "title": "Разговор",
+   "field": "#FF8A1F",
+   "ink": "#16123A",
+   "start": 32.3,
+   "duration": 18.4,
+   "end": 50.7,
+   "lead": 0.5,
+   "tail": 0.9,
+   "voice": {
+    "file": "assets/voice/s03-talk.wav",
+    "start": 32.8,
+    "duration": 16.968
+   },
+   "speech": {
+    "start": 0.6,
+    "end": 16.487
+   },
+   "words": 32,
+   "wordsPerSecond": 2.014,
+   "cues": {
+    "talk": 1.63,
+    "brig": 3.235,
+    "shots": 9.937,
+    "analysts": 12.205,
+    "inventory": 14.057,
+    "ok": 16.198,
+    "_voice": 0.5,
+    "_speechEnd": 16.487,
+    "_out": 18.09,
+    "_end": 18.4
+   },
+   "cuesGlobal": {
+    "talk": 33.93,
+    "brig": 35.535,
+    "shots": 42.237,
+    "analysts": 44.505,
+    "inventory": 46.357,
+    "ok": 48.498,
+    "_voice": 32.8,
+    "_speechEnd": 48.787,
+    "_out": 50.39,
+    "_end": 50.7
+   }
+  },
+  {
+   "n": 4,
+   "id": "s04-blueprint",
+   "title": "Чертёж",
+   "field": "#3EC5FF",
+   "ink": "#16123A",
+   "start": 50.7,
+   "duration": 15,
+   "end": 65.7,
+   "lead": 0.5,
+   "tail": 0.6,
+   "voice": {
+    "file": "assets/voice/s04-blueprint.wav",
+    "start": 51.2,
+    "duration": 13.872
+   },
+   "speech": {
+    "start": 0.6,
+    "end": 13.582
+   },
+   "words": 31,
+   "wordsPerSecond": 2.388,
+   "cues": {
+    "scribes": 1.549,
+    "docs": 2.394,
+    "n18": 3.401,
+    "what": 4.709,
+    "look": 6.121,
+    "check": 6.885,
+    "advisors": 9.994,
+    "_voice": 0.5,
+    "_speechEnd": 13.582,
+    "_out": 14.69,
+    "_end": 15
+   },
+   "cuesGlobal": {
+    "scribes": 52.249,
+    "docs": 53.094,
+    "n18": 54.101,
+    "what": 55.409,
+    "look": 56.821,
+    "check": 57.585,
+    "advisors": 60.694,
+    "_voice": 51.2,
+    "_speechEnd": 64.282,
+    "_out": 65.39,
+    "_end": 65.7
+   }
+  },
+  {
+   "n": 5,
+   "id": "s05-critic",
+   "title": "Придира",
+   "field": "#FF4F8B",
+   "ink": "#16123A",
+   "start": 65.7,
+   "duration": 11.4,
+   "end": 77.1,
+   "lead": 0.5,
+   "tail": 0.9,
+   "voice": {
+    "file": "assets/voice/s05-critic.wav",
+    "start": 66.2,
+    "duration": 9.96
+   },
+   "speech": {
+    "start": 0.6,
+    "end": 9.636
+   },
+   "words": 19,
+   "wordsPerSecond": 2.103,
+   "cues": {
+    "critic": 2.359,
+    "gap": 4.288,
+    "back": 4.694,
+    "two": 7.853,
+    "accept": 8.825,
+    "_voice": 0.5,
+    "_speechEnd": 9.636,
+    "_out": 11.09,
+    "_end": 11.4
+   },
+   "cuesGlobal": {
+    "critic": 68.059,
+    "gap": 69.988,
+    "back": 70.394,
+    "two": 73.553,
+    "accept": 74.525,
+    "_voice": 66.2,
+    "_speechEnd": 75.336,
+    "_out": 76.79,
+    "_end": 77.1
+   }
+  },
+  {
+   "n": 6,
+   "id": "s06-plan",
+   "title": "План",
+   "field": "#FFF6E6",
+   "ink": "#16123A",
+   "start": 77.1,
+   "duration": 14.7,
+   "end": 91.8,
+   "lead": 0.5,
+   "tail": 0.9,
+   "voice": {
+    "file": "assets/voice/s06-plan.wav",
+    "start": 77.6,
+    "duration": 13.224
+   },
+   "speech": {
+    "start": 0.6,
+    "end": 12.726
+   },
+   "words": 25,
+   "wordsPerSecond": 2.062,
+   "cues": {
+    "planner": 1.051,
+    "tasks": 2.359,
+    "plants": 3.459,
+    "remind": 4.512,
+    "approve": 8.212,
+    "board": 10.261,
+    "todo": 10.758,
+    "doing": 11.383,
+    "done": 12.17,
+    "_voice": 0.5,
+    "_speechEnd": 12.726,
+    "_out": 14.39,
+    "_end": 14.7
+   },
+   "cuesGlobal": {
+    "planner": 78.151,
+    "tasks": 79.459,
+    "plants": 80.559,
+    "remind": 81.612,
+    "approve": 85.312,
+    "board": 87.361,
+    "todo": 87.858,
+    "doing": 88.483,
+    "done": 89.27,
+    "_voice": 77.6,
+    "_speechEnd": 89.826,
+    "_out": 91.49,
+    "_end": 91.8
+   }
+  },
+  {
+   "n": 7,
+   "id": "s07-belt",
+   "title": "Конвейер",
+   "field": "#5B34F5",
+   "ink": "#FFF6E6",
+   "start": 91.8,
+   "duration": 22,
+   "end": 113.8,
+   "lead": 0.5,
+   "tail": 0.6,
+   "voice": {
+    "file": "assets/voice/s07-belt.wav",
+    "start": 92.3,
+    "duration": 20.808
+   },
+   "speech": {
+    "start": 0.6,
+    "end": 20.504
+   },
+   "words": 35,
+   "wordsPerSecond": 1.758,
+   "cues": {
+    "card": 1.41,
+    "scales": 5.897,
+    "switch": 9.103,
+    "chief": 12.24,
+    "master": 15.689,
+    "order": 17.865,
+    "_voice": 0.5,
+    "_speechEnd": 20.504,
+    "_out": 21.59,
+    "_end": 22
+   },
+   "cuesGlobal": {
+    "card": 93.21,
+    "scales": 97.697,
+    "switch": 100.903,
+    "chief": 104.04,
+    "master": 107.489,
+    "order": 109.665,
+    "_voice": 92.3,
+    "_speechEnd": 112.304,
+    "_out": 113.39,
+    "_end": 113.8
+   }
+  },
+  {
+   "n": 8,
+   "id": "s08-tests",
+   "title": "Испытания",
+   "field": "#16123A",
+   "ink": "#FFF6E6",
+   "start": 113.8,
+   "duration": 23.6,
+   "end": 137.4,
+   "lead": 0.5,
+   "tail": 0.9,
+   "voice": {
+    "file": "assets/voice/s08-tests.wav",
+    "start": 114.3,
+    "duration": 22.128
+   },
+   "speech": {
+    "start": 0.6,
+    "end": 21.835
+   },
+   "words": 41,
+   "wordsPerSecond": 1.931,
+   "cues": {
+    "auditor": 2.232,
+    "rounds": 2.834,
+    "arch": 5.149,
+    "tester": 6.95,
+    "stand": 9.045,
+    "red": 11.163,
+    "night": 14.184,
+    "fix": 16.823,
+    "stop": 18.976,
+    "_voice": 0.5,
+    "_speechEnd": 21.835,
+    "_out": 23.08,
+    "_end": 23.6
+   },
+   "cuesGlobal": {
+    "auditor": 116.032,
+    "rounds": 116.634,
+    "arch": 118.949,
+    "tester": 120.75,
+    "stand": 122.845,
+    "red": 124.963,
+    "night": 127.984,
+    "fix": 130.623,
+    "stop": 132.776,
+    "_voice": 114.3,
+    "_speechEnd": 135.635,
+    "_out": 136.88,
+    "_end": 137.4
+   }
+  },
+  {
+   "n": 9,
+   "id": "s09-release",
+   "title": "Выпуск",
+   "field": "#2BD99F",
+   "ink": "#16123A",
+   "start": 137.4,
+   "duration": 20.1,
+   "end": 157.5,
+   "lead": 0.5,
+   "tail": 0.6,
+   "voice": {
+    "file": "assets/voice/s09-release.wav",
+    "start": 137.9,
+    "duration": 18.912
+   },
+   "speech": {
+    "start": 0.6,
+    "end": 18.548
+   },
+   "words": 38,
+   "wordsPerSecond": 2.117,
+   "cues": {
+    "green": 0.6,
+    "verifier": 2.251,
+    "wired": 4.358,
+    "memo": 6.337,
+    "decide": 8.895,
+    "yes": 10.596,
+    "ship": 13.432,
+    "chron": 13.791,
+    "plant": 16.858,
+    "_voice": 0.5,
+    "_speechEnd": 18.548,
+    "_out": 19.79,
+    "_end": 20.1
+   },
+   "cuesGlobal": {
+    "green": 138,
+    "verifier": 139.651,
+    "wired": 141.758,
+    "memo": 143.737,
+    "decide": 146.295,
+    "yes": 147.996,
+    "ship": 150.832,
+    "chron": 151.191,
+    "plant": 154.258,
+    "_voice": 137.9,
+    "_speechEnd": 155.948,
+    "_out": 157.19,
+    "_end": 157.5
+   }
+  },
+  {
+   "n": 10,
+   "id": "s10-memory",
+   "title": "Память",
+   "field": "#3EC5FF",
+   "ink": "#16123A",
+   "start": 157.5,
+   "duration": 21.4,
+   "end": 178.9,
+   "lead": 0.5,
+   "tail": 3.2,
+   "voice": {
+    "file": "assets/voice/s10-memory.wav",
+    "start": 158,
+    "duration": 17.688
+   },
+   "speech": {
+    "start": 0.6,
+    "end": 17.321
+   },
+   "words": 31,
+   "wordsPerSecond": 1.854,
+   "cues": {
+    "rate": 2.035,
+    "stars": 2.568,
+    "lib": 3.725,
+    "repeat": 6.962,
+    "rational": 8.629,
+    "approve": 11.997,
+    "brand": 13.698,
+    "slogan": 15.874,
+    "_voice": 0.5,
+    "_speechEnd": 17.321,
+    "_out": 21.4,
+    "_end": 21.4
+   },
+   "cuesGlobal": {
+    "rate": 159.535,
+    "stars": 160.068,
+    "lib": 161.225,
+    "repeat": 164.462,
+    "rational": 166.129,
+    "approve": 169.497,
+    "brand": 171.198,
+    "slogan": 173.374,
+    "_voice": 158,
+    "_speechEnd": 174.821,
+    "_out": 178.9,
+    "_end": 178.9
+   }
+  }
+ ],
+ "transitions": [
+  {
+   "id": "t1",
+   "T": 15.7,
+   "from": "s01-hook",
+   "to": "s02-factory",
+   "type": "morph",
+   "window": [
+    15.18,
+    16.02
+   ]
+  },
+  {
+   "id": "t2",
+   "T": 32.3,
+   "from": "s02-factory",
+   "to": "s03-talk",
+   "type": "blocks",
+   "window": [
+    31.99,
+    32.66
+   ]
+  },
+  {
+   "id": "t3",
+   "T": 50.7,
+   "from": "s03-talk",
+   "to": "s04-blueprint",
+   "type": "blocks",
+   "window": [
+    50.39,
+    51.06
+   ]
+  },
+  {
+   "id": "t4",
+   "T": 65.7,
+   "from": "s04-blueprint",
+   "to": "s05-critic",
+   "type": "blocks",
+   "window": [
+    65.39,
+    66.06
+   ]
+  },
+  {
+   "id": "t5",
+   "T": 77.1,
+   "from": "s05-critic",
+   "to": "s06-plan",
+   "type": "blocks",
+   "window": [
+    76.79,
+    77.46
+   ]
+  },
+  {
+   "id": "t6",
+   "T": 91.8,
+   "from": "s06-plan",
+   "to": "s07-belt",
+   "type": "blocks",
+   "window": [
+    91.49,
+    92.16
+   ]
+  },
+  {
+   "id": "t7",
+   "T": 113.8,
+   "from": "s07-belt",
+   "to": "s08-tests",
+   "type": "blocks5",
+   "window": [
+    113.39,
+    114.26
+   ]
+  },
+  {
+   "id": "t8",
+   "T": 137.4,
+   "from": "s08-tests",
+   "to": "s09-release",
+   "type": "morph",
+   "window": [
+    136.88,
+    137.72
+   ]
+  },
+  {
+   "id": "t9",
+   "T": 157.5,
+   "from": "s09-release",
+   "to": "s10-memory",
+   "type": "blocks",
+   "window": [
+    157.19,
+    157.86
+   ]
+  },
+  {
+   "id": "dip",
+   "T": 171.198,
+   "from": "s10-memory",
+   "to": "s10-memory:endcard",
+   "type": "dip",
+   "window": [
+    170.898,
+    171.568
+   ]
+  },
+  {
+   "id": "final",
+   "T": 178.9,
+   "type": "fade-to-ink",
+   "window": [
+    178.1,
+    178.9
+   ]
+  }
+ ],
+ "hud": {
+  "start": 15.7,
+  "duration": 155.498
+ },
+ "captions": {
+  "groups": 51,
+  "maxChars": 80,
+  "maxWords": 12
+ },
+ "sfx": [
+  {
+   "id": "sfx-01-pop",
+   "at": 1.3,
+   "start": 1.185,
+   "volume": 0.25,
+   "why": "s01-hook q"
+  },
+  {
+   "id": "sfx-02-sparkle",
+   "at": 13.507,
+   "start": 13.482,
+   "volume": 0.3,
+   "why": "s01-hook bulb"
+  },
+  {
+   "id": "sfx-03-whoosh",
+   "at": 15.7,
+   "start": 15.54,
+   "volume": 0.2,
+   "why": "cut t1"
+  },
+  {
+   "id": "sfx-04-ping",
+   "at": 30.556,
+   "start": 30.236,
+   "volume": 0.22,
+   "why": "s02-factory you"
+  },
+  {
+   "id": "sfx-05-whoosh",
+   "at": 32.3,
+   "start": 32.14,
+   "volume": 0.2,
+   "why": "cut t2"
+  },
+  {
+   "id": "sfx-06-click",
+   "at": 48.498,
+   "start": 48.448,
+   "volume": 0.32,
+   "why": "s03-talk ok"
+  },
+  {
+   "id": "sfx-07-whoosh",
+   "at": 50.7,
+   "start": 50.54,
+   "volume": 0.2,
+   "why": "cut t3"
+  },
+  {
+   "id": "sfx-08-pop",
+   "at": 60.694,
+   "start": 60.579,
+   "volume": 0.22,
+   "why": "s04-blueprint advisors"
+  },
+  {
+   "id": "sfx-09-whoosh",
+   "at": 65.7,
+   "start": 65.54,
+   "volume": 0.2,
+   "why": "cut t4"
+  },
+  {
+   "id": "sfx-10-click-soft",
+   "at": 70.148,
+   "start": 70.098,
+   "volume": 0.26,
+   "why": "s05-critic gap+0.16"
+  },
+  {
+   "id": "sfx-11-click",
+   "at": 75.125,
+   "start": 75.075,
+   "volume": 0.32,
+   "why": "s05-critic accept+0.6"
+  },
+  {
+   "id": "sfx-12-whoosh",
+   "at": 77.1,
+   "start": 76.94,
+   "volume": 0.2,
+   "why": "cut t5"
+  },
+  {
+   "id": "sfx-13-click",
+   "at": 85.512,
+   "start": 85.462,
+   "volume": 0.32,
+   "why": "s06-plan approve+0.2"
+  },
+  {
+   "id": "sfx-14-whoosh",
+   "at": 91.8,
+   "start": 91.64,
+   "volume": 0.2,
+   "why": "cut t6"
+  },
+  {
+   "id": "sfx-15-ping",
+   "at": 109.665,
+   "start": 109.345,
+   "volume": 0.2,
+   "why": "s07-belt order"
+  },
+  {
+   "id": "sfx-16-whoosh",
+   "at": 113.8,
+   "start": 113.64,
+   "volume": 0.2,
+   "why": "cut t7"
+  },
+  {
+   "id": "sfx-17-error",
+   "at": 124.963,
+   "start": 124.313,
+   "volume": 0.28,
+   "why": "s08-tests red"
+  },
+  {
+   "id": "sfx-18-whoosh",
+   "at": 137.4,
+   "start": 137.24,
+   "volume": 0.2,
+   "why": "cut t8"
+  },
+  {
+   "id": "sfx-19-chime",
+   "at": 147.996,
+   "start": 147.581,
+   "volume": 0.3,
+   "why": "s09-release yes"
+  },
+  {
+   "id": "sfx-20-notification",
+   "at": 154.258,
+   "start": 154.028,
+   "volume": 0.28,
+   "why": "s09-release plant"
+  },
+  {
+   "id": "sfx-21-whoosh",
+   "at": 157.5,
+   "start": 157.34,
+   "volume": 0.2,
+   "why": "cut t9"
+  },
+  {
+   "id": "sfx-22-impact-bass-1",
+   "at": 171.198,
+   "start": 171.113,
+   "volume": 0.35,
+   "why": "s10-memory brand"
+  }
+ ],
+ "kit": "kit"
+}

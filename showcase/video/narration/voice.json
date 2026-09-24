@@ -1,0 +1,87 @@
+{
+ "sampleRate": 48000,
+ "channels": 1,
+ "targetLufs": -16,
+ "targetTp": -1,
+ "gainDb": 4.79,
+ "limiter": {
+  "ceilingDb": -2,
+  "attackMs": 3,
+  "releaseMs": 40
+ },
+ "scenes": {
+  "s01-hook": {
+   "file": "assets/voice/s01-hook.wav",
+   "samples": 663552,
+   "duration": 13.824,
+   "hash": "b12a045b63ce1b95"
+  },
+  "s02-factory": {
+   "file": "assets/voice/s02-factory.wav",
+   "samples": 741888,
+   "duration": 15.456,
+   "hash": "36955910f26ef26f"
+  },
+  "s03-talk": {
+   "file": "assets/voice/s03-talk.wav",
+   "samples": 814464,
+   "duration": 16.968,
+   "hash": "495f0dced1c8bae0"
+  },
+  "s04-blueprint": {
+   "file": "assets/voice/s04-blueprint.wav",
+   "samples": 665856,
+   "duration": 13.872,
+   "hash": "b2d963920a5ca3ea"
+  },
+  "s05-critic": {
+   "file": "assets/voice/s05-critic.wav",
+   "samples": 478080,
+   "duration": 9.96,
+   "hash": "4d6ccb7c67610cd0"
+  },
+  "s06-plan": {
+   "file": "assets/voice/s06-plan.wav",
+   "samples": 634752,
+   "duration": 13.224,
+   "hash": "5f6e4199986ee7e7"
+  },
+  "s07-belt": {
+   "file": "assets/voice/s07-belt.wav",
+   "samples": 998784,
+   "duration": 20.808,
+   "hash": "a8ead1c071b6b254"
+  },
+  "s08-tests": {
+   "file": "assets/voice/s08-tests.wav",
+   "samples": 1062144,
+   "duration": 22.128,
+   "hash": "5cf304dc3e5e4538"
+  },
+  "s09-release": {
+   "file": "assets/voice/s09-release.wav",
+   "samples": 907776,
+   "duration": 18.912,
+   "hash": "b261a4e757a0de79"
+  },
+  "s10-memory": {
+   "file": "assets/voice/s10-memory.wav",
+   "samples": 849024,
+   "duration": 17.688,
+   "hash": "059d6b65b20777dd"
+  }
+ },
+ "measured": {
+  "before": {
+   "I": -20.79,
+   "TP": -3.37,
+   "LRA": 3.3
+  },
+  "after": {
+   "I": -16.19,
+   "TP": -1.7,
+   "LRA": 3.1
+  }
+ },
+ "totalVoice": 162.84
+}

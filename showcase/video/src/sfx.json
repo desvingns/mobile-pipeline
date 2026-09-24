@@ -1,0 +1,19 @@
+{
+  "note": "Sound effects on track 12 (group sfx). at = scene cue name (+offset s); the file's loudest 10 ms (assets/sfx/manifest.json peakAt) lands on that instant. A whoosh is added automatically at every scene cut (peak on the cut). Volumes sit under voice and bed (0.18-0.35).",
+  "whoosh": { "name": "whoosh", "volume": 0.2 },
+  "cues": [
+    { "scene": "s01-hook", "at": "q", "name": "pop", "volume": 0.25 },
+    { "scene": "s01-hook", "at": "bulb", "name": "sparkle", "volume": 0.3 },
+    { "scene": "s02-factory", "at": "you", "name": "ping", "volume": 0.22 },
+    { "scene": "s03-talk", "at": "ok", "name": "click", "volume": 0.32 },
+    { "scene": "s04-blueprint", "at": "advisors", "name": "pop", "volume": 0.22 },
+    { "scene": "s05-critic", "at": "gap+0.16", "name": "click-soft", "volume": 0.26 },
+    { "scene": "s05-critic", "at": "accept+0.6", "name": "click", "volume": 0.32 },
+    { "scene": "s06-plan", "at": "approve+0.2", "name": "click", "volume": 0.32 },
+    { "scene": "s07-belt", "at": "order", "name": "ping", "volume": 0.2 },
+    { "scene": "s08-tests", "at": "red", "name": "error", "volume": 0.28 },
+    { "scene": "s09-release", "at": "yes", "name": "chime", "volume": 0.3 },
+    { "scene": "s09-release", "at": "plant", "name": "notification", "volume": 0.28 },
+    { "scene": "s10-memory", "at": "brand", "name": "impact-bass-1", "volume": 0.35 }
+  ]
+}

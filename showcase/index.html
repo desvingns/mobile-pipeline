@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Фабрика приложений — Mobile Pipeline</title>
+  <meta name="description" content="Mobile Pipeline простыми словами: как команда ИИ-мастеров превращает одну фразу в приложение для телефона — и где последнее слово за вами.">
+  <meta name="theme-color" content="#16123A">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <script>
+    /* Runs before first paint: JS flag, calm preference and initial tab (no flash of the wrong tab). */
+    (function (d) {
+      var h = d.documentElement; h.classList.add('js');
+      try { if (localStorage.getItem('mp-calm') === '1') h.classList.add('is-calm'); } catch (e) {}
+      if (/^#skhema/.test(location.hash)) h.classList.add('boot-skhema');
+    })(document);
+  </script>
+  <link rel="stylesheet" href="assets/css/fonts.css">
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/shell.css">
+  <link rel="stylesheet" href="assets/css/prosto.css">
+  <link rel="stylesheet" href="assets/css/chars.css">
+  <link rel="stylesheet" href="assets/css/scenes-a.css">
+  <link rel="stylesheet" href="assets/css/scenes-b.css">
+  <link rel="stylesheet" href="assets/css/scenes-c.css">
+  <link rel="stylesheet" href="assets/css/scenes-d.css">
+</head>
+<body>
+<a class="skip-link" href="#main">К содержанию</a>
+
+<header class="site-header">
+  <a class="brand" href="#prosto" aria-label="Фабрика приложений — в начало">
+    <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+      <rect x="3" y="15" width="34" height="22" rx="4" fill="#5B34F5" stroke="#FFF6E6" stroke-width="2.5"/>
+      <path d="M3 21 12 15v6l9-6v6l9-6v6" fill="none" stroke="#FFF6E6" stroke-width="2.5" stroke-linejoin="round"/>
+      <rect x="27" y="4" width="7" height="12" rx="2" fill="#FF8A1F" stroke="#FFF6E6" stroke-width="2.5"/>
+      <rect x="9" y="26" width="7" height="6" rx="1.5" fill="#FFDA4F"/>
+      <rect x="22" y="26" width="7" height="6" rx="1.5" fill="#2BD99F"/>
+    </svg>
+    <span class="brand-text"><span class="brand-name">Фабрика приложений</span><span class="brand-sub">Mobile Pipeline</span></span>
+  </a>
+  <div class="tabs" role="tablist" aria-label="Как рассказать">
+    <button class="tab" role="tab" id="tab-prosto" aria-controls="panel-prosto" aria-selected="true">Просто</button>
+    <button class="tab" role="tab" id="tab-skhema" aria-controls="panel-skhema" aria-selected="false" tabindex="-1">Схема</button>
+  </div>
+  <button class="calm-toggle" id="calm-toggle" type="button" aria-pressed="false" aria-label="Без анимации">
+    <span class="knob" aria-hidden="true"></span><span class="label">Без анимации</span>
+  </button>
+  <div class="progress-belt" aria-hidden="true"><div class="fill"></div><div class="token"></div></div>
+</header>
+
+<main id="main" tabindex="-1">
+<!-- ============================ ПРОСТО ============================ -->
+<div class="panel prosto" id="panel-prosto" role="tabpanel" aria-labelledby="tab-prosto">
+
+  <!-- 1. start -->
+  <section id="start" class="scene scene--hero field-violet on-dark" data-scene="start" aria-labelledby="start-h">
+    <div class="wrap hero-grid">
+      <div class="copy">
+        <p class="kicker">Mobile Pipeline — фабрика приложений для телефона</p>
+        <h1 id="start-h" class="h1"><span class="w">Сказано —</span> <span class="w hl">сделано.</span></h1>
+        <p class="lead">Вы рассказываете идею приложения для телефона. Команда ИИ-мастеров чертит, собирает и проверяет его. А последнее слово — всегда за вами.</p>
+        <div class="ctas">
+          <a class="btn btn--you" href="#zapusk" data-jump="zapusk"><svg class="ico" aria-hidden="true"><use href="#i-play"/></svg>Запустить конвейер</a>
+          <a class="btn btn--ghost on-dark-btn" href="#film" data-jump="film"><svg class="ico" aria-hidden="true"><use href="#i-film"/></svg>Смотреть фильм</a>
+        </div>
+        <p class="scroll-cue"><svg class="ico" aria-hidden="true"><use href="#i-arrow-down"/></svg>Листайте — покажем по шагам</p>
+      </div>
+      <div class="stage stage--hero" data-stage aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <!-- 2. konveyer -->
+  <section id="konveyer" class="scene field-cream" data-scene="konveyer" aria-labelledby="konveyer-h">
+    <div class="wrap">
+      <header class="scene-head">
+        <h2 id="konveyer-h">Всё устроено как конвейер</h2>
+        <p class="lead">Английское слово pipeline значит «трубопровод». Так называют работу по цепочке: каждый мастер делает свою часть и передаёт дальше. Как лента на кассе в магазине.</p>
+      </header>
+      <div class="stage stage--wide" data-stage aria-hidden="true"></div>
+      <ol class="station-list">
+        <li>Придумать</li><li>Собрать</li><li>Проверить</li><li>Выдать</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 3. ideya -->
+  <section id="ideya" class="scene field-mint" data-scene="ideya" aria-labelledby="ideya-h">
+    <div class="wrap split">
+      <header class="scene-head">
+        <h2 id="ideya-h">Всё начинается с одной фразы</h2>
+        <p class="lead">Например: «Хочу приложение, которое напомнит полить цветы». Этого достаточно. Дальше смотрим, как фабрика превратит фразу в настоящее приложение «Полей меня».</p>
+      </header>
+      <div class="stage stage--square" data-stage aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <!-- 4. komanda -->
+  <section id="komanda" class="scene field-tangerine" data-scene="komanda" aria-labelledby="komanda-h">
+    <div class="wrap">
+      <header class="scene-head">
+        <h2 id="komanda-h">Знакомьтесь: команда фабрики</h2>
+        <p class="lead">Мастера — это искусственный интеллект: программы, которые понимают обычную речь. Автоматы работают строго по правилам. А решаете — вы.</p>
+      </header>
+      <div class="cast" data-cast>
+        <ul class="cast-list">
+          <li class="cast-card" data-char="brigadir" data-group="master"><div class="cast-art" aria-hidden="true"></div><h3 class="cast-name">Бригадир</h3><p class="cast-line">Ведёт работу: кого позвать, в каком порядке, когда остановиться и спросить вас.</p><p class="cast-meta"><span class="chip">Весь путь</span></p><a class="cast-link" href="#skhema/overview">Найти на схеме</a></li>
+          <li class="cast-card" data-char="razvedchik" data-group="master"><div class="cast-art" aria-hidden="true"></div><h3 class="cast-name">Разведчик</h3><p class="cast-line">Читает ваш готовый проект, чтобы новое легло на место. Бывает до трёх сразу.</p><p class="cast-meta"><span class="chip">Чертёжный цех</span><span class="chip chip--tier">быстрый ИИ</span></p><a class="cast-link" href="#skhema/spec/fn-scout">Найти на схеме</a></li>
+          <li class="cast-card" data-char="syshchik" data-group="master"><div class="cast-art" aria-hidden="true"></div><h3 class="cast-name">Сыщик</h3><p class="cast-line">Разглядывает снимки экрана и страницу приложения в Google Play: что где лежит и как выглядит.</p><p class="cast-meta"><span class="chip">Чертёжный цех</span><span class="chip chip--tier">самый сильный ИИ — для снимков</span></p><a class="cast-link" href="#skhema/spec/fn-biz">Найти на схеме</a></li>
+          <li class="cast-card" data-char="obkhodchik" data-group="master"><div class="cast-art" aria-hidden="true"></div><h3 class="cast-name">Робот-обходчик</h3><p class="cast-line">Сам нажимает кнопки на телефоне в приложении, которое мы хотим повторить.</p><p class="cast-meta"><span class="chip">Чертёжный цех</span><span class="chip chip--tier">самый сильный ИИ</span></p><a class="cast-link" href="#skhema/spec/cp-crawl">Найти на схеме</a></li>
+          <li class="cast-card" data-char="pisar" data-group="master"><div class="cast-art" aria-hidden="true"></div><h3 class="cast-name">Писарь</h3><p class="cast-line">Записывает, что умеет приложение, как им пользуются и как это проверить.</p><p class="cast-meta"><span class="chip">Чертёжный цех</span></p><a class="cast-link" href="#skhema/spec/fn-req">Найти на схеме</a></li>
+          <li class="cast-card" data-char="sovetnik" data-group="master"><div class="cast-art" aria-hidden="true"></div><h3 class="cast-name">Советники</h3><p class="cast-line">До пяти сразу: скорость, удобство и риски, а если нужно — защита данных и статистика.</p><p class="cast-meta"><span class="chip">Чертёжный цех</span></p><a class="cast-link" href="#skhema/spec/fn-nfr">Найти на схеме</a></li>
+          <li class="cast-card" data-char="pridira" data-group="master"><div class="cast-art" aria-hidden="true"></div><h3 class="cast-name">Придира</h3><p class="cast-line">Строгий критик: ищет дыры в чертеже и возвращает на доработку, не больше двух раз.</p><p class="cast-meta"><span class="chip">Чертёжный цех</span><span class="chip chip--tier">самый сильный ИИ</span></p><a class="cast-link" href="#skhema/spec/fn-eval">Найти на схеме</a></li>
+          <li class="cast-card" data-char="planirovshchik" data-group="master"><div class="cast-art" aria-hidden="true"></div><h3 class="cast-name">Планировщик</h3><p class="cast-line">Режет чертёж на карточки-задания и ставит их в очередь.</p><p class="cast-meta"><span class="chip">Чертёжный цех</span></p><a class="cast-link" href="#skhema/overview/fn-plan">Найти на схеме</a></li>
+          <li class="cast-card" data-char="khudozhnik" data-group="master"><div class="cast-art" aria-hidden="true"></div><h3 class="cast-name">Художник</h3><p class="cast-line">Подбирает цвета, шрифты и отступы, когда меняется экран.</p><p class="cast-meta"><span class="chip">Сборочный цех</span></p><a class="cast-link" href="#skhema/feature/fn-ui">Найти на схеме</a></li>
+          <li class="cast-card" data-char="master" data-group="master"><div class="cast-art" aria-hidden="true"></div><h3 class="cast-name">Мастер</h3><p class="cast-line">Пишет программу. Трудное — Главному мастеру, самому сильному ИИ. Простое — обычному, он дешевле.</p><p class="cast-meta"><span class="chip">Сборочный цех</span><span class="chip chip--tier">самый сильный ИИ — у Главного</span></p><a class="cast-link" href="#skhema/feature/fn-dev">Найти на схеме</a></li>
+          <li class="cast-card" data-char="revizor" data-group="master"><div class="cast-art" aria-hidden="true"></div><h3 class="cast-name">Ревизор</h3><p class="cast-line">Вчитывается в смысл рискованной работы и пишет замечания по номерам.</p><p class="cast-meta"><span class="chip">Отдел проверки</span></p><a class="cast-link" href="#skhema/feature/fn-sem">Найти на схеме</a></li>
+          <li class="cast-card" data-char="arkhitektor" data-group="master"><div class="cast-art" aria-hidden="true"></div><h3 class="cast-name">Архитектор</h3><p class="cast-line">Решает спор, если за два круга правок не договорились, и записывает решение.</p><p class="cast-meta"><span class="chip">Отдел проверки</span></p><a class="cast-link" href="#skhema/feature/fn-arch">Найти на схеме</a></li>
+          <li class="cast-card" data-char="ispytatel" data-group="master"><div class="cast-art" aria-hidden="true"></div><h3 class="cast-name">Испытатель</h3><p class="cast-line">Придумывает испытания. Сам их не запускает — это делает стенд.</p><p class="cast-meta"><span class="chip">Отдел проверки</span></p><a class="cast-link" href="#skhema/feature/fn-tester">Найти на схеме</a></li>
+          <li class="cast-card" data-char="priyomshchik" data-group="master"><div class="cast-art" aria-hidden="true"></div><h3 class="cast-name">Приёмщик</h3><p class="cast-line">Убеждается, что новинка подключена, и пишет вам памятку на 3–5 шагов.</p><p class="cast-meta"><span class="chip">Отдел проверки</span><span class="chip chip--tier">быстрый ИИ</span></p><a class="cast-link" href="#skhema/feature/fn-verify">Найти на схеме</a></li>
+          <li class="cast-card" data-char="letopisets" data-group="master"><div class="cast-art" aria-hidden="true"></div><h3 class="cast-name">Летописец</h3><p class="cast-line">Записывает в журнал проекта, что изменилось.</p><p class="cast-meta"><span class="chip">Архив и улучшения</span></p><a class="cast-link" href="#skhema/feature/fn-docs">Найти на схеме</a></li>
+          <li class="cast-card" data-char="bibliotekar" data-group="master"><div class="cast-art" aria-hidden="true"></div><h3 class="cast-name">Библиотекарь</h3><p class="cast-line">Решает, что запомнить: для этого проекта или для всей фабрики.</p><p class="cast-meta"><span class="chip">Архив и улучшения</span></p><a class="cast-link" href="#skhema/learn/fn-knowledge">Найти на схеме</a></li>
+          <li class="cast-card" data-char="ratsionalizator" data-group="master"><div class="cast-art" aria-hidden="true"></div><h3 class="cast-name">Рационализатор</h3><p class="cast-line">Замечает повторяющиеся уроки и предлагает улучшить саму фабрику.</p><p class="cast-meta"><span class="chip">Архив и улучшения</span></p><a class="cast-link" href="#skhema/learn/fn-reflect">Найти на схеме</a></li>
+          <li class="cast-card" data-char="vesy" data-group="automat"><div class="cast-art" aria-hidden="true"></div><h3 class="cast-name">Автомат «Весы»</h3><p class="cast-line">Взвешивает задачу: не слишком ли большая.</p><p class="cast-meta"><span class="chip">Сборочный цех</span></p><a class="cast-link" href="#skhema/feature/sc-size">Найти на схеме</a></li>
+          <li class="cast-card" data-char="strelochnik" data-group="automat"><div class="cast-art" aria-hidden="true"></div><h3 class="cast-name">Автомат «Стрелочник»</h3><p class="cast-line">Решает, какому мастеру отдать задачу и сколько нужно проверок.</p><p class="cast-meta"><span class="chip">Сборочный цех</span></p><a class="cast-link" href="#skhema/feature/sc-route">Найти на схеме</a></li>
+          <li class="cast-card" data-char="poryadok" data-group="automat"><div class="cast-art" aria-hidden="true"></div><h3 class="cast-name">Автомат «Порядок»</h3><p class="cast-line">Проверяет, что всё разложено по своим полочкам.</p><p class="cast-meta"><span class="chip">Отдел проверки</span></p><a class="cast-link" href="#skhema/feature/sc-review">Найти на схеме</a></li>
+          <li class="cast-card" data-char="stend" data-group="automat"><div class="cast-art" aria-hidden="true"></div><h3 class="cast-name">Автомат «Стенд»</h3><p class="cast-line">Прогоняет испытания: прошло или нет.</p><p class="cast-meta"><span class="chip">Отдел проверки</span></p><a class="cast-link" href="#skhema/feature/sc-run">Найти на схеме</a></li>
+          <li class="cast-card" data-char="pochtalon" data-group="automat"><div class="cast-art" aria-hidden="true"></div><h3 class="cast-name">Автомат «Почтальон»</h3><p class="cast-line">По желанию присылает готовое приложение вам в Telegram.</p><p class="cast-meta"><span class="chip">Архив и улучшения</span></p><a class="cast-link" href="#skhema/learn/sc-deliver">Найти на схеме</a></li>
+          <li class="cast-card" data-char="zhurnal" data-group="automat"><div class="cast-art" aria-hidden="true"></div><h3 class="cast-name">Автомат «Журнал смены»</h3><p class="cast-line">Записывает, как прошла каждая работа.</p><p class="cast-meta"><span class="chip">Архив и улучшения</span></p><a class="cast-link" href="#skhema/learn/sc-record">Найти на схеме</a></li>
+          <li class="cast-card cast-card--you" data-char="vy" data-group="you"><div class="cast-art" aria-hidden="true"></div><h3 class="cast-name">Вы — директор</h3><p class="cast-line">Говорите «да» четыре раза. Без вашей печати ничего не выходит в свет.</p><p class="cast-meta"><span class="chip">Весь путь</span></p><a class="cast-link" href="#skhema/feature/g-push">Найти на схеме</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. chertyozh -->
+  <section id="chertyozh" class="scene scene--steps field-cream" data-scene="chertyozh" aria-labelledby="chertyozh-h">
+    <div class="wrap">
+      <header class="scene-head">
+        <h2 id="chertyozh-h">Сначала — подробный чертёж</h2>
+        <p class="lead">Прежде чем строить, фабрика расспрашивает вас и записывает всё, что должно уметь приложение. Получается чертёж — а из него карточки-задания.</p>
+      </header>
+      <div class="steps-layout">
+        <div class="stage-sticky"><div class="stage stage--steps stage--blueprint" data-stage aria-hidden="true"></div></div>
+        <ol class="steps">
+          <li class="step" data-step="doors"><h3>Три входа</h3><p>Можно повторить похожее приложение по снимкам экрана, придумать новое в беседе или добавить что-то в готовое. Мы придумываем с нуля.</p></li>
+          <li class="step" data-step="questions"><h3>Вопросы</h3><p>Бригадир расспрашивает вас простыми словами: сначала о главном, потом ещё пять заходов. Вы подтверждаете список экранов — первое «да».</p></li>
+          <li class="step" data-step="scribes"><h3>Писари и советники</h3><p>Писари записывают, что умеет приложение и как это проверить. До пяти советников одновременно думают о скорости, удобстве и рисках.</p></li>
+          <li class="step" data-step="critic"><h3>Придира</h3><p>Строгий Придира перечитывает всё. Нашёл ошибку — возвращает автору на доработку. Не больше двух раз.</p></li>
+          <li class="step" data-step="yes"><h3>Ваше «да»</h3><p>Готово: около 18 листов. Вы говорите второе «да» — за весь чертёж.</p></li>
+          <li class="step" data-step="board"><h3>Доска заданий</h3><p>Планировщик режет чертёж на карточки: «Ждут», «В работе», «Готово». Вы одобряете план — это третье «да».</p></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. sborka -->
+  <section id="sborka" class="scene scene--steps field-sky" data-scene="sborka" aria-labelledby="sborka-h">
+    <div class="wrap">
+      <header class="scene-head">
+        <h2 id="sborka-h">Сборка: одна карточка за раз</h2>
+        <p class="lead">Фабрика берёт с доски следующую карточку. Мы следим за одной: «Напоминание о поливе». Она едет по ленте от мастера к мастеру — строго по очереди.</p>
+      </header>
+      <div class="steps-layout">
+        <div class="stage-sticky"><div class="stage stage--steps" data-stage aria-hidden="true"></div></div>
+        <ol class="steps">
+          <li class="step" data-step="scales"><h3>Весы</h3><p>Сначала Бригадир проверяет, не сделано ли это раньше. Потом автомат «Весы»: не великовата ли задача? Большую режут на части.</p></li>
+          <li class="step" data-step="switch"><h3>Стрелочник</h3><p>Автомат «Стрелочник» решает, кому поручить работу и сколько нужно проверок. Трудное — Главному мастеру, простое — обычному.</p></li>
+          <li class="step" data-step="artist"><h3>Художник</h3><p>Меняется экран? Сначала Художник подбирает цвета и шрифты, чтобы новое выглядело родным.</p></li>
+          <li class="step" data-step="master"><h3>Мастер</h3><p>Мастер пишет программу — подробную инструкцию для телефона: запомнить время полива и вовремя напомнить.</p></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. proverki -->
+  <section id="proverki" class="scene scene--steps field-cream" data-scene="proverki" aria-labelledby="proverki-h">
+    <div class="wrap">
+      <header class="scene-head">
+        <h2 id="proverki-h">Проверки: брак едет назад</h2>
+        <p class="lead">Работает — ещё не значит готово. Карточка проходит проверки одну за другой. Нашли ошибку — карточка едет к мастеру на доработку или фабрика останавливается и спрашивает вас.</p>
+      </header>
+      <div class="steps-layout">
+        <div class="stage-sticky"><div class="stage stage--steps" data-stage aria-hidden="true"></div></div>
+        <ol class="steps">
+          <li class="step" data-step="order"><h3>Порядок</h3><p>Автомат «Порядок» строго по правилам проверяет, всё ли разложено по своим полочкам. Нашёл беспорядок — стоп, решаете вы.</p></li>
+          <li class="step" data-step="auditor"><h3>Ревизор</h3><p>Если задача рискованная, Ревизор вчитывается в смысл и пишет замечания по номерам. Два круга правок. Не сошлись — решает Архитектор.</p></li>
+          <li class="step" data-step="tests"><h3>Испытания</h3><p>Испытатель придумывает испытания, стенд их прогоняет. Не прошло? У мастера одна попытка починить. Снова не прошло — фабрика зовёт вас.</p>
+            <button class="btn btn-sm" type="button" data-action="throw-defect"><svg class="ico" aria-hidden="true"><use href="#i-bolt"/></svg>Подбросить ошибку</button></li>
+          <li class="step" data-step="verifier"><h3>Приёмщик</h3><p>Приёмщик проверяет, что новинка правда подключена к приложению — шесть проверок — и пишет вам памятку. Не прошло — решаете вы.</p></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. glavnyi -->
+  <section id="glavnyi" class="scene field-violet on-dark" data-scene="glavnyi" aria-labelledby="glavnyi-h">
+    <div class="wrap">
+      <header class="scene-head">
+        <h2 id="glavnyi-h">Главный на фабрике — вы</h2>
+        <p class="lead">Фабрика сама останавливается и ждёт вашего «да» — четыре раза. Без вашей печати ничего не выходит в свет.</p>
+      </header>
+      <div class="boss-grid">
+        <ol class="stop-chips">
+          <li class="stop-chip">Список экранов</li>
+          <li class="stop-chip">Весь чертёж</li>
+          <li class="stop-chip">План заданий</li>
+          <li class="stop-chip">Выпуск</li>
+        </ol>
+        <div class="desk">
+          <div class="memo">
+            <p class="memo-title">Памятка от Приёмщика. Проверьте сами:</p>
+            <ol>
+              <li>Откройте «Полей меня».</li>
+              <li>Добавьте фиалку.</li>
+              <li>Поставьте полив на 9:00.</li>
+              <li>Дождитесь напоминания.</li>
+            </ol>
+          </div>
+          <button class="btn btn--you btn--stamp" type="button" data-action="stamp"><svg class="ico" aria-hidden="true"><use href="#i-stamp"/></svg>Поставить печать</button>
+          <div class="stage stage--release" data-stage aria-hidden="true"></div>
+          <div class="after-stamp" data-after-stamp>
+            <p>Летописец записал всё в журнал проекта.</p>
+            <p>Когда будет готова последняя карточка, приложение по желанию прилетит вам в Telegram.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9. pamyat -->
+  <section id="pamyat" class="scene field-cream" data-scene="pamyat" aria-labelledby="pamyat-h">
+    <div class="wrap">
+      <header class="scene-head">
+        <h2 id="pamyat-h">Фабрика запоминает и учится</h2>
+        <p class="lead">Вы ставите оценку от 5 до 1. Библиотекарь записывает уроки. Повторился урок в двух проектах — Рационализатор предлагает улучшить саму фабрику. Решаете вы.</p>
+      </header>
+      <div class="memory-grid">
+        <div class="rating" role="group" aria-labelledby="rating-q">
+          <p id="rating-q" class="rating-q">Попробуйте сами: как прошла работа?</p>
+          <div class="rating-buttons">
+            <button class="rate" type="button" data-score="5">5 — отлично</button>
+            <button class="rate" type="button" data-score="4">4 — хорошо</button>
+            <button class="rate" type="button" data-score="3">3 — так себе</button>
+            <button class="rate" type="button" data-score="2">2 — плохо</button>
+            <button class="rate" type="button" data-score="1">1 — совсем не то</button>
+          </div>
+          <p class="rating-out" role="status" aria-live="polite"></p>
+        </div>
+        <div class="stage stage--memory" data-stage aria-hidden="true"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10. cifry -->
+  <section id="cifry" class="scene field-sky" data-scene="cifry" aria-labelledby="cifry-h">
+    <div class="wrap">
+      <header class="scene-head">
+        <h2 id="cifry-h">Фабрика в цифрах</h2>
+        <p class="lead">Что внутри фабрики — в числах, без преувеличений.</p>
+      </header>
+      <ul class="tiles">
+        <li class="tile tile--violet"><span class="num" data-fact="agents">49</span><span class="tile-label">помощников в каталоге фабрики</span><span class="tile-sub">22 — для чертежа, 27 — для сборки, из них 5 — заготовки для iPhone</span><div class="tile-viz" aria-hidden="true"></div></li>
+        <li class="tile tile--cream"><span class="num" data-fact="scripts">22</span><span class="tile-label">автомата — работают строго по правилам, всегда одинаково</span><div class="tile-viz" aria-hidden="true"></div></li>
+        <li class="tile tile--mint"><span class="num" data-fact="specSheets">18</span><span class="tile-label">листов в чертеже — примерно столько</span><div class="tile-viz" aria-hidden="true"></div></li>
+        <li class="tile tile--lemon"><span class="num" data-fact="humanYes">4</span><span class="tile-label">раза фабрика ждёт вашего «да»</span><span class="tile-sub">2 — за чертёж, 1 — за план, 1 — за каждый выпуск</span><div class="tile-viz" aria-hidden="true"></div></li>
+        <li class="tile tile--raspberry"><span class="num" data-fact="autofix">1</span><span class="tile-label">раз фабрика сама чинит непройденные испытания — дальше решаете вы</span><div class="tile-viz" aria-hidden="true"></div></li>
+        <li class="tile tile--tangerine"><span class="num" data-fact="releases">25</span><span class="tile-label">обновлений фабрики с 18 мая 2026</span><div class="tile-viz" aria-hidden="true"></div></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 11. zapusk -->
+  <section id="zapusk" class="scene field-ink on-dark" data-scene="zapusk" aria-labelledby="zapusk-h">
+    <div class="wrap">
+      <header class="scene-head">
+        <h2 id="zapusk-h">Запустите конвейер сами</h2>
+        <p class="lead">Одна кнопка — и весь путь за 20 секунд: от фразы до приложения в телефоне. В жизни это дольше, но порядок тот же.</p>
+      </header>
+      <div class="sim">
+        <div class="stage stage--sim" data-stage aria-hidden="true"></div>
+        <div class="sim-controls">
+          <button class="btn btn--you" type="button" data-action="sim-play"><svg class="ico" aria-hidden="true"><use href="#i-play"/></svg><span>Запустить конвейер</span></button>
+          <button class="btn btn--dark" type="button" data-action="sim-reset"><svg class="ico" aria-hidden="true"><use href="#i-replay"/></svg>Сначала</button>
+          <button class="btn btn--you btn--stamp" type="button" data-action="sim-stamp" hidden><svg class="ico" aria-hidden="true"><use href="#i-stamp"/></svg>Поставить печать</button>
+          <p class="sim-status" role="status" aria-live="polite">Нажмите «Запустить конвейер».</p>
+        </div>
+        <ol class="sim-fallback">
+          <li>Идея попала на фабрику</li><li>Бригадир расспрашивает</li><li>Вы сказали «да» списку экранов</li><li>Писари пишут чертёж</li><li>Пять советников — одновременно</li>
+          <li>Придира вернул лист и принял исправление</li><li>Вы сказали «да» чертежу</li><li>Планировщик нарезал карточки</li><li>Вы одобрили план</li>
+          <li>Весы: размер в порядке</li><li>Стрелочник: к мастеру</li><li>Художник подобрал цвета</li><li>Мастер пишет программу</li>
+          <li>Автомат «Порядок»: всё по полочкам</li><li>Испытания: ошибка, одна починка, снова зелёный</li><li>Приёмщик: подключено, памятка готова</li>
+          <li>Ваша печать</li><li>Приложение в телефоне</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12. film + final -->
+  <section id="film" class="scene field-violet on-dark" data-scene="film" aria-labelledby="film-h">
+    <div class="wrap">
+      <header class="scene-head">
+        <h2 id="film-h">Посмотрите фильм</h2>
+        <p class="lead">Та же история с голосом за кадром. Удобно показать родным и друзьям.</p>
+      </header>
+      <figure class="film-frame">
+        <video id="film-video" controls playsinline preload="none" poster="media/poster.jpg" width="1920" height="1080" aria-label="Фильм «Фабрика приложений» с озвучкой и субтитрами">
+          <source src="media/mobile-pipeline.mp4" type="video/mp4">
+        </video>
+        <button class="film-play" type="button" data-action="film-play" aria-label="Смотреть фильм"><svg aria-hidden="true"><use href="#i-play"/></svg></button>
+        <p class="film-fallback" hidden>Фильм появится здесь совсем скоро.</p>
+      </figure>
+      <details class="film-text">
+        <summary>Текст фильма</summary>
+        <div id="film-transcript"></div>
+      </details>
+    </div>
+  </section>
+  <section id="final" class="scene field-lemon" data-scene="final" aria-labelledby="final-h">
+    <div class="wrap final-grid">
+      <div class="copy">
+        <h2 id="final-h">Сказано — сделано. Ваша очередь!</h2>
+        <p class="lead">Фабрика подключается к проекту в один шаг и работает с Claude Code и Codex. Сейчас она делает приложения для Android, для iPhone — позже.</p>
+        <div class="ctas">
+          <a class="btn btn--dark" href="#film" data-jump="film"><svg class="ico" aria-hidden="true"><use href="#i-film"/></svg>Показать фильм родным</a>
+          <a class="btn" href="#skhema"><svg class="ico" aria-hidden="true"><use href="#i-graph"/></svg>Схема для специалистов</a>
+          <a class="btn" href="#zapusk" data-jump="zapusk"><svg class="ico" aria-hidden="true"><use href="#i-replay"/></svg>Запустить ещё раз</a>
+        </div>
+        <p class="gh"><a href="https://github.com/desvingns/mobile-pipeline" rel="noopener">Исходники на GitHub</a></p>
+      </div>
+      <div class="stage stage--final" data-stage aria-hidden="true"></div>
+    </div>
+    <footer class="site-footer">Mobile Pipeline <span data-fact="version">1.17.2</span></footer>
+  </section>
+</div>
+
+<!-- ============================ СХЕМА ============================ -->
+<div class="panel skhema" id="panel-skhema" role="tabpanel" aria-labelledby="tab-skhema" hidden>
+  <div class="skhema-skeleton" data-skhema-skeleton>Схема загружается…</div>
+</div>
+</main>
+
+<div id="mp-live" class="sr-only" aria-live="polite"></div>
+
+<script defer src="assets/vendor/gsap/gsap.min.js"></script>
+<script defer src="assets/vendor/gsap/ScrollTrigger.min.js"></script>
+<script defer src="assets/vendor/gsap/ScrollToPlugin.min.js"></script>
+<script defer src="assets/vendor/gsap/DrawSVGPlugin.min.js"></script>
+<script defer src="assets/vendor/gsap/MotionPathPlugin.min.js"></script>
+<script defer src="assets/vendor/gsap/MorphSVGPlugin.min.js"></script>
+<script defer src="assets/vendor/gsap/SplitText.min.js"></script>
+<script defer src="assets/vendor/gsap/Flip.min.js"></script>
+<script defer src="assets/vendor/gsap/CustomEase.min.js"></script>
+<script defer src="assets/js/core.js"></script>
+<script defer src="assets/js/facts.js"></script>
+<script defer src="assets/js/sprite.js"></script>
+<script defer src="assets/js/chars.js"></script>
+<script defer src="assets/js/belt.js"></script>
+<script defer src="assets/js/confetti.js"></script>
+<script defer src="assets/js/scenes/start.js"></script>
+<script defer src="assets/js/scenes/konveyer.js"></script>
+<script defer src="assets/js/scenes/ideya.js"></script>
+<script defer src="assets/js/scenes/komanda.js"></script>
+<script defer src="assets/js/scenes/chertyozh.js"></script>
+<script defer src="assets/js/scenes/sborka.js"></script>
+<script defer src="assets/js/scenes/proverki.js"></script>
+<script defer src="assets/js/scenes/glavnyi.js"></script>
+<script defer src="assets/js/scenes/pamyat.js"></script>
+<script defer src="assets/js/scenes/cifry.js"></script>
+<script defer src="assets/js/scenes/zapusk.js"></script>
+<script defer src="assets/js/scenes/film.js"></script>
+<script defer src="media/chapters.js"></script>
+<script defer src="media/transcript.js"></script>
+<script defer src="assets/js/prosto.js"></script>
+<script defer src="assets/js/router.js"></script>
+</body>
+</html>

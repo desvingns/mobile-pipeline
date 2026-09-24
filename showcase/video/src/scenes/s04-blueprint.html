@@ -1,0 +1,241 @@
+<!doctype html>
+<!-- s04-blueprint «Чертёж» — scene pack V3. Contract: src/scenes/README.md.
+     Motion: grid-card-assemble (sheets self-assemble into a 6x3 wall, then the camera zoom-OUT modifier turns the
+     wall into a board inside a vaster frame) + counting-dynamic-scale («≈18»), spring-pop-entrance (up to 5 advisors
+     in one chord; 3 always run, the dashed 2 only if needed), stat-bars-and-fills (rings), ambient-glow-bloom, sine-wave-loop. -->
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>s04-blueprint</title>
+  </head>
+  <body>
+    <template id="s04-blueprint-template">
+      <style>
+        %%FONTS%%
+        %%KITCSS%%
+        #s04-blueprint { position: absolute; inset: 0; overflow: hidden; background: %%FIELD%%; color: %%INK%%; font-family: "Golos Text", sans-serif; }
+        #s04-blueprint .abs { position: absolute; }
+        #s04-blueprint .ghost { left: 120px; top: 250px; font-family: "Unbounded", sans-serif; font-weight: 900; font-size: 330px; line-height: 1; white-space: nowrap; opacity: 0.13; }
+        #s04-blueprint .deco { inset: 0; opacity: 0.3; }
+        #s04-blueprint .deco i { position: absolute; display: block; }
+        #s04-blueprint .dot { border-radius: 50%; background: #16123a; }
+        #s04-blueprint .plus::before, #s04-blueprint .plus::after { content: ""; position: absolute; background: #16123a; border-radius: 2px; }
+        #s04-blueprint .plus::before { left: 0; right: 0; top: 50%; height: 4px; margin-top: -2px; }
+        #s04-blueprint .plus::after { top: 0; bottom: 0; left: 50%; width: 4px; margin-left: -2px; }
+        #s04-blueprint .world { left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; }
+        #s04-blueprint .frame { left: 636px; top: 140px; width: 648px; height: 274px; border: 5px solid #16123a; border-radius: 26px; box-shadow: 8px 8px 0 #16123a; opacity: 0; }
+        #s04-blueprint .grid { left: 0; top: 0; }
+        #s04-blueprint .slot { width: 113px; height: 150px; border: 4px dashed rgba(22, 18, 58, 0.28); border-radius: 14px; }
+        #s04-blueprint .tile { width: 113px; height: 150px; }
+        #s04-blueprint .tile-in { position: absolute; inset: 0; background: #fff6e6; border: 4px solid #16123a; border-radius: 14px; box-shadow: 6px 6px 0 #16123a; overflow: hidden; }
+        #s04-blueprint .strip { position: absolute; left: 0; right: 0; top: 0; height: 24px; background: rgba(22, 18, 58, 0.14); border-bottom: 4px solid #16123a; }
+        #s04-blueprint .strip.lit { opacity: 0; }
+        #s04-blueprint .tile svg { position: absolute; left: 0; top: 24px; }
+        #s04-blueprint .chip { height: 66px; padding: 0 26px; display: flex; align-items: center; gap: 12px; border: 4px solid #16123a; border-radius: 999px; box-shadow: 6px 6px 0 #16123a; font-weight: 800; font-size: 31px; white-space: nowrap; }
+        #s04-blueprint .chip b { display: block; width: 20px; height: 20px; border-radius: 50%; border: 4px solid currentColor; }
+        #s04-blueprint .sheen-clip { left: 670px; top: 150px; width: 1090px; height: 580px; overflow: hidden; }
+        #s04-blueprint .sheen { left: -260px; top: -60px; width: 150px; height: 720px; background: #fff6e6; opacity: 0.4; border-radius: 40px; }
+        #s04-blueprint .plate0 { left: 268px; top: 748px; height: 46px; padding: 0 22px; display: flex; align-items: center; background: #fff6e6; border: 4px solid #16123a; border-radius: 999px; box-shadow: 5px 5px 0 #16123a; font-weight: 800; font-size: 28px; }
+        #s04-blueprint .bubble { padding: 14px 26px; background: #fff6e6; border: 4px solid #16123a; border-radius: 30px 30px 30px 8px; box-shadow: 6px 6px 0 #16123a; font-weight: 700; font-size: 32px; white-space: nowrap; }
+        #s04-blueprint .count { left: 192px; top: 128px; width: 470px; height: 270px; }
+        #s04-blueprint .count-grow { position: absolute; left: 0; top: 0; width: 470px; height: 270px; transform-origin: 0 100%; }
+        #s04-blueprint .approx { position: absolute; left: 0; top: 62px; }
+        #s04-blueprint .num { position: absolute; left: 132px; top: 0; font-family: "Unbounded", sans-serif; font-weight: 900; font-size: 200px; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+        #s04-blueprint .count-lbl { position: absolute; left: 140px; top: 206px; font-weight: 800; font-size: 50px; line-height: 1; }
+        #s04-blueprint .five { left: 240px; top: 150px; width: 380px; }
+        #s04-blueprint .five-n { display: block; font-family: "Unbounded", sans-serif; font-weight: 900; font-size: 180px; line-height: 1; }
+        #s04-blueprint .five-n i { font-style: normal; font-size: 72px; margin-right: 16px; }
+        #s04-blueprint .five-l { display: block; margin-top: 8px; font-weight: 800; font-size: 44px; line-height: 1; }
+        #s04-blueprint .ribbon { left: 280px; top: 440px; width: 760px; height: 62px; background: #16123a; border-radius: 999px; box-shadow: 6px 6px 0 rgba(22, 18, 58, 0.35); }
+        #s04-blueprint .ribbon-t { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff6e6; font-family: "Unbounded", sans-serif; font-weight: 900; font-size: 40px; letter-spacing: 0.01em; }
+        #s04-blueprint .adv { top: 512px; width: 260px; height: 282px; }
+        #s04-blueprint .ring { position: absolute; left: 10px; top: 0; }
+        #s04-blueprint .adv-bob { position: absolute; left: 45px; top: 16px; width: 170px; height: 198px; }
+        #s04-blueprint .adv-char { position: absolute; left: 0; top: 0; width: 170px; height: 198px; }
+        #s04-blueprint .plate { position: absolute; left: 0; right: 0; top: 232px; display: flex; justify-content: center; }
+        #s04-blueprint .plate span { display: block; padding: 4px 16px 5px; background: #fff6e6; border: 4px solid #16123a; border-radius: 999px; box-shadow: 4px 4px 0 #16123a; font-weight: 700; font-size: 26px; line-height: 1.1; white-space: nowrap; }
+        #s04-blueprint .adv.opt .plate span { border-style: dashed; box-shadow: none; }
+        #s04-blueprint .tag { left: 1140px; top: 446px; width: 540px; display: flex; justify-content: center; } #s04-blueprint .tag span { display: block; padding: 6px 26px 8px; border: 4px dashed #16123a; border-radius: 999px; font-weight: 700; font-size: 32px; line-height: 1.1; white-space: nowrap; }
+        #s04-blueprint .badge { position: absolute; left: 196px; top: 6px; width: 54px; height: 54px; }
+      </style>
+      <div id="s04-blueprint" data-composition-id="%%ID%%" data-width="1920" data-height="1080" data-duration="%%DUR%%">
+        <div class="abs ghost" id="s04-blueprint-ghost" data-layout-allow-overflow data-layout-ignore aria-hidden="true">ЧЕРТЁЖ</div>
+        <div class="abs deco" id="s04-blueprint-deco" data-layout-allow-overflow></div>
+        <!-- the world: Phase A at scale 1; the camera zooms it OUT into a framed board before C.advisors -->
+        <div class="abs world" id="s04-blueprint-world" data-layout-allow-overflow>
+          <svg class="abs grid" width="1920" height="1080" viewBox="0 0 1920 1080" aria-hidden="true"><path id="s04-blueprint-gmin" fill="none" stroke="#16123a" stroke-opacity="0.09" stroke-width="2" d="" /><path id="s04-blueprint-gmaj" fill="none" stroke="#16123a" stroke-opacity="0.16" stroke-width="3" d="" /></svg>
+          <div class="abs" id="s04-blueprint-wall" style="left: 0; top: 0; width: 1920px; height: 1080px"><div id="s04-blueprint-slots"></div><div id="s04-blueprint-tiles"></div></div>
+          <div class="abs chip" id="s04-blueprint-chip0" style="right: 986px; top: 214px; background: #ff8a1f"><b></b>Что умеет</div>
+          <div class="abs chip" id="s04-blueprint-chip1" style="right: 986px; top: 400px; background: #5b34f5; color: #fff6e6"><b></b>Как выглядит</div>
+          <div class="abs chip" id="s04-blueprint-chip2" style="right: 986px; top: 586px; background: #2bd99f"><b></b>Как проверить</div>
+          <div class="abs sheen-clip" data-layout-allow-overflow><div class="abs sheen" id="s04-blueprint-sheen"></div></div>
+          <div class="abs" id="s04-blueprint-buddy" data-layout-allow-orbit style="left: 186px; top: 546px; width: 166px; height: 194px"><div class="kit-rim">%%CHAR:pisar:166:focus#s04-blueprint-kit2%%</div></div>
+          <div class="abs" id="s04-blueprint-pisar" data-layout-allow-orbit style="left: 300px; top: 413px; width: 280px; height: 327px"><div class="kit-rim">%%CHAR:pisar:280#s04-blueprint-kit%%</div></div>
+          <div class="abs plate0" id="s04-blueprint-pl">Писари</div>
+          <div class="abs bubble" id="s04-blueprint-bub0" style="left: 250px; top: 300px">«Для себя»</div>
+          <div class="abs bubble" id="s04-blueprint-bub1" style="left: 360px; top: 400px">«Раз в&nbsp;три дня»</div>
+        </div>
+        <div class="abs frame" id="s04-blueprint-frame"></div>
+        <div class="abs count" id="s04-blueprint-count"><div class="count-grow" id="s04-blueprint-grow">
+          <svg class="approx" id="s04-blueprint-approx" width="112" height="84" viewBox="0 0 112 84" aria-hidden="true"><path d="M10 30 Q30 8 56 30 T102 30 M10 62 Q30 40 56 62 T102 62" fill="none" stroke="#16123a" stroke-width="15" stroke-linecap="round" /></svg>
+          <span class="num" id="s04-blueprint-num" data-layout-allow-overlap>18</span><span class="count-lbl" id="s04-blueprint-lbl" data-layout-allow-overlap>листов</span>
+        </div></div>
+        <div class="abs five" id="s04-blueprint-five"><span class="five-n"><i>до</i>5</span><span class="five-l">советников</span></div>
+        <div class="abs ribbon" id="s04-blueprint-ribbon"><div class="ribbon-t" id="s04-blueprint-ribbon-t">одновременно</div></div>
+        <div class="abs tag" id="s04-blueprint-tag"><span>если нужно</span></div>
+        <div class="abs adv" id="s04-blueprint-adv0" style="left: 230px"><div class="adv-bob"><div class="adv-char kit-rim">%%CHAR:sovetnik/speed:170#s04-blueprint-a0%%</div></div><div class="plate"><span>Скорость</span></div></div>
+        <div class="abs adv" id="s04-blueprint-adv1" style="left: 530px"><div class="adv-bob"><div class="adv-char kit-rim">%%CHAR:sovetnik/glasses:170#s04-blueprint-a1%%</div></div><div class="plate"><span>Удобство</span></div></div>
+        <div class="abs adv" id="s04-blueprint-adv2" style="left: 830px"><div class="adv-bob"><div class="adv-char kit-rim">%%CHAR:sovetnik/umbrella:170#s04-blueprint-a2%%</div></div><div class="plate"><span>Риски и&nbsp;сроки</span></div></div>
+        <div class="abs adv opt" id="s04-blueprint-adv3" style="left: 1130px"><div class="adv-bob"><div class="adv-char kit-rim">%%CHAR:sovetnik/lock:170#s04-blueprint-a3%%</div></div><div class="plate"><span>Защита данных</span></div></div>
+        <div class="abs adv opt" id="s04-blueprint-adv4" style="left: 1430px"><div class="adv-bob"><div class="adv-char kit-rim">%%CHAR:sovetnik/abacus:170#s04-blueprint-a4%%</div></div><div class="plate"><span>Статистика</span></div></div>
+      </div>
+      <script>
+        (function () {
+          %%HELPERS%%
+          var C = %%CUES%%;
+          var D = %%DUR%%, W = %%WORDS%%, H = window.MPV, P = H.C, OUT = C._out;
+          var tl = gsap.timeline({ paused: true }), NIR = { immediateRender: false }, ID = "#s04-blueprint", rnd = H.rng(404);
+          function el(id) { return document.getElementById("s04-blueprint-" + id); }
+          function all(s) { return document.querySelectorAll(ID + " " + s); }
+          function x(a, b) { var r = {}, k; for (k in a) r[k] = a[k]; for (k in b) r[k] = b[k]; return r; }
+          function odd(n) { return n % 2 ? n : n + 1; }
+          function at(stem, after, fb) { // first spoken word starting with `stem` at/after `after` (scene-local s)
+            for (var i = 0; i < W.length; i++) if (W[i].start >= after && W[i].text.toLowerCase().replace(/[^а-яёa-z0-9-]/g, "").indexOf(stem) === 0) return W[i].start;
+            return fb;
+          }
+          function hop(sel, t, h) {
+            tl.fromTo(sel, { y: 0 }, x(NIR, { y: -h, duration: 0.16, ease: "power2.out" }), t);
+            tl.fromTo(sel, { y: -h }, x(NIR, { y: 0, duration: 0.34, ease: "bounce.out" }), t + 0.16);
+          }
+          // ---- background layer (never frozen): seeded dots/pluses, ghost word, blueprint grid inside the world
+          var dh = "", gmin = "", gmaj = "", g, i;
+          for (i = 0; i < 24; i++) {
+            var sz = (i % 3 ? 20 : 10) + Math.round(rnd() * 16);
+            dh += '<i class="' + (i % 3 ? "plus" : "dot") + '" style="left:' + Math.round(rnd() * 1860) + "px;top:" + Math.round(90 + rnd() * 900) + "px;width:" + sz + "px;height:" + sz + 'px"></i>';
+          }
+          el("deco").innerHTML = dh;
+          for (g = 0; g <= 1920; g += 60) { if (g % 240) gmin += "M" + g + " 0V1080"; else gmaj += "M" + g + " 0V1080"; }
+          for (g = 0; g <= 1080; g += 60) { if (g % 240) gmin += "M0 " + g + "H1920"; else gmaj += "M0 " + g + "H1920"; }
+          el("gmin").setAttribute("d", gmin); el("gmaj").setAttribute("d", gmaj);
+          H.drift(tl, el("ghost"), 0, D, { x: -170 });
+          H.drift(tl, el("deco"), 0, D, { y: -60, x: 24 });
+          // ---- the 6x3 wall, built once (seeded): row 0 = what it does, 1 = how it looks, 2 = how to check
+          var ROWC = [P.tangerine, P.violet, P.mint], TX0 = 960, TY0 = 175, TW = 113, TH = 150, TIL = [], slots = "", tiles = "";
+          var INK = 'stroke="#16123a"', LINE = ' stroke="#16123a" stroke-width="5" stroke-linecap="round" stroke-opacity="0.7"/>';
+          function icon(row, k) {
+            var r2 = H.rng(900 + k), o = "", j, y;
+            if (row === 0) for (j = 0; j < 4; j++) {
+              y = 22 + j * 24;
+              o += '<circle cx="22" cy="' + y + '" r="6" fill="#16123a"/><circle class="acc" cx="22" cy="' + y + '" r="6" fill="' + P.tangerine + '" ' + INK + ' stroke-width="3" opacity="0"/><path d="M36 ' + y + "h" + (34 + Math.round(r2() * 32)) + '"' + LINE;
+            }
+            if (row === 1) o = '<rect x="30" y="10" width="53" height="96" rx="11" fill="#fff6e6" ' + INK + ' stroke-width="4"/><rect x="38" y="20" width="37" height="12" rx="4" fill="#16123a" fill-opacity="0.25"/>' +
+              '<rect class="acc" x="38" y="20" width="37" height="12" rx="4" fill="' + P.violet + '" opacity="0"/><rect x="38" y="' + (40 + Math.round(r2() * 6)) + '" width="37" height="22" rx="5" fill="#16123a" fill-opacity="0.14"/>' +
+              '<circle class="acc" cx="56.5" cy="88" r="7" fill="' + P.sky + '" opacity="0"/><circle cx="56.5" cy="88" r="7" fill="none" ' + INK + ' stroke-width="3"/>';
+            if (row === 2) for (j = 0; j < 3; j++) {
+              y = 18 + j * 32;
+              o += '<rect x="14" y="' + (y - 10) + '" width="22" height="22" rx="5" fill="#fff6e6" ' + INK + ' stroke-width="3.5"/><path d="M46 ' + (y + 1) + "h" + (26 + Math.round(r2() * 28)) + '"' + LINE +
+                '<path class="chk" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" d="M17 ' + (y + 1) + ' l6 6 l12 -15" fill="none" ' + INK + ' stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>';
+            }
+            return '<svg width="105" height="106" viewBox="0 0 113 114" aria-hidden="true">' + o + "</svg>";
+          }
+          for (i = 0; i < 18; i++) {
+            var r = Math.floor(i / 6), lx = TX0 + (i % 6) * (TW + 18), ly = TY0 + r * (TH + 36), pos = 'style="left:' + lx + "px;top:" + ly + 'px"';
+            slots += '<div class="abs slot" ' + pos + "></div>";
+            tiles += '<div class="abs tile" id="s04-blueprint-t' + i + '" ' + pos + '><div class="tile-in"><div class="strip"></div><div class="strip lit" style="background:' + ROWC[r] + '"></div>' + icon(r, i) + "</div></div>";
+            TIL.push({ x: lx, y: ly });
+          }
+          el("slots").innerHTML = slots; el("tiles").innerHTML = tiles;
+          // ---- Phase A: the scribes arrive; two of your answers from the talk fly into the scroll («из ваших ответов»)
+          H.arrive(tl, el("pisar"), 0.12, { from: 0.4, y: 60 });
+          H.arrive(tl, el("buddy"), 0.3, { from: 0.4, y: 50 });
+          H.slam(tl, el("pl"), C.scribes + 0.05);
+          H.bob(tl, el("pisar"), 0.8, OUT, { y: 7, period: 2.2 }); H.bob(tl, el("buddy"), 0.9, OUT, { y: 5, period: 1.9 });
+          H.blink(tl, "#s04-blueprint-kit .c-lid", 0.6, OUT, { seed: 41 }); H.blink(tl, "#s04-blueprint-kit2 .c-lid", 0.9, OUT, { seed: 42 });
+          [[-30, 330], [-170, 225]].forEach(function (d, b) {
+            tl.fromTo(el("bub" + b), { x: -520, y: 40, rotation: -8, opacity: 0, scale: 0.9 }, { x: 0, y: 0, rotation: b ? 3 : -3, opacity: 1, scale: 1, duration: 0.45, ease: "back.out(1.6)" }, 0.35 + b * 0.3);
+            tl.fromTo(el("bub" + b), { x: 0, y: 0, scale: 1, opacity: 1 }, x(NIR, { x: d[0], y: d[1], scale: 0.1, opacity: 0, duration: 0.42, ease: "power3.in" }), C.scribes - 0.4 + b * 0.12);
+          });
+          // scribes: both hop, then the quills write until the count lands
+          hop("#s04-blueprint-pisar > .kit-rim", C.scribes, 22); hop("#s04-blueprint-buddy > .kit-rim", C.scribes + 0.1, 16);
+          tl.fromTo("#s04-blueprint-kit .c-arm-r", { rotation: 0 }, x(NIR, { rotation: -24, duration: 0.18, ease: "sine.inOut", yoyo: true, repeat: odd(H.repeats(C.n18 + 0.5 - C.scribes, 0.18)) }), C.scribes);
+          tl.fromTo("#s04-blueprint-kit2 .c-arm-r", { rotation: 0 }, x(NIR, { rotation: -14, duration: 0.22, ease: "sine.inOut", yoyo: true, repeat: odd(H.repeats(C.n18 + 0.5 - C.scribes, 0.22)) }), C.scribes + 0.2);
+          // docs: 18 sheets fly from the quill tip into their slots (x and y on different eases = a curved flight)
+          var QX = 568, QY = 553, FLY = 0.62, GAP = 0.052;
+          TIL.forEach(function (t, n) {
+            var e = el("t" + n), t0 = C.docs + n * GAP;
+            tl.fromTo(e, { opacity: 0 }, { opacity: 1, duration: 0.01, immediateRender: true }, t0);
+            tl.fromTo(e, { x: QX - t.x - TW / 2 }, x(NIR, { x: 0, duration: FLY, ease: "power2.out" }), t0);
+            tl.fromTo(e, { y: QY - t.y - TH / 2 }, x(NIR, { y: 0, duration: FLY, ease: "back.out(1.3)" }), t0);
+            tl.fromTo(e, { rotation: -60 + rnd() * 30, scale: 0.18 }, x(NIR, { rotation: 0, scale: 1, duration: FLY, ease: "back.out(1.4)" }), t0);
+          });
+          // counting-dynamic-scale: the count tracks the landings, its scale grows with it, «≈» lands after the count
+          var CT0 = C.docs + FLY * 0.55, CTD = C.docs + 17 * GAP + FLY - CT0;
+          H.arrive(tl, el("count"), CT0 - 0.2, { from: 0.8, dur: 0.3 });
+          // property tween (not an onUpdate callback): the runtime seeks with suppressed events, so a count driven
+          // by a callback freezes on its last in-flight value after a jump; innerText+snap is rendered on any seek
+          tl.fromTo(el("num"), { innerText: 0 }, { innerText: 18, snap: { innerText: 1 }, duration: CTD, ease: "power2.out" }, CT0);
+          tl.fromTo(el("grow"), { scale: 0.5 }, x(NIR, { scale: 1, duration: CTD, ease: "power2.out" }), CT0);
+          tl.fromTo(el("lbl"), { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, CT0 + 0.35);
+          tl.fromTo(el("approx"), { opacity: 0, scale: 0.3, rotation: -20 }, { opacity: 1, scale: 1, rotation: 0, duration: 0.45, ease: "back.out(1.8)" }, CT0 + CTD);
+          // what / look / check: the row's chip slams, its tiles light up in a left-to-right wave
+          [C.what, C.look, C.check].forEach(function (tb, row) {
+            H.slam(tl, el("chip" + row), tb, { dur: 0.32 });
+            for (var c = 0; c < 6; c++) {
+              var tt = tb + 0.08 + c * 0.045, b = ID + "-t" + (row * 6 + c);
+              tl.fromTo(b + " .tile-in", { y: 0, scale: 1 }, x(NIR, { y: -16, scale: 1.06, duration: 0.14, ease: "power2.out" }), tt);
+              tl.fromTo(b + " .tile-in", { y: -16, scale: 1.06 }, x(NIR, { y: 0, scale: 1, duration: 0.42, ease: "back.out(2.2)" }), tt + 0.14);
+              tl.fromTo(b + " .lit", { opacity: 0 }, x(NIR, { opacity: 1, duration: 0.12, ease: "none" }), tt);
+              if (row < 2) tl.fromTo(b + " .acc", { opacity: 0 }, x(NIR, { opacity: 1, duration: 0.12 }), tt + 0.06);
+              else tl.fromTo(b + " .chk", { strokeDashoffset: 1 }, x(NIR, { strokeDashoffset: 0, duration: 0.16, ease: "power2.out", stagger: 0.07 }), tt + 0.1);
+            }
+          });
+          // the finished blueprint breathes (sine-wave-loop, tiny amplitude for 18 tiles) + one traveling sheen
+          tl.fromTo(el("wall"), { y: 0 }, x(NIR, { y: -5, duration: 1.1, ease: "sine.inOut", yoyo: true, repeat: H.repeats(OUT - C.check - 0.8, 1.1) }), C.check + 0.8);
+          tl.fromTo(el("sheen"), { x: 0, rotation: 14 }, x(NIR, { x: 1500, rotation: 14, duration: 1.0, ease: "power2.inOut" }), C.check + 0.95);
+          // ---- camera zoom-OUT: world crop (150,115)-(1770,800) lands on the board rect (636,140) 648x274 = scale 0.4
+          var A = C.advisors, ZD = 0.8, ZT = A - ZD - 0.06;
+          tl.fromTo(el("world"), { x: 0, y: 0, scale: 1, clipPath: "inset(0px 0px 0px 0px round 0px)" },
+            x(NIR, { x: 576, y: 94, scale: 0.4, clipPath: "inset(115px 150px 280px 150px round 64px)", duration: ZD, ease: "power2.inOut" }), ZT);
+          tl.fromTo(el("frame"), { opacity: 0, scale: 1.04 }, x(NIR, { opacity: 1, scale: 1, duration: 0.3, ease: "power2.out" }), ZT + ZD - 0.2);
+          // the «≈18» counter pops out before the pull-back and slams back into the right zone after it
+          tl.fromTo(el("count"), { x: 0, y: 0, scale: 1, opacity: 1 }, x(NIR, { x: 0, y: 0, scale: 0, opacity: 0, duration: 0.22, ease: "back.in(2)" }), ZT - 0.12);
+          tl.fromTo(el("count"), { x: 1094, y: 2, scale: 0.4, opacity: 0 }, x(NIR, { x: 1094, y: 2, scale: 0.78, opacity: 1, duration: 0.45, ease: "back.out(1.8)" }), A + 0.14);
+          // ---- Phase B: up to five advisors in ONE chord (spring-pop-entrance, no stagger). 0-2 (speed, usability, risks) always run:
+          // a ring that fills + check badge; 3-4 (data protection, statistics) only if needed: dashed empty ring + plate, «если нужно» tag.
+          var RC = [P.mint, P.violet, P.raspberry], DONE = A + 0.15 + 3.3, R100 = '<circle cx="120" cy="120" r="100" ', R112 = '<circle cx="120" cy="120" r="112" fill="none" ' + INK + ' stroke-width="3.5" ';
+          for (i = 0; i < 5; i++) { var opt = i >= 3;
+            el("adv" + i).insertAdjacentHTML("afterbegin", '<svg class="ring" width="240" height="240" viewBox="0 0 240 240" aria-hidden="true">' + (opt
+              ? R100 + 'fill="#16123a" fill-opacity="0.04" ' + INK + ' stroke-opacity="0.45" stroke-width="7" stroke-dasharray="16 13"/>' + R112 + 'stroke-opacity="0.35" stroke-dasharray="10 12"/>'
+              : R100 + 'fill="#16123a" fill-opacity="0.07" ' + INK + ' stroke-opacity="0.18" stroke-width="18"/>' + R100.replace("<circle ", '<circle class="prog" ') + 'fill="none" stroke="' + RC[i] +
+                '" stroke-width="18" stroke-linecap="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" transform="rotate(-90 120 120)"/>' + R112 + 'stroke-opacity="0.5"/>') + '</svg>');
+            if (!opt) el("adv" + i).insertAdjacentHTML("beforeend", '<svg class="badge" viewBox="0 0 50 50" aria-hidden="true"><circle cx="25" cy="25" r="21" fill="' + P.mint + '" ' + INK + ' stroke-width="4"/>' +
+              '<path d="M15 26 l7 7 l13 -16" fill="none" ' + INK + ' stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+            H.blink(tl, "#s04-blueprint-a" + i + " .c-lid", A + 0.3, OUT, { seed: 60 + i, min: 2.2, max: 3.8 });
+          }
+          H.slam(tl, el("five"), A + 0.06);
+          H.arrive(tl, all(".ring"), A, { from: 0.4, dur: 0.5 });
+          H.arrive(tl, all(".adv-char"), A, { from: 0.2, dur: 0.55 });
+          tl.fromTo(all(".plate span"), { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "back.out(1.8)" }, A + 0.08);
+          tl.fromTo(all(".prog"), { strokeDashoffset: 100 }, x(NIR, { strokeDashoffset: 0, duration: 3.3, ease: "power1.inOut" }), A + 0.15);
+          tl.fromTo(all(".adv-bob"), { y: 0 }, x(NIR, { y: -9, duration: 0.6, ease: "sine.inOut", yoyo: true, repeat: H.repeats(OUT - A - 0.7, 0.6) }), A + 0.7); // they think in sync
+          // «одновременно»: the ribbon unrolls from its centre, the word slams on the spoken beat
+          var SIM = at("одновремен", A, A + 0.6);
+          tl.fromTo(el("ribbon"), { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.32, ease: "expo.out" }, SIM - 0.16);
+          H.slam(tl, el("ribbon-t"), SIM, { dur: 0.3 });
+          H.arrive(tl, el("tag"), A + 0.45, { from: 0.5, dur: 0.45 });   // the two optional advisors get their «если нужно» tag
+          // spoken topics: that advisor hops and its plate pulses
+          [["скорост", 0], ["удобств", 1], ["риск", 2]].forEach(function (m) {
+            var tm = at(m[0], A, null), u = "#s04-blueprint-adv" + m[1];
+            if (tm == null) return;
+            hop(u + " .adv-char", tm, 30);
+            tl.fromTo(u + " .plate span", { scale: 1 }, x(NIR, { scale: 1.14, duration: 0.14, ease: "power2.out", yoyo: true, repeat: 1 }), tm);
+          });
+          // every always-on ring completes at once: a chord of check badges
+          tl.fromTo(all(".adv:not(.opt) .ring"), { scale: 1 }, x(NIR, { scale: 1.08, duration: 0.12, ease: "power2.out", yoyo: true, repeat: 1 }), DONE);
+          H.arrive(tl, all(".badge"), DONE, { from: 0, dur: 0.45, ease: "back.out(2.4)" });
+          window.__timelines["%%ID%%"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

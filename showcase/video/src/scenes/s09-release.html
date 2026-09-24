@@ -1,0 +1,204 @@
+<!doctype html>
+<!-- s09-release «Выпуск» — scene pack V4. Blueprint device-surface-showcase (static-tour: the phone is the held
+     hero while Приёмщик wires and checks it) + cta-morph-press (the striped stop sign condenses at the same
+     centre into the lemon «ДА», your stamp presses it: press-release-spring + ring + confetti). Then the phone goes
+     out into the world, Летописец logs it, and at 09:00 the фиалка gets its reminder and blooms. -->
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>s09-release</title>
+  </head>
+  <body>
+    <template id="s09-release-template">
+      <style>
+        %%FONTS%%
+        %%KITCSS%%
+        #s09-release { position: absolute; inset: 0; overflow: hidden; background: %%FIELD%%; color: %%INK%%; font-family: "Golos Text", sans-serif; }
+        #s09-release .ab { position: absolute; display: block; }
+        #s09-release .kit-phone { clip-path: inset(1.15% 2.14% round 17.9% / 9.6%); }
+        #s09-release .fill { position: absolute; inset: 0; }
+        #s09-release .dot { position: absolute; display: block; border-radius: 50%; background: #16123A; }
+        #s09-release .plus { position: absolute; display: block; background: linear-gradient(#16123A, #16123A) center / 100% 4px no-repeat, linear-gradient(#16123A, #16123A) center / 4px 100% no-repeat; }
+        #s09-release .word { left: 0; width: 1920px; text-align: center; font-family: "Unbounded", sans-serif; font-weight: 900; font-size: 190px; line-height: 1; white-space: nowrap; color: #16123A; }
+        #s09-release .floor { left: 0; right: 0; top: 745px; height: 335px; background: rgba(22, 18, 58, 0.1); border-top: 4px solid rgba(22, 18, 58, 0.25); }
+        #s09-release .rim { filter: drop-shadow(6px 0 0 #FFF6E6) drop-shadow(-6px 0 0 #FFF6E6) drop-shadow(0 6px 0 #FFF6E6) drop-shadow(0 -6px 0 #FFF6E6); }
+        #s09-release .card { background: #FFF6E6; color: #16123A; border: 4px solid #16123A; border-radius: 26px; box-shadow: 8px 8px 0 #16123A; box-sizing: border-box; }
+        #s09-release .lbl { font-weight: 800; font-size: 32px; line-height: 1; white-space: nowrap; }
+        #s09-release .box { position: absolute; top: 0; width: 44px; height: 44px; box-sizing: border-box; background: #FFF6E6; border: 4px solid #16123A; border-radius: 11px; }
+        #s09-release .box svg { position: absolute; left: -2px; top: -2px; }
+        #s09-release .badge { display: flex; align-items: center; gap: 12px; padding: 8px 24px 8px 10px; background: #FFF6E6; color: #16123A; border: 4px solid #16123A; border-radius: 999px; box-shadow: 6px 6px 0 #16123A; font-weight: 800; font-size: 32px; white-space: nowrap; transform-origin: 0% 50%; }
+        #s09-release .lead { height: 6px; border-radius: 3px; background: #16123A; transform-origin: 100% 50%; }
+        #s09-release .lead i { position: absolute; left: -9px; top: -6px; width: 18px; height: 18px; border-radius: 50%; background: #FFF6E6; border: 4px solid #16123A; box-sizing: border-box; }
+        #s09-release .memo { left: 1296px; top: 150px; width: 432px; padding: 24px 26px 18px; transform-origin: 50% 50%; }
+        #s09-release .memo-t { font-family: "Unbounded", sans-serif; font-weight: 800; font-size: 40px; line-height: 1; margin-bottom: 20px; }
+        #s09-release .step { display: flex; align-items: center; gap: 14px; height: 62px; font-weight: 700; font-size: 29px; white-space: nowrap; }
+        #s09-release .n { width: 46px; height: 46px; flex: none; border-radius: 12px; background: #FF8A1F; border: 4px solid #16123A; box-sizing: border-box; display: flex; align-items: center; justify-content: center; font-family: "Unbounded", sans-serif; font-weight: 900; font-size: 24px; }
+        #s09-release .post { left: 1160px; top: 440px; width: 40px; height: 306px; background: #C9D3E6; border: 4px solid #16123A; border-radius: 10px; box-sizing: border-box; }
+        #s09-release .boom { left: 1180px; top: 448px; width: 560px; height: 44px; transform-origin: 0px 22px; }
+        #s09-release .arm { position: absolute; left: 0; top: 0; width: 560px; height: 44px; box-sizing: border-box; border: 4px solid #16123A; border-radius: 22px; background: repeating-linear-gradient(-45deg, #FFDA4F 0 26px, #16123A 26px 52px); }
+        #s09-release .hinge { left: -26px; top: -4px; width: 52px; height: 52px; border-radius: 50%; background: #FF8A1F; border: 4px solid #16123A; box-sizing: border-box; }
+        #s09-release .sign { left: 70px; top: 40px; width: 300px; height: 150px; transform-origin: 50% 0%; }
+        #s09-release .chain { position: absolute; top: 0; width: 6px; height: 40px; background: #16123A; border-radius: 3px; }
+        #s09-release .plate { position: absolute; left: 0; top: 34px; width: 300px; height: 118px; box-sizing: border-box; background: #FFDA4F; border: 5px solid #16123A; border-radius: 22px; box-shadow: 8px 8px 0 #16123A; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #16123A; }
+        #s09-release .plate b { font-family: "Unbounded", sans-serif; font-weight: 900; font-size: 52px; line-height: 1; }
+        #s09-release .plate span { font-weight: 800; font-size: 30px; line-height: 1.2; }
+        #s09-release .yes { left: 1290px; top: 471px; width: 220px; height: 220px; box-sizing: border-box; border-radius: 50%; background: #FFDA4F; border: 6px solid #16123A; box-shadow: 10px 10px 0 #16123A; display: flex; align-items: center; justify-content: center; font-family: "Unbounded", sans-serif; font-weight: 900; font-size: 96px; color: #16123A; }
+        #s09-release .ring { left: 1290px; top: 471px; width: 220px; height: 220px; box-sizing: border-box; border-radius: 50%; border: 10px solid #FFF6E6; box-shadow: 0 0 0 4px #16123A, inset 0 0 0 4px #16123A; opacity: 0; }
+        #s09-release .conf { position: absolute; display: block; border: 3px solid #16123A; border-radius: 3px; opacity: 0; }
+        #s09-release .speed { width: 10px; border-radius: 5px; background: #16123A; transform-origin: 50% 0%; }
+        #s09-release .out { left: 620px; top: 124px; width: 820px; text-align: center; font-family: "Unbounded", sans-serif; font-weight: 900; font-size: 70px; line-height: 1.1; white-space: nowrap; color: #16123A; }
+        #s09-release .journal { left: 192px; top: 142px; width: 470px; padding: 22px 26px 24px; }
+        #s09-release .j-t { display: flex; align-items: center; gap: 14px; font-weight: 800; font-size: 36px; line-height: 1; margin-bottom: 20px; }
+        #s09-release .j-l { font-weight: 800; font-size: 34px; line-height: 1.25; white-space: nowrap; }
+        #s09-release .j-l.b { font-weight: 700; }
+        #s09-release .win { left: 700px; top: 268px; width: 560px; height: 420px; box-sizing: border-box; background: #3EC5FF; border: 14px solid #FFF6E6; outline: 4px solid #16123A; border-radius: 18px; overflow: hidden; }
+        #s09-release .bar-v { left: 252px; top: 0; width: 14px; height: 100%; background: #FFF6E6; }
+        #s09-release .bar-h { left: 0; top: 176px; width: 100%; height: 14px; background: #FFF6E6; }
+        #s09-release .cloud { height: 46px; border-radius: 23px; background: #FFF6E6; opacity: 0.85; }
+        #s09-release .sill { left: 650px; top: 686px; width: 660px; height: 42px; box-sizing: border-box; background: #FFF6E6; border: 4px solid #16123A; border-radius: 12px; box-shadow: 8px 8px 0 #16123A; }
+      </style>
+      <div id="s09-release" data-composition-id="%%ID%%" data-width="1920" data-height="1080" data-duration="%%DUR%%">
+        <div class="fill" id="s09-release-bg" data-layout-allow-overflow> <div class="ab word" id="s09-release-ghost" data-layout-ignore style="top:340px;opacity:0">ЗЕЛЁНЫЙ</div>
+          <svg class="ab" style="left:0;top:0" width="1920" height="1080" viewBox="0 0 1920 1080"><circle class="s09-release-shock" cx="960" cy="400" r="30" fill="none" stroke="#FFF6E6" stroke-width="12" opacity="0"/><circle class="s09-release-shock" cx="960" cy="400" r="30" fill="none" stroke="#16123A" stroke-width="8" opacity="0"/></svg> </div> <div class="ab floor"></div>
+        <!-- Set C (built under the floor, rises at «Летописец»): the window, the sill, the фиалка -->
+        <div class="ab" id="s09-release-home" style="left:0;top:0;width:1920px;height:1080px" data-layout-allow-overflow>
+          <div class="ab win"><span class="ab bar-v"></span><span class="ab bar-h"></span>
+            <span class="ab cloud" id="s09-release-cl1" style="left:40px;top:40px;width:130px"></span><span class="ab cloud" id="s09-release-cl2" style="left:320px;top:250px;width:160px"></span></div>
+          <div class="ab sill"></div> <div class="ab" id="s09-release-plantw" style="left:830px;top:340px;width:300px;height:350px">
+            <div class="ab" id="s09-release-sad" style="left:0;top:0">%%PLANT:sad:300#s09-release-psad%%</div>
+            <div class="ab" id="s09-release-bloomw" style="left:0;top:0;opacity:0">%%PLANT:bloom:300#s09-release-pbloom%%</div> </div> </div>
+        <!-- Set A/B: the belt, the phone under test, Приёмщик -->
+        <div class="ab" id="s09-release-factory" style="left:0;top:0;width:1920px;height:1080px" data-layout-allow-overflow>
+          <div class="ab" style="left:536px;top:741px">%%BELT:1240:44#s09-release-belt%%</div>
+          <svg class="ab" style="left:0;top:0" width="1920" height="1080" viewBox="0 0 1920 1080"><path id="s09-release-cable" d="M268 728C380 772 520 770 654 700" fill="none" stroke="#16123A" stroke-width="10" stroke-linecap="round"/></svg>
+          <div class="ab rim" id="s09-release-priw" style="left:200px;top:418px">%%CHAR:priyomshchik:280#s09-release-pri%%</div>
+          <div class="ab lbl" id="s09-release-six" style="left:200px;top:246px">6 проверок</div> <div class="ab" id="s09-release-boxes" style="left:200px;top:296px;width:314px;height:44px"></div>
+          <div class="ab post" id="s09-release-post"></div> <div class="ab boom" id="s09-release-boom" data-layout-allow-orbit><span class="arm"></span><span class="ab hinge"></span>
+            <div class="ab sign" id="s09-release-sign"><span class="chain" style="left:50px"></span><span class="chain" style="left:244px"></span>
+              <div class="plate" id="s09-release-plate" data-layout-allow-overlap><b>СТОП</b><span>решаете вы</span></div></div> </div> </div> <div class="ab" id="s09-release-speeds" style="left:0;top:0">
+          <span class="ab speed" style="left:1110px;top:470px;height:170px"></span><span class="ab speed" style="left:1170px;top:450px;height:250px"></span><span class="ab speed" style="left:1230px;top:480px;height:150px"></span>
+        </div> <div class="ab" id="s09-release-phw" data-layout-allow-overflow style="left:650px;top:151px">%%PHONE:list:320#s09-release-ph1%%</div>
+                <div class="ab lead" id="s09-release-l0" style="left:905px;top:240px;width:80px"><i></i></div>
+        <div class="ab lead" id="s09-release-l1" style="left:905px;top:454px;width:80px"><i></i></div> <div class="ab lead" id="s09-release-l2" style="left:905px;top:653px;width:80px"><i></i></div>
+        <div class="ab badge" id="s09-release-b0" style="left:984px;top:210px"></div> <div class="ab badge" id="s09-release-b1" style="left:984px;top:424px"></div>
+        <div class="ab badge" id="s09-release-b2" style="left:984px;top:623px"></div> <div class="ab card memo" id="s09-release-memo"><div class="memo-t">Памятка</div>
+          <div class="step"><span class="n">1</span>Откройте приложение</div> <div class="step"><span class="n">2</span>Добавьте фиалку</div>
+          <div class="step"><span class="n">3</span>Ждите 09:00</div> </div>
+        <!-- your decision: the lemon «ДА», your stamp, the ring + confetti -->
+        <div class="ab ring" id="s09-release-ring"></div> <div class="ab yes" id="s09-release-yes" data-layout-allow-overlap>ДА</div> <div class="ab" id="s09-release-conf" style="left:1400px;top:581px;width:0;height:0"></div>
+        <div class="ab" id="s09-release-stamp" data-layout-allow-overflow style="left:1280px;top:216px">%%STAMP:240#s09-release-st%%</div> <div class="ab word" id="s09-release-green" data-layout-allow-overflow style="top:360px">ЗЕЛЁНЫЙ!</div>
+        <!-- Set C: out into the world, the project journal, the 09:00 reminder -->
+        <div class="ab out" id="s09-release-out">Вышло в свет!</div> <div class="ab rim" id="s09-release-letw" style="left:300px;top:453px">%%CHAR:letopisets:250#s09-release-let%%</div>
+        <div class="ab card journal" id="s09-release-jr">
+          <div class="j-t"><svg width="40" height="40" viewBox="0 0 24 24"><rect x="4" y="3" width="15" height="18" rx="2.5" fill="#5B34F5" stroke="#16123A" stroke-width="2"/><path d="M8 8h7M8 12h7" stroke="#FFF6E6" stroke-width="2" stroke-linecap="round"/></svg>Журнал проекта</div>
+          <div class="j-l" id="s09-release-j1"></div> <div class="j-l b" id="s09-release-j2"></div> </div>
+        <div class="ab rim" id="s09-release-ph2w" data-layout-allow-overflow style="left:1398px;top:150px">%%PHONE:notify:330#s09-release-ph2%%</div> <div class="ab" id="s09-release-drops" style="left:0;top:0"></div> </div>
+      <script>
+        (function () {
+          %%HELPERS%%
+          var C = %%CUES%%; var D = %%DUR%%; var H = window.MPV; var tl = gsap.timeline({ paused: true }); var P = "#s09-release-"; var root = document.getElementById("s09-release");
+          var $ = function (s) { return root.querySelector(s); }; var $$ = function (s) { return root.querySelectorAll(s); };
+          function to(el, from, vars, t) { var v = {}, k; for (k in vars) v[k] = vars[k]; v.immediateRender = false; return tl.fromTo(el, from, v, t); } var i, k, r = H.rng(909);
+          var CHECK = '<svg width="44" height="44" viewBox="0 0 44 44"><path d="M11 23l8 8 15-17" fill="none" stroke="#16123A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+          // ---- background life: seeded dots/pluses drifting, ghost word, clouds in the window
+          var bg = $(P + "bg"), html = ""; for (i = 0; i < 44; i++) { var x = Math.round(r() * 1900), y = Math.round(110 + r() * 660), s = Math.round(10 + r() * 14);
+            html += i % 3 ? '<span class="dot" style="left:' + x + "px;top:" + y + "px;width:" + s + "px;height:" + s + 'px;opacity:.16"></span>'
+              : '<span class="plus" style="left:' + x + "px;top:" + y + "px;width:" + (s + 12) + "px;height:" + (s + 12) + 'px;opacity:.16"></span>'; } bg.insertAdjacentHTML("beforeend", html);
+          H.drift(tl, bg.querySelectorAll(".dot,.plus"), 0, D, { y: -60, x: 30 }); H.drift(tl, P + "cl1", 0, D, { x: 90 }); H.drift(tl, P + "cl2", 0, D, { x: -70 });
+          tl.fromTo($$(".belt-chev"), { x: 0 }, { x: 28, duration: 0.4, ease: "none", repeat: H.repeats(13.5, 0.4), immediateRender: false }, 0);
+          tl.fromTo($$(".belt-roller"), { rotation: 0 }, { rotation: 360, duration: 1.2, ease: "none", repeat: H.repeats(13.5, 1.2), immediateRender: false }, 0);
+          var drs = $$(".belt-drum"); for (i = 0; i < drs.length; i++) drs[i].setAttribute("data-layout-name", "s09-release-drum" + i);   /* unique names: the pivot audit groups by selector across the whole film */
+          // ---- opening: two shock rings leave the spot where the S08 mint lamp (and the T8 disc) was — the green light "hits"
+          var shk = $$(".s09-release-shock"); for (i = 0; i < shk.length; i++) {
+            tl.fromTo(shk[i], { attr: { r: 30 }, opacity: 0.9 }, { attr: { r: 1150 }, opacity: 0, duration: 0.95, ease: "power2.out", immediateRender: false }, 0.02 + i * 0.14);
+            tl.fromTo(shk[i], { strokeWidth: i ? 8 : 12 }, { strokeWidth: 2, duration: 0.95, ease: "power1.in", immediateRender: false }, 0.02 + i * 0.14); }
+          // ---- green: «ЗЕЛЁНЫЙ!» slams, then recedes into the background ghost
+          H.slam(tl, P + "green", C.green, { dur: 0.36 }); to(P + "green", { scale: 1, opacity: 1 }, { scale: 1.35, opacity: 0, duration: 0.3, ease: "power2.out" }, C.green + 0.85);
+          to(P + "ghost", { scale: 1.3, opacity: 0 }, { scale: 1.12, opacity: 0.1, duration: 0.6, ease: "power2.out" }, C.green + 1.45);
+          to(P + "ghost", { x: 0 }, { x: -120, duration: D - C.green - 1.45, ease: "none" }, C.green + 1.45);
+          tl.fromTo(P + "phw", { x: -1100 }, { x: 0, duration: 0.7, ease: "power3.out" }, C.green + 1.12); H.bob(tl, P + "phw", C.green + 1.9, 8.2, { y: 8, period: 2.4 });
+          // ---- verifier: Приёмщик plugs his cable in and ticks his 6 checks
+          H.arrive(tl, P + "priw", C.verifier - 0.1, { y: 60 }); H.bob(tl, P + "priw", C.verifier + 0.5, 13.5, { y: 6, period: 2.1 }); var cable = $(P + "cable");
+          gsap.set(cable, { strokeDasharray: 480, strokeDashoffset: 480 }); to(cable, { strokeDashoffset: 480 }, { strokeDashoffset: 0, duration: 0.6, ease: "power2.out" }, C.verifier + 0.35);
+          H.arrive(tl, P + "six", C.verifier + 0.2, { from: 0.7 }); var boxes = $(P + "boxes"), bh = "";
+          for (i = 0; i < 6; i++) bh += '<span class="box" style="left:' + i * 54 + 'px">' + CHECK + "</span>"; boxes.innerHTML = bh;
+          var bx = boxes.querySelectorAll(".box"), bxc = boxes.querySelectorAll(".box svg");
+          tl.fromTo(bx, { scale: 0 }, { scale: 1, duration: 0.3, ease: "back.out(2.5)", stagger: 0.05 }, C.verifier + 0.3);
+          tl.fromTo(bxc, { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.25, ease: "back.out(3)", stagger: 0.24 }, C.verifier + 0.75);
+          // ---- wired: three «подключено» badges pinned to the phone
+          var bd = ["b0", "b1", "b2"], ld = ["l0", "l1", "l2"]; for (i = 0; i < 3; i++) {
+            $(P + bd[i]).innerHTML = '<svg width="46" height="46" viewBox="0 0 46 46"><circle cx="23" cy="23" r="19" fill="#2BD99F" stroke="#16123A" stroke-width="4"/><path d="M14 23.5l6 6 12-12.5" fill="none" stroke="#16123A" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></svg>подключено';
+            tl.fromTo(P + ld[i], { scaleX: 0 }, { scaleX: 1, duration: 0.25, ease: "power2.out" }, C.wired + i * 0.22); H.arrive(tl, P + bd[i], C.wired + 0.1 + i * 0.22, { from: 0.3 }); }
+          // ---- memo: a 3-step memo flies from the clipboard; then it is handed to you (flies at the camera)
+          tl.fromTo(P + "memo", { x: -900, y: 420, scale: 0.15, rotation: -30, opacity: 0 }, { x: 0, y: 0, scale: 1, rotation: 3, opacity: 1, duration: 0.55, ease: "back.out(1.4)" }, C.memo);
+          tl.fromTo($$(P + "memo .n"), { scale: 0 }, { scale: 1, duration: 0.3, ease: "back.out(3)", stagger: 0.14 }, C.memo + 0.4);
+          to(P + "pri .c-arm-r", { rotation: 0 }, { rotation: -95, duration: 0.25, ease: "back.out(2)" }, C.memo - 0.1);
+          to(P + "pri .c-arm-r", { rotation: -95 }, { rotation: 0, duration: 0.35, ease: "power2.inOut" }, C.memo + 0.7);
+          to(P + "memo", { scale: 1, y: 0, opacity: 1 }, { scale: 1.45, y: 60, opacity: 0, duration: 0.32, ease: "power2.in" }, 7.55); for (i = 0; i < 3; i++) {
+            to(P + bd[i], { scale: 1, opacity: 1 }, { scale: 0, opacity: 0, duration: 0.2, ease: "back.in(2)" }, 7.45 + i * 0.05);
+            to(P + ld[i], { scaleX: 1 }, { scaleX: 0, duration: 0.2, ease: "power2.in" }, 7.6 + i * 0.05); }
+          // ---- decide: the striped barrier drops across the line — «СТОП · решаете вы»
+          tl.fromTo(P + "post", { y: 320, opacity: 0 }, { y: 0, opacity: 1, duration: 0.2, ease: "power4.out" }, C.decide - 0.35);
+          tl.fromTo(P + "boom", { rotation: -90, opacity: 0 }, { rotation: 0, opacity: 1, duration: 0.45, ease: "bounce.out" }, C.decide - 0.15);
+          to(P + "sign", { rotation: 22 }, { rotation: -12, duration: 0.35, ease: "sine.inOut" }, C.decide + 0.25);
+          to(P + "sign", { rotation: -12 }, { rotation: 6, duration: 0.35, ease: "sine.inOut" }, C.decide + 0.6);
+          to(P + "sign", { rotation: 6 }, { rotation: 0, duration: 0.45, ease: "sine.out" }, C.decide + 0.95); gsap.set(P + "sign", { rotation: 22 });
+          to(P + "phw", { x: 0 }, { x: 36, duration: 0.25, ease: "power2.out" }, C.decide + 0.1); to(P + "phw", { x: 36 }, { x: 22, duration: 0.3, ease: "back.out(3)" }, C.decide + 0.35);
+          // ---- yes: the sign condenses into the lemon «ДА» (same centre), your stamp presses it
+          var cy = C.yes; to(P + "plate", { scale: 1, opacity: 1 }, { scale: 0.3, opacity: 0, duration: 0.22, ease: "power2.in" }, cy - 0.4);
+          to(P + "sign .chain", { opacity: 1 }, { opacity: 0, duration: 0.1 }, cy - 0.3);
+          tl.fromTo(P + "yes", { scale: 0, rotation: -20 }, { scale: 1, rotation: 0, duration: 0.32, ease: "back.out(2.2)" }, cy - 0.34);
+          tl.fromTo(P + "stamp", { y: -560 }, { y: 0, duration: 0.3, ease: "power3.in" }, cy - 0.3); H.press(tl, P + "yes", cy);
+          to(P + "stamp", { y: 0 }, { y: 12, duration: 0.08, ease: "power2.in" }, cy); to(P + "stamp", { y: 12 }, { y: -600, duration: 0.4, ease: "power3.in" }, cy + 0.35);
+          to(P + "ring", { scale: 0.7, opacity: 1 }, { scale: 2.4, opacity: 0, duration: 0.6, ease: "power2.out" }, cy + 0.04);
+          var conf = $(P + "conf"), ch = "", cols = ["#FFDA4F", "#FFF6E6", "#FF4F8B", "#3EC5FF", "#5B34F5", "#FF8A1F"]; for (i = 0; i < 26; i++) { var w = 12 + Math.round(r() * 10);
+            ch += '<span class="conf" style="width:' + w + "px;height:" + Math.round(w * 0.6) + "px;background:" + cols[i % cols.length] + '"></span>'; } conf.innerHTML = ch;
+          var cps = conf.querySelectorAll(".conf"); for (i = 0; i < cps.length; i++) { /* particle-burst: seeded ballistic arc, x linear, y up then down */
+            var ang = -Math.PI / 2 + (r() * 2 - 1) * 1.15, sp = 420 + r() * 380, fl = 0.95;
+            var vx = Math.cos(ang) * sp, vy = Math.sin(ang) * sp, tp = Math.min(-vy / 1400, fl * 0.5), yp = vy * tp + 700 * tp * tp; var t0 = cy + 0.04;
+            tl.fromTo(cps[i], { x: 0, rotation: 0 }, { x: vx * fl, rotation: (r() * 2 - 1) * 540, duration: fl, ease: "none" }, t0);
+            tl.fromTo(cps[i], { y: 0 }, { y: yp, duration: tp, ease: "power2.out", immediateRender: false }, t0); to(cps[i], { y: yp }, { y: yp + 260, duration: fl - tp, ease: "power2.in" }, t0 + tp);
+            tl.fromTo(cps[i], { opacity: 0 }, { opacity: 1, duration: 0.01, immediateRender: false }, t0); to(cps[i], { opacity: 1 }, { opacity: 0, duration: 0.2 }, t0 + fl - 0.2); }
+          // the used «ДА» flies up to the top-right (where the film keeps your «да» dots); the barrier lifts
+          to(P + "yes", { x: 0, y: 0, scale: 1, opacity: 1 }, { x: 290, y: -520, scale: 0.12, opacity: 0, duration: 0.45, ease: "power2.in" }, cy + 0.55);
+          to(P + "boom", { rotation: 0 }, { rotation: -35, duration: 0.45, ease: "power3.out" }, cy + 0.6);   // tip stays below the HUD rail to(P + "sign", { opacity: 1 }, { opacity: 0, duration: 0.15 }, cy + 0.6);
+          // ---- ship: the phone rides out and launches up — «Вышло в свет!»
+          to(P + "phw", { x: 22 }, { x: 360, duration: 0.8, ease: "power2.inOut" }, C.ship - 1.1);
+          to(P + "phw", { y: 0, rotation: 0 }, { y: -1200, rotation: -8, duration: 0.38, ease: "power3.in" }, C.ship); var spd = $$(P + "speeds .speed"); for (i = 0; i < 3; i++) {
+            tl.fromTo(spd[i], { scaleY: 0, opacity: 1 }, { scaleY: 1, opacity: 1, duration: 0.2, ease: "power2.out" }, C.ship + 0.12 + i * 0.04);
+            to(spd[i], { opacity: 1, y: 0 }, { opacity: 0, y: -160, duration: 0.3, ease: "power2.in" }, C.ship + 0.36 + i * 0.04); } H.slam(tl, P + "out", C.ship + 0.34);
+          to(P + "factory", { y: 0 }, { y: 520, duration: 0.42, ease: "power3.in" }, C.ship + 0.15);
+          to(P + "factory", { opacity: 1 }, { opacity: 0, duration: 0.22, ease: "power1.in" }, C.ship + 0.15);
+          // ---- chron: Летописец writes the entry
+          H.arrive(tl, P + "letw", C.chron + 0.05, { y: 60 }); H.bob(tl, P + "letw", C.chron + 0.7, C._out, { y: 6, period: 2.2 }); H.arrive(tl, P + "jr", C.chron + 0.2, { from: 0.5 });
+          var j1 = "Запись № 12:", j2 = "напоминание о поливе", sp1 = [], sp2 = []; [[j1, "j1", sp1], [j2, "j2", sp2]].forEach(function (a) { var el = $(P + a[1]);
+            for (var q = 0; q < a[0].length; q++) { var s1 = document.createElement("span"); s1.textContent = a[0].charAt(q); s1.style.whiteSpace = "pre"; el.appendChild(s1); a[2].push(s1); } });
+          H.type(tl, sp1, C.chron + 0.55, { cps: 24 }); H.type(tl, sp2, C.chron + 1.15, { cps: 26 });
+          to(P + "let .c-arm-l", { rotation: 0 }, { rotation: 60, duration: 0.3, ease: "back.out(2)" }, C.chron + 0.3);
+          // ---- the home window rises; the sad фиалка waits
+          tl.fromTo(P + "home", { y: 900 }, { y: 0, duration: 0.55, ease: "back.out(1.3)" }, C.chron + 0.45); H.sway(tl, P + "sad", C.chron + 1, C.plant, { deg: 2, period: 2.6 });
+          gsap.set([P + "sad", P + "bloomw", P + "plantw"], { transformOrigin: "50% 100%" });
+          // ---- plant: 09:00 — the reminder arrives, the фиалка is watered, perks up and blooms
+          tl.fromTo(P + "ph2w", { y: -900 }, { y: 0, duration: 0.34, ease: "power3.in" }, C.plant - 0.1);
+          to(P + "ph2w", { scaleY: 0.9, scaleX: 1.05 }, { scaleY: 1, scaleX: 1, duration: 0.4, ease: "back.out(3)" }, C.plant + 0.24); gsap.set(P + "ph2w", { transformOrigin: "50% 100%" });
+          for (i = 0; i < 8; i++) tl.set(P + "ph2w", { x: i % 2 ? -7 : 7 }, C.plant + 0.5 + i * 0.05); tl.set(P + "ph2w", { x: 0 }, C.plant + 0.9); var drops = $(P + "drops"), dh = "";
+          for (i = 0; i < 3; i++) dh += '<svg class="ab" style="left:' + (905 + i * 70) + 'px;top:300px" width="36" height="48" viewBox="0 0 24 32"><path d="M12 2C12 2 3 14 3 20a9 9 0 0 0 18 0C21 14 12 2 12 2Z" fill="#3EC5FF" stroke="#16123A" stroke-width="2.6"/></svg>';
+          drops.innerHTML = dh; var dr = drops.querySelectorAll("svg"); for (i = 0; i < 3; i++) {
+            tl.fromTo(dr[i], { y: -60, opacity: 0 }, { y: 150, opacity: 1, duration: 0.32, ease: "power2.in" }, C.plant + 0.4 + i * 0.1);
+            to(dr[i], { opacity: 1, scale: 1 }, { opacity: 0, scale: 0.4, duration: 0.12 }, C.plant + 0.72 + i * 0.1); } var tb = C.plant + 0.8;
+          to(P + "plantw", { scaleY: 1, scaleX: 1 }, { scaleY: 0.88, scaleX: 1.06, duration: 0.14, ease: "power2.in" }, tb);
+          to(P + "plantw", { scaleY: 0.88, scaleX: 1.06 }, { scaleY: 1, scaleX: 1, duration: 0.55, ease: "elastic.out(1, 0.4)" }, tb + 0.14);
+          to(P + "sad", { opacity: 1 }, { opacity: 0, duration: 0.08 }, tb + 0.12); to(P + "bloomw", { opacity: 0 }, { opacity: 1, duration: 0.08 }, tb + 0.12);
+          var fl2 = $$(P + "pbloom .c-flower"), sparks = $$(P + "pbloom .c-sparkle"), leaves = $$(P + "pbloom .c-leaf");
+          tl.fromTo(leaves, { rotation: 18 }, { rotation: 0, duration: 0.5, ease: "back.out(2.5)", stagger: 0.03 }, tb + 0.12);
+          tl.fromTo(fl2, { scale: 0 }, { scale: 1, duration: 0.45, ease: "back.out(2.6)", stagger: 0.12 }, tb + 0.22);
+          tl.fromTo(sparks, { scale: 0, rotation: -90 }, { scale: 1, rotation: 0, duration: 0.4, ease: "back.out(3)", stagger: 0.1 }, tb + 0.5);
+          to(sparks, { scale: 1 }, { scale: 0.6, duration: 0.5, ease: "sine.inOut", yoyo: true, repeat: 1 }, tb + 1.0); H.sway(tl, P + "bloomw", tb + 1.0, C._out, { deg: 1.5, period: 2.2 });
+          H.blink(tl, P + "psad .c-lid", C.chron + 1, tb, { seed: 91 }); H.blink(tl, P + "pbloom .c-lid", tb + 0.4, C._out, { seed: 92 });
+          H.blink(tl, P + "pri .c-lid", C.verifier + 0.5, 13.4, { seed: 93 }); H.blink(tl, P + "let .c-lid", C.chron + 0.6, C._out, { seed: 94 });
+          window.__timelines["%%ID%%"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

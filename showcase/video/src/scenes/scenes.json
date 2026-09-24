@@ -1,0 +1,76 @@
+{
+  "note": "Visual metadata per scene, read by scripts/build-video.cjs. field/ink = scene background / text colour (design-video.md §1). out = the transition INTO the next scene (§4; blocks: lead colour + next field, dir +1 = left->right). station = HUD rail station while this scene plays; yes = cue of the human «да» (lemon dot on the rail). snap = extra snapshot beats for --print-snapshots (cue[+/-offset], or _end-0.5). blueprint/rules = motion citations from hyperframes-animation indexes.",
+  "palette": {
+    "ink": "#16123A", "cream": "#FFF6E6", "violet": "#5B34F5", "lemon": "#FFDA4F",
+    "mint": "#2BD99F", "raspberry": "#FF4F8B", "sky": "#3EC5FF", "tangerine": "#FF8A1F"
+  },
+  "stations": [
+    { "id": "idea", "label": "Идея" },
+    { "id": "blueprint", "label": "Чертёж" },
+    { "id": "plan", "label": "План" },
+    { "id": "build", "label": "Сборка" },
+    { "id": "release", "label": "Выпуск" }
+  ],
+  "scenes": {
+    "s01-hook": {
+      "field": "cream", "ink": "ink", "station": null,
+      "blueprint": "kinetic-type-beats", "rules": ["discrete-text-sequence", "spring-pop-entrance", "svg-path-draw", "particle-burst"],
+      "snap": ["wilt", "bulb"],
+      "out": { "type": "morph", "color": "violet", "origin": [1500, 360] }
+    },
+    "s02-factory": {
+      "field": "violet", "ink": "cream", "station": null,
+      "blueprint": "grid-card-assemble", "rules": ["constellation-hub", "counting-dynamic-scale"],
+      "snap": ["team", "you"],
+      "out": { "type": "blocks", "lead": "cream", "dir": 1 }
+    },
+    "s03-talk": {
+      "field": "tangerine", "ink": "ink", "station": "idea", "yes": "ok",
+      "blueprint": "agent-progress-theater", "rules": ["ai-tracking-box", "press-release-spring"],
+      "snap": ["analysts+1", "ok"],
+      "out": { "type": "blocks", "lead": "ink", "dir": -1 }
+    },
+    "s04-blueprint": {
+      "field": "sky", "ink": "ink", "station": "blueprint",
+      "blueprint": "grid-card-assemble", "rules": ["counting-dynamic-scale"],
+      "snap": ["check"],
+      "out": { "type": "blocks", "lead": "cream", "dir": 1 }
+    },
+    "s05-critic": {
+      "field": "raspberry", "ink": "ink", "station": "blueprint", "yes": "accept+0.6",
+      "blueprint": null, "rules": ["css-marker-patterns", "kinetic-beat-slam", "vertical-spring-ticker"],
+      "snap": ["gap", "accept"],
+      "out": { "type": "blocks", "lead": "ink", "dir": -1 }
+    },
+    "s06-plan": {
+      "field": "cream", "ink": "ink", "station": "plan", "yes": "approve+0.2",
+      "blueprint": "grid-card-assemble", "rules": ["waterfall-entry"],
+      "snap": ["board+1"],
+      "out": { "type": "blocks", "lead": "ink", "dir": 1 }
+    },
+    "s07-belt": {
+      "field": "violet", "ink": "cream", "station": "build",
+      "blueprint": "spatial-pan-stations", "rules": ["viewport-change", "multi-phase-camera", "stat-bars-and-fills"],
+      "snap": ["switch", "order"],
+      "out": { "type": "blocks5", "colors": ["cream", "tangerine", "raspberry", "sky", "ink"], "dir": -1 }
+    },
+    "s08-tests": {
+      "field": "ink", "ink": "cream", "station": "build",
+      "blueprint": "agent-progress-theater", "rules": ["vertical-spring-ticker", "chromatic-glitch", "ambient-glow-bloom"],
+      "snap": ["night", "_end-0.5"],
+      "out": { "type": "morph", "color": "mint", "origin": [960, 400] }
+    },
+    "s09-release": {
+      "field": "mint", "ink": "ink", "station": "release", "yes": "yes",
+      "blueprint": "device-surface-showcase", "rules": ["cta-morph-press"],
+      "snap": ["yes", "plant"],
+      "out": { "type": "blocks", "lead": "cream", "dir": 1 }
+    },
+    "s10-memory": {
+      "field": "sky", "ink": "ink", "station": "done",
+      "blueprint": "constellation-hub", "rules": ["logo-assemble-lockup", "dataviz-countup"],
+      "snap": ["stars", "brand+1.5"],
+      "endcard": { "cue": "brand", "field": "ink" }
+    }
+  }
+}

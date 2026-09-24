@@ -1,0 +1,138 @@
+/* scenes-d.css — package D: #zapusk (simulation), #film, #final. See docs/design-prosto.md §2 (11–12).
+ * Everything is scoped by section id; kit parts (.c-*) keep their transform boxes from chars.css. */
+
+/* ============================== zapusk ============================== */
+/* the stage + controls fit one screen: width is capped by the viewport height */
+#zapusk .sim { --zp-ar: 16 / 9; --zp-w: min(100%, calc((100svh - var(--header-h) - 150px) * 16 / 9)); }
+#zapusk .stage--sim, #zapusk .sim-controls { width: var(--zp-w); justify-self: center; }
+#zapusk .stage--sim { aspect-ratio: var(--zp-ar); isolation: isolate; box-shadow: 10px 10px 0 rgba(0, 0, 0, .35); }
+@media (min-width: 760px) and (max-width: 1023px) {
+  #zapusk .sim { --zp-ar: 4 / 3; --zp-w: min(100%, calc((100svh - var(--header-h) - 150px) * 4 / 3)); }
+}
+@media (max-width: 759px) {
+  #zapusk .sim { --zp-ar: 9 / 16; --zp-w: min(100%, max(300px, calc((100svh - var(--header-h) - 150px) * 9 / 16))); gap: 16px; }
+  #zapusk .stage--sim { border-radius: 22px; box-shadow: 6px 6px 0 rgba(0, 0, 0, .35); }
+}
+#zapusk .stage--sim > svg { display: block; }
+
+/* speech bubbles: HTML so they never render below 16px; positioned in % of the viewBox by zapusk.js */
+#zapusk .zp-hud { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+/* --dx / --tail are set by fitBubbles() in zapusk.js: slide a bubble inside the stage, keep its tail on the speaker */
+#zapusk .zp-say { position: absolute; width: max-content; max-width: min(17em, 46%); transform: translate(calc(-50% + var(--dx, 0px)), -100%); }
+#zapusk .stage--sim[data-mode="tall"] .zp-say { max-width: 74%; }   /* one line on phones: shorter bubbles fit under the stage top */
+#zapusk .zp-say.is-l { transform: translate(calc(-22px + var(--dx, 0px)), -100%); }
+#zapusk .zp-say.is-r { transform: translate(calc(-100% + 22px + var(--dx, 0px)), -100%); }
+#zapusk .zp-say-in {
+  position: relative; display: block; padding: .38em .8em .42em;
+  font-family: var(--font-text); font-weight: 700; font-size: clamp(16px, 1.32vw, 20px); line-height: 1.2;
+  color: var(--ink); background: var(--cream); border: 3px solid var(--ink); border-radius: 16px;
+  box-shadow: 4px 4px 0 var(--ink); text-align: center; margin-bottom: 14px; will-change: transform;
+}
+#zapusk .zp-say-in::after {
+  content: ""; position: absolute; left: 50%; bottom: -12px; width: 18px; height: 18px; margin-left: -9px;
+  background: inherit; border: 3px solid var(--ink); border-top: 0; border-left: 0; transform: rotate(45deg) skew(8deg, 8deg);
+  border-radius: 0 0 5px 0;
+}
+#zapusk .zp-say.is-l .zp-say-in::after { left: 22px; }
+#zapusk .zp-say.is-r .zp-say-in::after { left: auto; right: 13px; }
+#zapusk .zp-say[style*="--tail"] .zp-say-in::after { left: var(--tail); right: auto; }
+#zapusk .zp-tone-lemon { background: var(--lemon); }
+#zapusk .zp-tone-rasp { background: var(--raspberry); }
+#zapusk .zp-tone-mint { background: var(--mint); }
+
+/* in-stage start button (pointer convenience; the real control is the button under the stage) */
+#zapusk .zp-go { position: absolute; inset: 0; z-index: 3; display: grid; place-items: center; cursor: pointer; }
+#zapusk .zp-go-in { display: grid; justify-items: center; gap: 12px; }
+#zapusk .zp-go-disc {
+  display: grid; place-items: center; width: clamp(76px, 8vw, 118px); aspect-ratio: 1; border-radius: 50%;
+  background: var(--lemon); color: var(--ink); border: 4px solid var(--ink); box-shadow: 6px 6px 0 var(--ink);
+  transition: transform .15s ease-out;
+}
+#zapusk .zp-go-disc .ico { width: 44%; height: 44%; margin-left: 8%; }
+#zapusk .zp-go-label {
+  font-family: var(--font-display); font-weight: 800; font-size: clamp(16px, 1.4vw, 20px); color: var(--ink);
+  background: var(--lemon); border: 3px solid var(--ink); border-radius: 999px; padding: 4px 16px; box-shadow: 4px 4px 0 var(--ink);
+}
+#zapusk .zp-go:hover .zp-go-disc { transform: scale(1.06); }
+#zapusk .zp-hot { position: absolute; z-index: 3; cursor: pointer; border-radius: 18px; }
+
+/* controls */
+#zapusk .sim-controls { gap: 12px 14px; }
+#zapusk .sim-status { flex: 1 1 16em; position: relative; padding-bottom: 14px; line-height: 1.25; }
+/* progress of the order along the belt: a mint bar that fills (scaleX only) and holds while the factory waits for you */
+#zapusk .sim-status::before, #zapusk .sim-status::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 6px; border-radius: 3px;
+}
+#zapusk .sim-status::before { background: rgba(255, 246, 230, .16); }
+#zapusk .sim-status::after { background: var(--mint); transform-origin: 0 50%; transform: scaleX(var(--zp-p, 0)); }
+html:not(.js) #zapusk .sim-status::before, html:not(.js) #zapusk .sim-status::after { display: none; }
+#zapusk [data-action="sim-play"] { min-width: 17.5em; }
+#zapusk .btn--stamp { order: -1; }
+#zapusk .btn--stamp:not([hidden]) { box-shadow: 0 0 0 6px rgba(255, 218, 79, .35), 6px 6px 0 rgba(0, 0, 0, .45); }
+@media (max-width: 759px) {
+  #zapusk .sim-controls { gap: 10px; }
+  #zapusk .sim-controls .btn { width: auto; flex: 1 1 auto; min-width: 0; padding: 10px 16px; }
+  #zapusk [data-action="sim-play"] { flex: 1 1 auto; }
+  #zapusk [data-action="sim-reset"] { flex: 0 0 auto; }
+  #zapusk .btn--stamp { flex-basis: 100%; }
+  /* phones: the caption sits right under the stage, so stage + caption + the main button fit one screen. It always
+   * keeps room for two lines (+ the 14px progress bar), so the buttons do not hop while the captions change */
+  #zapusk .sim-status { flex-basis: 100%; font-size: 18px; order: -2; min-height: calc(2.5em + 14px); }
+}
+/* the kit's stamp says «ОДОБРЕНО» at 11px — unreadable at station size; the big seal says it legibly */
+#zapusk .zp-hand .c-stamp text { visibility: hidden; }
+
+/* ============================== film ============================== */
+#film .film-frame { isolation: isolate; }
+#film .fm-poster { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; display: block; }
+#film .film-frame.is-started .fm-poster { display: none; }
+#film .film-play { z-index: 2; transition: transform .15s ease-out; }
+#film .film-play:hover { transform: scale(1.06) rotate(-4deg); }
+#film .film-fallback {
+  z-index: 3; inset: 49% auto auto 50%; transform: translate(-50%, -50%); width: max-content; max-width: 88%;
+  padding: .5em 1.3em; border: 3px solid var(--ink); border-radius: 999px; background: var(--cream); color: var(--ink);
+  font-family: var(--font-display); font-weight: 700; font-size: clamp(16px, 1.6vw, 22px); line-height: 1.25; text-align: center;
+  box-shadow: 5px 5px 0 var(--ink);
+}
+#film .film-frame.is-offline video { visibility: hidden; }
+#film .film-text summary { font-size: clamp(18px, 1.6vw, 22px); padding: 4px 0; }
+/* focus inside the cream transcript box: the section's cream outline (field-violet) would vanish on cream, and the
+ * time buttons' own hard shadow would replace the lemon ring — use the light-field ring (ink outline + lemon) */
+#film .film-text :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; box-shadow: 0 0 0 7px var(--lemon); }
+#film .film-text summary:focus-visible { border-radius: 8px; }
+#film .film-text .tr-time:focus-visible { box-shadow: 0 0 0 7px var(--lemon), 3px 3px 0 var(--ink); }
+/* the frame clips everything outside it (overflow: hidden): draw the video's and the play button's rings inside */
+#film .film-frame video:focus-visible { outline: 4px solid var(--lemon); outline-offset: -10px; box-shadow: none; }
+#film .film-play:focus-visible { outline: 3px solid var(--cream); outline-offset: 4px; box-shadow: 0 0 0 4px var(--ink), var(--shadow-hard); }
+#film #film-transcript { gap: 4px; padding-right: 6px; }
+#film .tr-chap { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: start; padding: 12px 10px 12px 12px;
+  border-radius: 14px; border-left: 5px solid transparent; }
+#film .tr-chap.is-now { border-left-color: var(--violet); background: rgba(91, 52, 245, .08); }
+#film .tr-time {
+  min-width: 4.2em; min-height: 40px; padding: 6px 12px; border: 3px solid var(--ink); border-radius: 999px;
+  background: var(--violet); color: var(--cream); font-family: var(--font-display); font-weight: 700; font-size: 16px;
+  font-variant-numeric: tabular-nums; box-shadow: 3px 3px 0 var(--ink); cursor: pointer;
+}
+#film .tr-time:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+#film .tr-time[disabled] { background: var(--cream); color: var(--ink); box-shadow: none; cursor: default; transform: none; opacity: .8; }
+#film .tr-chap.is-now .tr-time { background: var(--mint); color: var(--ink); }
+#film .tr-title { font-family: var(--font-display); font-weight: 700; font-size: clamp(18px, 1.5vw, 21px); line-height: 1.2; margin: 6px 0 4px; }
+#film .tr-body p { font-size: 18px; line-height: 1.5; }
+@media (max-width: 560px) {
+  #film .tr-chap { grid-template-columns: 1fr; gap: 6px; padding: 10px 6px 10px 10px; }
+  #film .tr-time { justify-self: start; }
+}
+
+/* ============================== final ============================== */
+#final .stage--final { max-width: 900px; justify-self: center; }
+#final .fn-svg { transform: rotate(-1.6deg); }
+/* the class photo is the finale's hero: give it the wider column on desktop */
+@media (min-width: 1024px) { #final .final-grid { grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr); } }
+/* small laptops: the three buttons need ~440px to keep one line each, so the copy gets an even half there */
+@media (min-width: 1024px) and (max-width: 1279px) { #final .final-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+@media (max-width: 1023px) { #final .stage--final { margin-top: 12px; } #final .fn-svg { transform: rotate(-1deg); } }
+@media (max-width: 759px) { #final .stage--final { aspect-ratio: 4 / 5; max-width: 520px; } }
+@media (max-width: 560px) {
+  #film .film-fallback { top: 54%; font-family: var(--font-text); font-weight: 700; font-size: 16px; padding: .35em 1em; max-width: calc(100% - 28px);
+    width: max-content; border-radius: 18px; box-shadow: 3px 3px 0 var(--ink); }
+}

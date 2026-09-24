@@ -1,0 +1,179 @@
+/* prosto.css — shared layout for the «Просто» tab: fields, section scaffolding, type, sticky steps,
+ * base styles for cast / tiles / sim / film / final. Scene-specific styling lives in scenes-*.css. */
+
+/* ---------- fields (one solid colour per section) ---------- */
+.field-violet { background: var(--violet); color: var(--cream); }
+.field-ink { background: var(--ink); color: var(--cream); }
+.field-cream { background: var(--cream); color: var(--ink);
+  background-image: radial-gradient(rgba(22, 18, 58, .07) 1.4px, transparent 1.6px); background-size: 22px 22px; }
+.field-mint { background: var(--mint); color: var(--ink); }
+.field-sky { background: var(--sky); color: var(--ink); }
+.field-tangerine { background: var(--tangerine); color: var(--ink); }
+.field-raspberry { background: var(--raspberry); color: var(--ink); }
+.field-lemon { background: var(--lemon); color: var(--ink); }
+
+/* ---------- section scaffolding ---------- */
+.scene { position: relative; padding: clamp(72px, 11vw, 150px) 0; overflow: clip; }
+.scene + .scene { border-top: var(--outline) solid var(--ink); }
+.wrap { position: relative; z-index: 1; width: min(100% - 2 * var(--gutter), var(--maxw)); margin: 0 auto; }
+.scene-head { max-width: 62rem; margin-bottom: clamp(32px, 5vw, 64px); }
+.scene-head h2 { font-size: var(--fs-h2); font-weight: 800; line-height: 1.02; letter-spacing: -.02em; }
+.lead { font-size: var(--fs-lead); font-weight: 500; line-height: 1.35; max-width: 34ch; margin-top: .6em; }
+.scene-head .lead { max-width: 40ch; }
+.kicker { font-size: 20px; font-weight: 600; margin-bottom: 18px; opacity: .92; }
+.h1 { font-size: var(--fs-h1); font-weight: 900; line-height: .92; letter-spacing: -.03em; }
+.h1 .w { display: inline-block; }
+.h1 .hl { color: var(--lemon); }
+.ctas { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 36px; }
+.on-dark .btn--ghost { color: var(--cream); border-color: var(--cream); }
+.scroll-cue { display: flex; align-items: center; gap: 10px; margin-top: 40px; font-size: 18px; opacity: .9; }
+
+/* stages: fixed aspect ratios so lazily injected SVG never shifts layout */
+.stage { position: relative; width: 100%; }
+.stage > svg { width: 100%; height: 100%; overflow: visible; }
+.stage--hero { aspect-ratio: 1 / 1; max-width: 640px; justify-self: center; }
+.stage--wide { aspect-ratio: 16 / 7; }
+.stage--square { aspect-ratio: 1 / 1; max-width: 560px; justify-self: center; }
+.stage--steps { aspect-ratio: 4 / 3; }
+.stage--release { aspect-ratio: 16 / 10; }
+.stage--memory { aspect-ratio: 4 / 3; }
+.stage--sim { aspect-ratio: 16 / 9; }
+.stage--final { aspect-ratio: 16 / 10; }
+
+.hero-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: clamp(24px, 4vw, 64px); align-items: center; }
+.scene--hero { padding-top: clamp(40px, 7vw, 96px); min-height: calc(100svh - var(--header-h)); display: flex; align-items: center; }
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px, 4vw, 64px); align-items: center; }
+
+/* ---------- station list (konveyer fallback + a11y text) ---------- */
+.station-list { list-style: none; padding: 0; margin: 28px 0 0; display: flex; flex-wrap: wrap; gap: 12px; }
+.station-list li { font-family: var(--font-display); font-weight: 700; font-size: 20px; padding: 8px 18px;
+  border: var(--outline-thin) solid var(--ink); border-radius: 999px; background: var(--cream); }
+/* once the illustrated belt is built its signs carry the station names: keep the list for screen readers only */
+#konveyer.is-built .station-list { position: absolute; width: 1px; height: 1px; margin: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- sticky steps ---------- */
+.steps-layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: clamp(24px, 4vw, 64px); }
+.stage-sticky { position: sticky; top: calc(var(--header-h) + 5vh); align-self: start; }
+.steps { list-style: none; margin: 0; padding: 0 0 20vh; }
+/* Inactive steps are dimmed with colour, not opacity, so their text still passes WCAG 1.4.3 (≈4.6:1);
+ * controls inside steps are never dimmed. */
+.step { min-height: 60vh; display: flex; flex-direction: column; justify-content: center; gap: 14px;
+  color: color-mix(in srgb, currentColor 72%, transparent); transition: color .3s ease-out; }
+.field-cream .step { color: color-mix(in srgb, var(--ink) 70%, var(--cream)); }
+.field-sky .step { color: color-mix(in srgb, var(--ink) 78%, var(--sky)); }
+.step.is-active, .field-cream .step.is-active, .field-sky .step.is-active { color: var(--ink); }
+.step h3 { font-size: var(--fs-h3); font-weight: 700; line-height: 1.1; }
+.step p { font-size: var(--fs-body); max-width: 30ch; }
+.btn-sm { min-height: 48px; padding: 8px 18px; font-size: 17px; align-self: flex-start; }
+html:not(.js) .step, .is-calm .step { color: var(--ink); }
+
+/* ---------- cast (base; the spotlight upgrade is styled in scenes-a.css) ---------- */
+.cast-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 18px; }
+.cast-card { position: relative; background: var(--cream); color: var(--ink); border: var(--outline-thin) solid var(--ink);
+  border-radius: 22px; padding: 16px; box-shadow: var(--shadow-hard); display: flex; flex-direction: column; gap: 8px; }
+.cast-art { aspect-ratio: 120 / 140; width: 96px; }
+.cast-name { font-size: 22px; font-weight: 700; line-height: 1.1; }
+.cast-line { font-size: 17px; line-height: 1.4; }
+.cast-meta { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip--tier { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+.cast-link { font-weight: 700; font-size: 16px; margin-top: auto; }
+.cast-card--you { background: var(--lemon); }
+
+/* ---------- glavnyi ---------- */
+.boss-grid { display: grid; grid-template-columns: .8fr 1.2fr; gap: clamp(24px, 4vw, 56px); align-items: start; }
+.stop-chips { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; counter-reset: stop; }
+.stop-chip { counter-increment: stop; display: flex; align-items: center; gap: 14px; background: var(--lemon); color: var(--ink);
+  border: var(--outline-thin) solid var(--ink); border-radius: 18px; padding: 14px 20px; font-family: var(--font-display);
+  font-weight: 700; font-size: clamp(18px, 1.8vw, 24px); box-shadow: 6px 6px 0 rgba(0,0,0,.35); }
+.stop-chip::before { content: counter(stop); display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%;
+  background: var(--ink); color: var(--lemon); font-size: 18px; flex: none; }
+.desk { display: grid; gap: 22px; }
+.memo { background: var(--cream); color: var(--ink); border: var(--outline-thin) solid var(--ink); border-radius: 18px;
+  padding: 20px 24px; box-shadow: var(--shadow-hard); transform: rotate(-1.2deg); }
+.memo-title { font-weight: 800; margin-bottom: 8px; }
+.memo ol { margin: 0; padding-left: 1.4em; }
+.btn--stamp { justify-self: start; font-size: clamp(20px, 2vw, 26px); min-height: 68px; padding: 14px 32px; }
+.after-stamp { display: grid; gap: 6px; font-size: 18px; }
+
+/* ---------- pamyat ---------- */
+.memory-grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: clamp(24px, 4vw, 56px); align-items: center; }
+.rating-q { font-family: var(--font-display); font-weight: 700; font-size: clamp(20px, 2vw, 26px); margin-bottom: 16px; }
+.rating-buttons { display: flex; flex-wrap: wrap; gap: 10px; }
+.rate { min-height: 52px; padding: 8px 16px; border: var(--outline-thin) solid var(--ink); border-radius: 14px;
+  background: var(--cream); font-weight: 700; font-size: 17px; box-shadow: 4px 4px 0 var(--ink); }
+.rate[aria-pressed="true"] { background: var(--lemon); }
+.rating-out { margin-top: 16px; min-height: 3em; font-size: 19px; font-weight: 600; }
+
+/* ---------- cifry ---------- */
+.tiles { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.tile { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 22px 24px 20px; border: var(--outline) solid var(--ink);
+  border-radius: var(--radius-card); box-shadow: var(--shadow-hard); overflow: hidden; min-height: 260px; }
+.tile .num { font-family: var(--font-display); font-weight: 900; font-size: clamp(72px, 9vw, 150px); line-height: .9;
+  font-variant-numeric: tabular-nums; }
+.tile-label { font-weight: 700; font-size: 19px; line-height: 1.3; max-width: 22ch; }
+.tile-sub { font-size: 16px; font-weight: 500; }
+.tile-viz { position: absolute; right: 14px; top: 14px; width: 42%; aspect-ratio: 1; pointer-events: none; }
+.tile--violet { background: var(--violet); color: var(--cream); }
+.tile--cream { background: var(--cream); }
+.tile--mint { background: var(--mint); }
+.tile--lemon { background: var(--lemon); }
+.tile--raspberry { background: var(--raspberry); }
+.tile--tangerine { background: var(--tangerine); }
+
+/* ---------- zapusk ---------- */
+.sim { display: grid; gap: 22px; }
+.stage--sim { border: var(--outline) solid var(--cream); border-radius: var(--radius-card); background: #1f1a4e; overflow: hidden; }
+.sim-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.sim-status { font-family: var(--font-display); font-weight: 700; font-size: clamp(18px, 1.8vw, 24px); color: var(--lemon); min-height: 1.4em; }
+.sim-fallback { display: none; columns: 2; font-size: 18px; }
+html:not(.js) .sim-fallback { display: block; }
+html:not(.js) .stage--sim, html:not(.js) .sim-controls { display: none; }
+
+/* ---------- film ---------- */
+.film-frame { position: relative; margin: 0; border: var(--outline) solid var(--ink); border-radius: var(--radius-card);
+  overflow: hidden; box-shadow: var(--shadow-hard-lg); background: var(--ink); aspect-ratio: 16 / 9; }
+.film-frame video { width: 100%; height: 100%; object-fit: contain; background: var(--ink); }
+.film-play { position: absolute; left: 50%; top: 50%; width: clamp(88px, 11vw, 140px); height: clamp(88px, 11vw, 140px);
+  margin: calc(clamp(88px, 11vw, 140px) / -2) 0 0 calc(clamp(88px, 11vw, 140px) / -2);
+  border-radius: 50%; border: var(--outline) solid var(--ink); background: var(--lemon); color: var(--ink);
+  display: grid; place-items: center; box-shadow: var(--shadow-hard); }
+.film-play svg { width: 44%; height: 44%; fill: currentColor; margin-left: 8%; }
+.film-frame.is-playing .film-play { display: none; }
+.film-fallback { position: absolute; inset: auto 0 0 0; padding: 14px 20px; background: var(--ink); color: var(--cream); text-align: center; }
+.film-text { margin-top: 22px; background: var(--cream); color: var(--ink); border: var(--outline-thin) solid var(--ink);
+  border-radius: 18px; padding: 14px 20px; }
+.film-text summary { font-family: var(--font-display); font-weight: 700; cursor: pointer; }
+#film-transcript { margin-top: 12px; display: grid; gap: 8px; max-height: 50vh; overflow: auto; }
+
+/* ---------- final ---------- */
+.final-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px, 4vw, 56px); align-items: center; }
+.final-grid h2 { font-size: var(--fs-h2); font-weight: 800; line-height: 1.02; }
+.gh { margin-top: 22px; font-weight: 700; }
+.site-footer { width: min(100% - 2 * var(--gutter), var(--maxw)); margin: 56px auto 0; font-size: 16px; font-weight: 600; }
+
+/* ---------- responsive ---------- */
+@media (max-width: 1023px) {
+  .hero-grid, .split, .boss-grid, .memory-grid, .final-grid { grid-template-columns: 1fr; }
+  .steps-layout { grid-template-columns: 1fr; }
+  .stage-sticky { top: calc(var(--header-h) + 8px); z-index: 2; }
+  .stage--steps { aspect-ratio: 16 / 10; max-height: 42svh; margin: 0 auto; }
+  .step { min-height: 55svh; justify-content: flex-end; padding-bottom: 6vh; }
+  .step h3, .step p { background: inherit; }
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* Phones: portrait stages so SVG labels can render at a readable size (scenes switch to a tall
+ * viewBox below 760px — see docs/design-prosto.md §0). */
+@media (max-width: 759px) {
+  .stage--steps { aspect-ratio: 4 / 5; max-height: 54svh; width: auto; }
+  .stage--square, .stage--memory, .stage--release { aspect-ratio: 4 / 5; }
+  .stage-sticky .stage { margin: 0 auto; }
+  /* sborka/proverki pan a 720×540 camera window along the belt: keep them landscape and edge-to-edge */
+  #sborka .stage--steps, #proverki .stage--steps { aspect-ratio: 4 / 3; max-height: none; width: calc(100% + 2 * var(--gutter)); margin: 0 calc(-1 * var(--gutter)); }
+}
+@media (max-width: 560px) {
+  .tiles { grid-template-columns: 1fr; }
+  .cast-list { grid-template-columns: 1fr; }
+  .sim-fallback { columns: 1; }
+  .btn { width: 100%; }
+  .ctas .btn { width: auto; flex: 1 1 100%; }
+}

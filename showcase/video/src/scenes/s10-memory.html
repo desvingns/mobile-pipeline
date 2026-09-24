@@ -1,0 +1,198 @@
+<!doctype html>
+<!-- s10-memory «Память» → end card — scene pack V4. Blueprint constellation-hub (project jars ring the hub card
+     «Рацпредложение», connector lines draw in; stat-bars-and-fills star fill for the rating), then at C.brand the
+     ink end card: logo-assemble-lockup (letter cascade) + dataviz-countup (counting-dynamic-scale stats), the cast
+     lines up and waves, the фиалка blooms in the corner. The final 0.8 s fade belongs to the wipes layer. -->
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>s10-memory</title>
+  </head>
+  <body>
+    <template id="s10-memory-template">
+      <style>
+        %%FONTS%%
+        %%KITCSS%%
+        #s10-memory { position: absolute; inset: 0; overflow: hidden; background: %%FIELD%%; color: %%INK%%; font-family: "Golos Text", sans-serif; }
+        #s10-memory .ab { position: absolute; display: block; }
+        #s10-memory .fill { position: absolute; inset: 0; }
+        #s10-memory .ghost { left: 80px; top: 360px; font-family: "Unbounded", sans-serif; font-weight: 900; font-size: 300px; line-height: 1; white-space: nowrap; color: #16123A; opacity: 0.1; }
+        #s10-memory .dot { position: absolute; display: block; border-radius: 50%; }
+        #s10-memory .floor { left: 0; right: 0; top: 745px; height: 335px; background: rgba(22, 18, 58, 0.1); border-top: 4px solid rgba(22, 18, 58, 0.22); }
+        #s10-memory .rim { filter: drop-shadow(6px 0 0 #FFF6E6) drop-shadow(-6px 0 0 #FFF6E6) drop-shadow(0 6px 0 #FFF6E6) drop-shadow(0 -6px 0 #FFF6E6); }
+        #s10-memory .card { background: #FFF6E6; color: #16123A; border: 4px solid #16123A; border-radius: 26px; box-shadow: 8px 8px 0 #16123A; box-sizing: border-box; }
+        #s10-memory .rate { left: 640px; top: 140px; width: 640px; height: 212px; padding: 22px 30px; }
+        #s10-memory .rate-t { font-weight: 800; font-size: 48px; line-height: 1; margin-bottom: 14px; white-space: nowrap; }
+        #s10-memory .stars { display: flex; gap: 18px; }
+        #s10-memory .star { position: relative; width: 96px; height: 96px; }
+        #s10-memory .star svg { position: absolute; left: 0; top: 0; }
+        #s10-memory .chip { display: inline-flex; align-items: center; gap: 10px; border-radius: 999px; border: 4px solid #16123A; white-space: nowrap; background: #FFF6E6; color: #16123A; font-weight: 800; font-size: 32px; padding: 6px 24px; box-shadow: 5px 5px 0 #16123A; }
+        #s10-memory .jar { width: 220px; height: 290px; }
+        #s10-memory .jar-l { position: absolute; left: 14px; right: 14px; top: 58px; height: 46px; border-radius: 12px; background: #FFF6E6; border: 4px solid #16123A; box-sizing: border-box; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 26px; white-space: nowrap; }
+        #s10-memory .les { position: absolute; width: 64px; height: 44px; border-radius: 9px; background: #FFF6E6; border: 3px solid #16123A; box-sizing: border-box; }
+        #s10-memory .les::before { content: ""; position: absolute; left: 9px; right: 14px; top: 10px; height: 5px; border-radius: 3px; background: #16123A; opacity: 0.4; box-shadow: 0 11px 0 #16123A; }
+        #s10-memory .les.hot { background: #FF8A1F; }
+        #s10-memory .halo { position: absolute; width: 124px; height: 104px; border-radius: 22px; border: 6px solid #FFF6E6; box-shadow: 0 0 0 4px #16123A; opacity: 0; }
+        #s10-memory .hub { left: 620px; top: 132px; width: 680px; height: 184px; overflow: hidden; }
+        #s10-memory .hub-h { display: flex; align-items: center; gap: 12px; height: 64px; padding: 0 28px; background: #FF8A1F; border-bottom: 4px solid #16123A; font-weight: 800; font-size: 34px; }
+        #s10-memory .hub-b { padding: 31px 28px 0; font-family: "Unbounded", sans-serif; font-weight: 800; font-size: 46px; line-height: 1; white-space: nowrap; }
+        #s10-memory .seal { left: 1244px; top: 128px; width: 164px; height: 164px; }
+        #s10-memory .seal b { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: "Unbounded", sans-serif; font-weight: 900; font-size: 56px; color: #16123A; }
+        #s10-memory .end { background: #16123A; opacity: 0; }
+        #s10-memory .glow-v { left: 260px; top: -10px; width: 1400px; height: 620px; border-radius: 50%; background: radial-gradient(closest-side, rgba(91, 52, 245, 0.8) 0%, rgba(91, 52, 245, 0) 100%); opacity: 0; }
+        #s10-memory .tagf { left: 0; width: 1920px; top: 158px; text-align: center; }
+        #s10-memory .tagf span { display: inline-block; background: #FF8A1F; color: #16123A; border: 4px solid #FFF6E6; border-radius: 999px; padding: 6px 26px; font-weight: 800; font-size: 30px; }
+        #s10-memory .mark { left: 0; width: 1920px; top: 220px; text-align: center; font-family: "Unbounded", sans-serif; font-weight: 900; font-size: 116px; line-height: 1; color: #FFF6E6; white-space: nowrap; }
+        #s10-memory .mark span { display: inline-block; }
+        #s10-memory .slogan { left: 0; width: 1920px; top: 362px; text-align: center; font-family: "Unbounded", sans-serif; font-weight: 700; font-size: 64px; line-height: 1.1; color: #FFF6E6; white-space: nowrap; }
+        #s10-memory .slogan span { display: inline-block; }
+        #s10-memory .stats { left: 280px; top: 474px; width: 1360px; height: 130px; display: flex; }
+        #s10-memory .stat { flex: 1; text-align: center; color: #FFF6E6; border-left: 4px solid rgba(255, 246, 230, 0.3); }
+        #s10-memory .stat:first-child { border-left: 0; }
+        #s10-memory .stat b { display: inline-block; font-family: "Unbounded", sans-serif; font-weight: 900; font-size: 72px; line-height: 1; font-variant-numeric: tabular-nums; }
+        #s10-memory .stat span { display: block; margin-top: 12px; font-weight: 700; font-size: 30px; }
+        #s10-memory .facts { left: 0; width: 1920px; top: 634px; text-align: center; }
+        #s10-memory .facts span { display: inline-block; background: #16123A; border: 3px solid #FFF6E6; border-radius: 999px; padding: 8px 28px; font-weight: 700; font-size: 30px; color: #FFF6E6; white-space: nowrap; }
+        #s10-memory .facts i { font-style: normal; color: #FFDA4F; }
+        #s10-memory .cast { left: 200px; top: 734px; width: 1540px; height: 106px; }
+        #s10-memory .cast > div { position: absolute; top: 0; }
+        #s10-memory .cast text { display: none; }
+        #s10-memory .cast .c-sparkle { display: none; }
+        #s10-memory .end-floor { left: 0; right: 0; top: 832px; height: 248px; background: rgba(91, 52, 245, 0.2); border-top: 4px solid rgba(255, 246, 230, 0.22); }
+        #s10-memory .vspk { position: absolute; display: block; }   /* kit labels («1» «2» cards, stamps) are ~9 px here: unreadable, and they fail contrast */
+      </style>
+      <div id="s10-memory" data-composition-id="%%ID%%" data-width="1920" data-height="1080" data-duration="%%DUR%%">
+        <div class="fill" id="s10-memory-pre" data-layout-allow-overflow>
+        <div class="fill" id="s10-memory-bg" data-layout-allow-overflow><div class="ab ghost" id="s10-memory-ghost" data-layout-ignore>ПАМЯТЬ</div></div> <div class="ab floor"></div>
+        <!-- the hub lines (drawn under the cards) -->
+        <svg class="ab" style="left:0;top:0" width="1920" height="1080" viewBox="0 0 1920 1080">
+          <path class="s10-memory-ln" d="M712 596C712 470 900 420 930 320" fill="none" stroke="#16123A" stroke-width="6" stroke-linecap="round" stroke-dasharray="4 14"/>
+          <path class="s10-memory-ln" d="M962 596C962 480 962 420 962 320" fill="none" stroke="#16123A" stroke-width="6" stroke-linecap="round" stroke-dasharray="4 14"/>
+          <path class="s10-memory-ln" d="M1212 596C1212 470 1020 420 992 320" fill="none" stroke="#16123A" stroke-width="6" stroke-linecap="round" stroke-dasharray="4 14"/>
+          <path class="s10-memory-ln" d="M1570 500C1500 390 1420 300 1304 262" fill="none" stroke="#16123A" stroke-width="6" stroke-linecap="round" stroke-dasharray="4 14"/> </svg>
+        <!-- the cast of this chapter -->
+        <div class="ab rim" id="s10-memory-libw" style="left:210px;top:442px">%%CHAR:bibliotekar:260#s10-memory-lib%%</div>
+        <div class="ab rim" id="s10-memory-ratw" style="left:1440px;top:442px">%%CHAR:ratsionalizator:260#s10-memory-rat%%</div>
+        <!-- project jars (constellation nodes) -->
+        <div class="ab chip" id="s10-memory-pmem" style="left:560px;top:372px">Память проекта</div> <div class="ab jar" id="s10-memory-j1" data-layout-allow-orbit style="left:600px;top:440px"></div>
+        <div class="ab jar" id="s10-memory-j2" data-layout-allow-orbit style="left:850px;top:440px"></div> <div class="ab jar" id="s10-memory-j3" data-layout-allow-orbit style="left:1100px;top:440px"></div>
+        <!-- the rating (you rate the work: lemon = your decision) -->
+        <div class="ab card rate" id="s10-memory-rate"><div class="rate-t">Оценка работы</div><div class="stars" id="s10-memory-stars"></div></div>
+        <div class="ab" id="s10-memory-fly" data-layout-allow-orbit style="left:0;top:0"></div>
+        <!-- the hub: the improvement proposal, stamped «ДА» -->
+        <div class="ab card hub" id="s10-memory-hub">
+          <div class="hub-h"><svg width="38" height="38" viewBox="0 0 24 24"><circle cx="12" cy="10" r="6.5" fill="#FFF6E6" stroke="#16123A" stroke-width="2"/><rect x="9" y="16" width="6" height="4" rx="1" fill="#C9D3E6" stroke="#16123A" stroke-width="2"/></svg>Рацпредложение</div>
+          <div class="hub-b">Улучшить фабрику</div> </div>
+        <div class="ab seal" id="s10-memory-seal"><svg width="164" height="164" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#FFDA4F" stroke="#16123A" stroke-width="4.5"/><circle cx="50" cy="50" r="37" fill="none" stroke="#16123A" stroke-width="2.2"/></svg><b>ДА</b></div>
+        </div>
+        <!-- END CARD (ink) from C.brand -->
+        <div class="fill end" id="s10-memory-end" data-layout-allow-overflow> <div class="fill" id="s10-memory-sky"></div> <div class="ab glow-v" id="s10-memory-gv"></div>
+          <div class="ab tagf" id="s10-memory-tagf"><span>Фабрика приложений</span></div> <div class="ab mark" id="s10-memory-mark"></div>
+          <div class="ab slogan"><span id="s10-memory-s1">Сказано —</span> <span id="s10-memory-s2">сделано.</span></div> <div class="ab stats">
+            <div class="stat" id="s10-memory-st0"><b id="s10-memory-n0">49</b><span>помощников</span></div>
+            <div class="stat" id="s10-memory-st1"><b id="s10-memory-n1">22</b><span>автомата</span></div> <div class="stat" id="s10-memory-st2"><b id="s10-memory-n2">15</b><span>режимов</span></div>
+            <div class="stat" id="s10-memory-st3"><b id="s10-memory-n3">1.17.2</b><span>версия</span></div> </div>
+          <div class="ab end-floor"></div> <div class="ab" id="s10-memory-vspk" style="left:0;top:0"></div>
+          <div class="ab facts" id="s10-memory-facts"><span>4 раза ждёт вашего <i>«да»</i> · 1 попытка починки · 2 круга правок, потом решает Архитектор</span></div> <div class="ab cast rim" id="s10-memory-cast">
+            <div style="left:0">%%CHAR:brigadir:84%%</div><div style="left:84px">%%CHAR:razvedchik:84%%</div><div style="left:168px">%%CHAR:syshchik:84%%</div>
+            <div style="left:252px">%%CHAR:obkhodchik:84%%</div><div style="left:336px">%%CHAR:pisar:84%%</div><div style="left:420px">%%CHAR:sovetnik/glasses:84%%</div>
+            <div style="left:504px">%%CHAR:pridira:84%%</div><div style="left:588px">%%CHAR:planirovshchik:84%%</div><div style="left:672px">%%CHAR:khudozhnik:84%%</div>
+            <div style="left:756px">%%CHAR:master/chief:84%%</div><div style="left:840px">%%CHAR:revizor:84%%</div><div style="left:924px">%%CHAR:arkhitektor:84%%</div>
+            <div style="left:1008px">%%CHAR:ispytatel:84%%</div><div style="left:1092px">%%CHAR:priyomshchik:84%%</div><div style="left:1176px">%%CHAR:letopisets:84%%</div>
+            <div style="left:1260px">%%CHAR:bibliotekar:84%%</div><div style="left:1344px">%%CHAR:ratsionalizator:84%%</div>
+            <div style="left:1432px;top:-14px">%%PLANT:bloom:100#s10-memory-violet%%</div> </div> </div> </div>
+      <script>
+        (function () {
+          %%HELPERS%%
+          var C = %%CUES%%; var D = %%DUR%%; var H = window.MPV; var tl = gsap.timeline({ paused: true }); var P = "#s10-memory-"; var root = document.getElementById("s10-memory");
+          var $ = function (s) { return root.querySelector(s); }; var $$ = function (s) { return root.querySelectorAll(s); };
+          function to(el, from, vars, t) { var v = {}, k; for (k in vars) v[k] = vars[k]; v.immediateRender = false; return tl.fromTo(el, from, v, t); } var i, k, r = H.rng(1010), html;
+          var STAR = "M48 6l12.4 25.2 27.8 4-20.1 19.6 4.7 27.7L48 69.4 23.2 82.5l4.7-27.7L7.8 35.2l27.8-4z";
+          // ---- background life (sky): drifting dots, ghost word
+          html = ""; for (i = 0; i < 40; i++) { var s = Math.round(8 + r() * 14);
+            html += '<span class="dot" style="left:' + Math.round(r() * 1900) + "px;top:" + Math.round(110 + r() * 640) + "px;width:" + s + "px;height:" + s + 'px;background:#FFF6E6;opacity:.45"></span>';
+          } $(P + "bg").insertAdjacentHTML("beforeend", html); H.drift(tl, $$(P + "bg .dot"), 0, C.brand, { y: -50, x: 24 }); H.drift(tl, P + "ghost", 0, C.brand, { x: -110 });
+          // ---- jars: glass body + lid (svg), label, lesson cards inside
+          var names = ["Полей меня", "Рецепты", "Трекер сна"], jars = [], hots = []; var slots = [[26, 226], [104, 224], [150, 220], [58, 184], [126, 180]]; for (i = 0; i < 3; i++) {
+            var j = $(P + "j" + (i + 1)); j.innerHTML = '<svg class="ab" style="left:0;top:0" width="220" height="290" viewBox="0 0 220 290">' +
+              '<rect x="14" y="36" width="192" height="250" rx="34" fill="#FFF6E6" fill-opacity=".5" stroke="#16123A" stroke-width="5"/>' +
+              '<path d="M34 90V240" stroke="#FFFFFF" stroke-opacity=".8" stroke-width="10" stroke-linecap="round"/>' +
+              '<rect x="30" y="4" width="160" height="40" rx="12" fill="#FF8A1F" stroke="#16123A" stroke-width="5"/></svg>' + '<div class="jar-l">' + names[i] + "</div>"; var n = i === 0 ? 0 : 3;
+            for (k = 0; k < n; k++) j.insertAdjacentHTML("beforeend", '<span class="les" style="left:' + slots[k][0] + "px;top:" + slots[k][1] + 'px;transform:rotate(' + ((k % 2 ? 1 : -1) * (4 + k * 2)) + 'deg)"></span>');
+            j.insertAdjacentHTML("beforeend", '<span class="halo" style="left:50px;top:118px"></span><span class="les hot" style="left:80px;top:130px"></span>');
+            jars.push(j); hots.push(j.querySelector(".halo")); }
+          // the lessons Библиотекарь files into jar 1 (they fly from the rating card)
+          var fly = $(P + "fly"), fh = ""; for (i = 0; i < 3; i++) fh += '<span class="les" style="left:' + (600 + slots[i][0]) + "px;top:" + (440 + slots[i][1]) + 'px"></span>'; fly.innerHTML = fh;
+          var flyers = fly.querySelectorAll(".les"), hot1 = jars[0].querySelector(".les.hot");
+          // ---- rate / stars: the rating card, five lemon stars fill (you rate the work)
+          var stars = $(P + "stars"), sh = ""; for (i = 0; i < 5; i++) {
+            sh += '<span class="star"><svg width="96" height="96" viewBox="0 0 96 96"><path d="' + STAR + '" fill="#FFF6E6" stroke="#16123A" stroke-width="5" stroke-linejoin="round"/></svg>' +
+              '<svg class="s10-memory-sf" width="96" height="96" viewBox="0 0 96 96"><path d="' + STAR + '" fill="#FFDA4F" stroke="#16123A" stroke-width="5" stroke-linejoin="round"/></svg></span>'; }
+          stars.innerHTML = sh; H.arrive(tl, P + "rate", 0.55, { from: 0.6, y: 30 }); H.press(tl, P + "rate", C.rate);
+          tl.fromTo($$(".s10-memory-sf"), { scale: 0, rotation: -60 }, { scale: 1, rotation: 0, duration: 0.34, ease: "back.out(2.6)", stagger: 0.11 }, C.stars);
+          // ---- lib: Библиотекарь files the lessons into «Память проекта»
+          H.arrive(tl, P + "libw", 0.9, { y: 60 }); H.bob(tl, P + "libw", 1.5, C.brand, { y: 6, period: 2.2 }); H.blink(tl, P + "lib .c-lid", 1.4, C.brand, { seed: 101 });
+          tl.fromTo(jars[0], { scale: 0, y: 40 }, { scale: 1, y: 0, duration: 0.5, ease: "back.out(1.8)" }, C.lib - 0.1); H.arrive(tl, P + "pmem", C.lib + 0.15, { from: 0.5 });
+          to(P + "lib .c-arm-r", { rotation: 0 }, { rotation: -95, duration: 0.25, ease: "back.out(2)" }, C.lib);
+          to(P + "lib .c-arm-r", { rotation: -95 }, { rotation: 0, duration: 0.4, ease: "power2.inOut" }, C.lib + 1.4);
+          var from = [[960 - 600 - 26, 260 - 440 - 226], [960 - 600 - 104, 260 - 440 - 224], [960 - 600 - 150, 260 - 440 - 220]]; for (i = 0; i < 3; i++) { var tf = C.lib + 0.3 + i * 0.22;
+            tl.fromTo(flyers[i], { x: from[i][0], opacity: 0, rotation: -40 }, { x: 0, opacity: 1, rotation: (i % 2 ? 1 : -1) * (4 + i * 2), duration: 0.55, ease: "power1.inOut" }, tf);
+            tl.fromTo(flyers[i], { y: from[i][1] }, { y: from[i][1] - 90, duration: 0.2, ease: "power2.out", immediateRender: false }, tf);
+            to(flyers[i], { y: from[i][1] - 90 }, { y: 0, duration: 0.35, ease: "power2.in" }, tf + 0.2); } hot1.style.opacity = "0";
+          tl.fromTo(hot1, { x: 380, y: -300, opacity: 0, rotation: 40 }, { x: 0, y: 0, opacity: 1, rotation: 0, duration: 0.55, ease: "power2.inOut", immediateRender: false }, C.lib + 1.0);
+          to(jars[0], { scaleY: 1 }, { scaleY: 0.94, duration: 0.1, ease: "power2.in", yoyo: true, repeat: 1 }, C.lib + 1.5);
+          // ---- repeat: two more projects slide in; the SAME lesson glows in all three
+          to(P + "rate", { x: 0, y: 0, scale: 1 }, { x: -592, y: -60, scale: 0.55, duration: 0.5, ease: "power2.inOut" }, C.repeat - 0.35);   // docks at (192,128), title 26 px
+          to(P + "pmem", { opacity: 1, scale: 1 }, { opacity: 0, scale: 0.6, duration: 0.2 }, C.repeat - 0.3);
+          tl.fromTo(jars[1], { x: 1200 }, { x: 0, duration: 0.5, ease: "back.out(1.4)" }, C.repeat - 0.05);
+          tl.fromTo(jars[2], { x: 1200 }, { x: 0, duration: 0.5, ease: "back.out(1.4)" }, C.repeat + 0.1); for (i = 0; i < 3; i++) { var th = C.repeat + 0.6 + i * 0.2;
+            to(hots[i], { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2.5)" }, th);
+            to(hots[i], { scale: 1 }, { scale: 1.12, duration: 0.45, ease: "sine.inOut", yoyo: true, repeat: 5 }, th + 0.3); }
+          // ---- rational: Рационализатор's bulb lights; lines converge on the proposal (constellation hub)
+          H.arrive(tl, P + "ratw", C.rational - 0.1, { y: 60 }); H.bob(tl, P + "ratw", C.rational + 0.5, C.brand, { y: 6, period: 2.0 });
+          H.blink(tl, P + "rat .c-lid", C.rational + 0.4, C.brand, { seed: 102 }); var rays = $(P + "rat .c-rays"), bulb = $(P + "rat .c-bulb");
+          tl.fromTo(rays, { scale: 0, rotation: -30 }, { scale: 1, rotation: 0, duration: 0.35, ease: "back.out(3)" }, C.rational + 0.3);
+          to(bulb, { scale: 1 }, { scale: 1.25, duration: 0.18, ease: "power2.out", yoyo: true, repeat: 1 }, C.rational + 0.3);
+          to(rays, { scale: 1 }, { scale: 1.15, duration: 0.5, ease: "sine.inOut", yoyo: true, repeat: 5 }, C.rational + 0.7); H.arrive(tl, P + "hub", C.rational + 0.5, { from: 0.5 });
+          var lns = $$(".s10-memory-ln");
+          for (i = 0; i < lns.length; i++) tl.fromTo(lns[i], { opacity: 0, strokeDashoffset: 180 }, { opacity: 1, strokeDashoffset: 0, duration: 0.5, ease: "power2.out" }, C.rational + 0.8 + i * 0.12);
+          for (i = 0; i < lns.length; i++) to(lns[i], { strokeDashoffset: 0 }, { strokeDashoffset: -180, duration: 1.5, ease: "none", repeat: 1 }, C.rational + 1.5);
+          // ---- approve: your lemon «ДА» lands on the proposal
+          tl.fromTo(P + "seal", { scale: 2.4, rotation: -40, opacity: 0 }, { scale: 1, rotation: -12, opacity: 1, duration: 0.3, ease: "power3.in" }, C.approve - 0.28);
+          to(P + "hub", { scale: 1 }, { scale: 0.97, duration: 0.08, ease: "power2.in", yoyo: true, repeat: 1 }, C.approve + 0.02);
+          to(P + "seal", { scale: 1 }, { scale: 1.06, duration: 0.5, ease: "sine.inOut", yoyo: true, repeat: 1 }, C.approve + 0.4);
+          // ---- brand: cut to the ink end card (the dip covers the switch)
+          tl.set(P + "end", { opacity: 1 }, C.brand); tl.set(P + "pre", { autoAlpha: 0 }, C.brand); html = ""; for (i = 0; i < 44; i++) { var s2 = (2 + r() * 4).toFixed(1);
+            html += '<span class="dot" style="left:' + Math.round(r() * 1900) + "px;top:" + Math.round(20 + r() * 1040) + "px;width:" + s2 + "px;height:" + s2 + 'px;background:#FFF6E6;opacity:.5"></span>';
+          } $(P + "sky").innerHTML = html; var sk = $$(P + "sky .dot"); for (i = 0; i < sk.length; i++) { var per = 1.2 + (i % 5) * 0.3, t0 = C.brand + (i % 6) * 0.15;
+            to(sk[i], { opacity: 0.15 }, { opacity: 0.9, duration: per / 2, ease: "sine.inOut", yoyo: true, repeat: H.repeats(D - t0, per / 2) }, t0); }
+          tl.fromTo(P + "gv", { opacity: 0, scale: 0.8 }, { opacity: 0.42, scale: 1, duration: 1.2, ease: "power2.out", immediateRender: false }, C.brand + 0.3);
+          to(P + "gv", { opacity: 0.42, scale: 1 }, { opacity: 0.32, scale: 1.04, duration: 1.4, ease: "sine.inOut", yoyo: true, repeat: 3 }, C.brand + 1.5);
+          // logo-assemble-lockup: the wordmark letters cascade in
+          var mark = $(P + "mark"), word = "MOBILE PIPELINE", letters = [];
+          for (i = 0; i < word.length; i++) { var ls = document.createElement("span"); ls.textContent = word.charAt(i) === " " ? " " : word.charAt(i); ls.setAttribute("data-layout-allow-overlap", ""); mark.appendChild(ls); letters.push(ls); }   /* the cascade tilts letters into each other for a few frames */
+          tl.fromTo(letters, { y: 90, opacity: 0, rotation: 12 }, { y: 0, opacity: 1, rotation: 0, duration: 0.5, ease: "back.out(2)", stagger: 0.03 }, C.brand + 0.3);
+          H.arrive(tl, P + "tagf", C.brand + 0.9, { from: 0.6 }); H.slam(tl, P + "s1", C.slogan); H.slam(tl, P + "s2", C.slogan + 0.78);
+          // dataviz-countup: counting-dynamic-scale (value + scale share start/ease)
+          var nums = [49, 22, 15]; for (i = 0; i < 3; i++) { var tn = C.slogan + 1.2 + i * 0.12, nb = $(P + "n" + i); H.arrive(tl, P + "st" + i, tn - 0.1, { from: 0.8, dur: 0.35 });
+            tl.fromTo(nb, { innerText: 0 }, { innerText: nums[i], snap: { innerText: 1 }, duration: 1.2, ease: "power3.out" }, tn);
+            tl.fromTo(nb, { scale: 0.55 }, { scale: 1, duration: 1.2, ease: "power3.out" }, tn); } H.arrive(tl, P + "st3", C.slogan + 1.56, { from: 0.4 });
+          H.arrive(tl, P + "facts", C.slogan + 2.7, { from: 0.8, y: 20 });
+          // the cast lines up and waves; the фиалка blooms in the corner
+          var mates = $$(P + "cast > div"), kt = $$(P + "cast text"); for (i = 0; i < kt.length; i++) kt[i].setAttribute("data-layout-allow-overlap", ""); tl.fromTo(mates, { y: 90, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "back.out(2)", stagger: 0.03 }, C.brand + 0.9);
+          var arms = $$(P + "cast .c-char .c-arm-r"); for (i = 0; i < arms.length; i++) { var tw = C.slogan + 3.0 + i * 0.05;
+            to(arms[i], { rotation: 0 }, { rotation: -100, duration: 0.25, ease: "back.out(2)" }, tw);
+            to(arms[i], { rotation: -100 }, { rotation: -70, duration: 0.22, ease: "sine.inOut", yoyo: true, repeat: Math.min(7, H.repeats(D - 0.02 - tw - 0.25, 0.22)) }, tw + 0.25); }
+          H.blink(tl, P + "cast .c-lid", C.brand + 1.5, D, { seed: 103, min: 1.6, max: 3.0 });
+          var vsp = [[1598, 708, 40], [1740, 736, 32], [1712, 682, 26]], vh = "";
+          for (i = 0; i < vsp.length; i++) vh += '<svg class="vspk" style="left:' + vsp[i][0] + "px;top:" + vsp[i][1] + "px;width:" + vsp[i][2] + "px;height:" + vsp[i][2] + 'px" viewBox="-12 -12 24 24"><path d="M0 -11C1.4 -3 3 -1.4 11 0C3 1.4 1.4 3 0 11C-1.4 3 -3 1.4 -11 0C-3 -1.4 -1.4 -3 0 -11Z" fill="#FFF6E6" stroke="#16123A" stroke-width="1.8"/></svg>';
+          $(P + "vspk").innerHTML = vh; var vs = $$(P + "vspk .vspk");
+          tl.fromTo(vs, { scale: 0, rotation: -90 }, { scale: 1, rotation: 0, duration: 0.4, ease: "back.out(3)", stagger: 0.12 }, C.brand + 1.4);
+          for (i = 0; i < vs.length; i++) { var vp = 0.7 + i * 0.15, v0 = C.brand + 2.0 + i * 0.2;
+            to(vs[i], { scale: 1, rotation: 0 }, { scale: 0.7, rotation: 45, duration: vp, ease: "sine.inOut", yoyo: true, repeat: H.repeats(D - v0, vp) }, v0); }
+          window.__timelines["%%ID%%"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

@@ -1,0 +1,249 @@
+<!doctype html>
+<!-- s03-talk «Разговор» (scene pack v2) · blueprint agent-progress-theater (thread with typing dots; scan theater with status pills) · rules ai-tracking-box (ink corners, lemon is reserved), press-release-spring («ДА» stamp), discrete-text-sequence (/mp-spec). Beats: talk/brig thread · pan · shots flash + fan · analysts scan together · inventory ticks · ok stamp. -->
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>s03-talk</title>
+  </head>
+  <body>
+    <template id="s03-talk-template">
+      <style>
+        %%FONTS%%
+        %%KITCSS%%
+        #s03-talk { position: absolute; inset: 0; overflow: hidden; background: %%FIELD%%; color: %%INK%%; font-family: "Golos Text", sans-serif; }
+        #s03-talk .abs { position: absolute; display: block; }
+        #s03-talk-bg { left: 0; top: 0; width: 2600px; height: 1080px; }
+        #s03-talk .dot { position: absolute; border-radius: 50%; background: #16123A; opacity: 0.16; }
+        #s03-talk .plus { position: absolute; opacity: 0.2;
+          background: linear-gradient(#16123A, #16123A) center / 100% 4px no-repeat, linear-gradient(#16123A, #16123A) center / 4px 100% no-repeat; }
+        #s03-talk .ghost { position: absolute; font: 900 250px/1 "Unbounded", sans-serif; letter-spacing: -0.02em; white-space: nowrap; opacity: 0.09; }
+        #s03-talk .qb { position: absolute; width: 90px; height: 74px; opacity: 0.2; }
+        #s03-talk-world { left: 0; top: 0; width: 3840px; height: 1080px; }
+        #s03-talk-floor { left: 0; top: 736px; width: 3840px; height: 6px; background: #16123A; opacity: 0.14; }
+        #s03-talk-cmd { left: 192px; top: 138px; display: flex; align-items: center; padding: 12px 26px; background: #16123A; color: #FFF6E6; border-radius: 999px;
+          font: 700 40px/1 "JetBrains Mono", monospace; box-shadow: 6px 6px 0 #FFF6E6; white-space: nowrap; }
+        #s03-talk-cmd span { display: inline-block; }
+        #s03-talk-caret { width: 20px; height: 40px; margin-left: 4px; background: #FFF6E6; }
+        #s03-talk-brig { left: 168px; top: 347px; width: 370px; height: 432px; }
+        #s03-talk-vy { left: 1372px; top: 347px; width: 370px; height: 432px; }
+        #s03-talk .bub { position: absolute; }
+        #s03-talk .bub .box { position: relative; display: flex; align-items: center; gap: 12px; padding: 20px 34px 22px; border: 5px solid #16123A; border-radius: 32px;
+          box-shadow: 7px 7px 0 #16123A; font: 700 54px/1.05 "Golos Text", sans-serif; white-space: nowrap; }
+        #s03-talk .bub .tail { position: absolute; bottom: -26px; width: 46px; height: 40px; }
+        #s03-talk .bub.b { left: 560px; } #s03-talk .bub.b .tail { left: 22px; }
+        #s03-talk .bub.v { right: 2470px; } #s03-talk .bub.v .tail { right: 22px; }
+        #s03-talk .bub.b .box { background: #5B34F5; color: #FFF6E6; }
+        #s03-talk .bub.v .box { background: #FFDA4F; color: #16123A; }
+        #s03-talk .bub i { display: block; width: 16px; height: 16px; border-radius: 50%; }
+        #s03-talk .bub.b i { background: #FFF6E6; } #s03-talk .bub.v i { background: #16123A; }
+        #s03-talk .typ .box { padding: 32px 30px; }
+        #s03-talk-phone { left: 2740px; top: 196px; width: 280px; height: 500px; }
+        #s03-talk-flash { left: 0; top: 0; width: 1920px; height: 1080px; background: #FFF6E6; opacity: 0; }
+        #s03-talk-lab { left: 1920px; top: 0; width: 1920px; height: 1080px; transform-origin: 960px 440px; }
+        #s03-talk-board { left: 176px; top: 206px; width: 1568px; height: 548px; border-radius: 44px; background: #3EC5FF; border: 6px solid #16123A; box-shadow: 10px 10px 0 #16123A; }
+        #s03-talk-board::before { content: ""; position: absolute; inset: 16px; border-radius: 30px; border: 4px dashed #16123A; opacity: 0.28; }
+        #s03-talk .shot { position: absolute; top: 218px; width: 270px; height: 480px; }
+        #s03-talk .shot svg.ui { position: absolute; inset: 0; width: 270px; height: 480px; }
+        #s03-talk .crn { position: absolute; left: 0; top: 0; width: 38px; height: 38px; border: 0 solid #16123A; }
+        #s03-talk .crn.tl { border-top-width: 8px; border-left-width: 8px; border-top-left-radius: 8px; }
+        #s03-talk .crn.tr { border-top-width: 8px; border-right-width: 8px; border-top-right-radius: 8px; }
+        #s03-talk .crn.bl { border-bottom-width: 8px; border-left-width: 8px; border-bottom-left-radius: 8px; }
+        #s03-talk .crn.br { border-bottom-width: 8px; border-right-width: 8px; border-bottom-right-radius: 8px; }
+        #s03-talk .pill { position: absolute; top: 126px; width: 270px; display: flex; justify-content: center; }
+        #s03-talk .pill .in { position: relative; display: flex; align-items: center; gap: 12px; padding: 12px 24px; border: 5px solid #16123A; border-radius: 999px;
+          background: #FFF6E6; box-shadow: 5px 5px 0 #16123A; font: 700 36px/1 "Golos Text", sans-serif; white-space: nowrap; }
+        #s03-talk .pill .ok { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 10px; border-radius: 999px; background: #2BD99F; opacity: 0; }
+        #s03-talk .pill .ok svg { width: 34px; height: 34px; display: block; }
+        #s03-talk .sy { position: absolute; top: 500px; width: 230px; height: 268px; }
+        #s03-talk-list { left: 2620px; top: 166px; width: 640px; padding: 30px 36px 26px; background: #FFF6E6; border: 5px solid #16123A; border-radius: 30px; box-shadow: 10px 10px 0 #16123A; }
+        #s03-talk-list h3 { margin: 0 0 14px; font: 800 48px/1.1 "Golos Text", sans-serif; }
+        #s03-talk-list .row { display: flex; align-items: center; gap: 18px; height: 62px; font: 600 40px/1 "Golos Text", sans-serif; }
+        #s03-talk-list .row svg { width: 46px; height: 46px; flex: none; display: block; }
+        #s03-talk-list .foot { margin-top: 14px; padding-top: 16px; border-top: 4px dashed #16123A; font: 800 36px/1 "Golos Text", sans-serif; }
+        #s03-talk-vy2 { left: 3390px; top: 480px; width: 240px; height: 280px; }
+        #s03-talk-seal { left: 3160px; top: 220px; width: 240px; height: 240px; border-radius: 50%; background: #FFDA4F; border: 7px solid #16123A; box-shadow: 8px 8px 0 #16123A;
+          display: flex; align-items: center; justify-content: center; font: 900 96px/1 "Unbounded", sans-serif; letter-spacing: -0.03em; color: #16123A; }
+        #s03-talk-seal::before { content: ""; position: absolute; inset: 12px; border-radius: 50%; border: 4px dashed #16123A; }
+        #s03-talk-seal span { display: block; transform: rotate(-12deg); }
+        #s03-talk-ring { left: 3130px; top: 190px; width: 300px; height: 300px; border-radius: 50%; border: 14px solid #FFDA4F; box-shadow: 0 0 0 5px #16123A, inset 0 0 0 5px #16123A; opacity: 0; }
+        #s03-talk-hand { left: 3140px; top: 84px; width: 280px; height: 327px; }
+        #s03-talk .vb { transform-box: view-box; }
+        #s03-talk .vfc { position: absolute; width: 74px; height: 74px; border: 0 solid #16123A; }
+        #s03-talk .vfc.tl { left: 2716px; top: 172px; border-top-width: 11px; border-left-width: 11px; border-top-left-radius: 16px; }
+        #s03-talk .vfc.tr { left: 2970px; top: 172px; border-top-width: 11px; border-right-width: 11px; border-top-right-radius: 16px; }
+        #s03-talk .vfc.bl { left: 2716px; top: 646px; border-bottom-width: 11px; border-left-width: 11px; border-bottom-left-radius: 16px; }
+        #s03-talk .vfc.br { left: 2970px; top: 646px; border-bottom-width: 11px; border-right-width: 11px; border-bottom-right-radius: 16px; }
+      </style>
+      <div id="s03-talk" data-composition-id="%%ID%%" data-width="1920" data-height="1080" data-duration="%%DUR%%">
+        <div class="abs" id="s03-talk-bg" data-layout-allow-overflow><div class="ghost" data-layout-ignore style="left:300px;top:470px">РАЗГОВОР</div></div>
+        <div class="abs" id="s03-talk-world" data-layout-allow-overflow>
+          <div class="abs" id="s03-talk-floor"></div>
+          <div class="abs" id="s03-talk-cmd"><span>/</span><span>m</span><span>p</span><span>-</span><span>s</span><span>p</span><span>e</span><span>c</span><span id="s03-talk-caret"></span></div>
+          <div class="abs kit-rim" id="s03-talk-brig">%%CHAR:brigadir:370#s03-talk-brigkit%%</div>
+          <div class="abs kit-rim" id="s03-talk-vy">%%CHAR:vy:370#s03-talk-vykit%%</div>
+          <div id="s03-talk-thread"></div>
+          <svg class="abs" id="s03-talk-phone" viewBox="0 0 280 500"><rect x="6" y="6" width="268" height="488" rx="46" fill="#16123A" /><rect x="22" y="22" width="236" height="456" rx="32" fill="#FFF6E6" /><rect x="22" y="22" width="236" height="96" rx="32" fill="#FF4F8B" /><rect x="22" y="80" width="236" height="38" fill="#FF4F8B" /><rect x="110" y="34" width="60" height="18" rx="9" fill="#16123A" /><rect x="44" y="72" width="120" height="16" rx="8" fill="#16123A" /><g stroke="#16123A" stroke-width="4"><rect x="40" y="140" width="200" height="72" rx="16" fill="#FFFFFF" /><rect x="40" y="228" width="200" height="72" rx="16" fill="#FFFFFF" /><rect x="40" y="316" width="200" height="72" rx="16" fill="#FFFFFF" /></g><g fill="#2BD99F" stroke="#16123A" stroke-width="4"><circle cx="76" cy="176" r="18" /><circle cx="76" cy="264" r="18" /><circle cx="76" cy="352" r="18" /></g><g fill="#16123A"><rect x="106" y="164" width="110" height="10" rx="5" /><rect x="106" y="252" width="90" height="10" rx="5" /><rect x="106" y="340" width="120" height="10" rx="5" /></g><rect x="90" y="410" width="100" height="44" rx="22" fill="#5B34F5" stroke="#16123A" stroke-width="4" /></svg>
+          <span class="vfc tl"></span><span class="vfc tr"></span><span class="vfc bl"></span><span class="vfc br"></span>
+          <div class="abs" id="s03-talk-lab">
+            <div class="abs" id="s03-talk-board"></div>
+            <div class="shot" style="left:345px"><svg class="ui" viewBox="0 0 270 480"><rect x="4" y="4" width="262" height="472" rx="30" fill="#FFF6E6" stroke="#16123A" stroke-width="7" /><path d="M4 34 A30 30 0 0 1 34 4 H236 A30 30 0 0 1 266 34 V78 H4 Z" fill="#FF4F8B" stroke="#16123A" stroke-width="7" /><rect x="30" y="34" width="120" height="16" rx="8" fill="#16123A" /><g stroke="#16123A" stroke-width="4"><rect x="24" y="104" width="222" height="66" rx="14" fill="#FFFFFF" /><rect x="24" y="190" width="222" height="66" rx="14" fill="#FFFFFF" /><rect x="24" y="276" width="222" height="66" rx="14" fill="#FFFFFF" /><rect x="24" y="362" width="222" height="66" rx="14" fill="#FFFFFF" /></g><g fill="#2BD99F" stroke="#16123A" stroke-width="4"><circle cx="58" cy="137" r="17" /><circle cx="58" cy="223" r="17" /><circle cx="58" cy="309" r="17" /><circle cx="58" cy="395" r="17" /></g><g fill="#16123A"><rect x="88" y="126" width="120" height="10" rx="5" /><rect x="88" y="212" width="96" height="10" rx="5" /><rect x="88" y="298" width="130" height="10" rx="5" /><rect x="88" y="384" width="80" height="10" rx="5" /></g></svg></div>
+            <div class="shot" style="left:825px"><svg class="ui" viewBox="0 0 270 480"><rect x="4" y="4" width="262" height="472" rx="30" fill="#FFF6E6" stroke="#16123A" stroke-width="7" /><circle cx="135" cy="150" r="74" fill="#3EC5FF" stroke="#16123A" stroke-width="6" /><path d="M135 196 C104 170 100 136 118 112 C128 130 132 150 135 196 C138 150 142 130 152 112 C170 136 166 170 135 196 Z" fill="#2BD99F" stroke="#16123A" stroke-width="5" stroke-linejoin="round" /><rect x="60" y="244" width="150" height="14" rx="7" fill="#16123A" /><rect x="84" y="268" width="102" height="10" rx="5" fill="#16123A" opacity="0.35" /><rect x="36" y="310" width="198" height="62" rx="31" fill="#5B34F5" stroke="#16123A" stroke-width="5" /><rect x="36" y="390" width="198" height="62" rx="31" fill="#FF8A1F" stroke="#16123A" stroke-width="5" /><rect x="96" y="336" width="78" height="10" rx="5" fill="#FFF6E6" /><rect x="96" y="416" width="78" height="10" rx="5" fill="#16123A" /></svg></div>
+            <div class="shot" style="left:1305px"><svg class="ui" viewBox="0 0 270 480"><rect x="4" y="4" width="262" height="472" rx="30" fill="#FFF6E6" stroke="#16123A" stroke-width="7" /><rect x="30" y="36" width="150" height="18" rx="9" fill="#16123A" /><g fill="#16123A"><rect x="30" y="100" width="200" height="12" rx="6" /><rect x="30" y="124" width="160" height="12" rx="6" opacity="0.35" /><rect x="30" y="180" width="210" height="12" rx="6" /><rect x="30" y="204" width="130" height="12" rx="6" opacity="0.35" /><rect x="30" y="260" width="180" height="12" rx="6" /><rect x="30" y="284" width="150" height="12" rx="6" opacity="0.35" /></g><g stroke="#16123A" stroke-width="5"><rect x="30" y="344" width="84" height="44" rx="22" fill="#2BD99F" /><rect x="30" y="406" width="84" height="44" rx="22" fill="#FFF6E6" /></g><g fill="#FFF6E6" stroke="#16123A" stroke-width="5"><circle cx="92" cy="366" r="16" /><circle cx="52" cy="428" r="16" /></g><g fill="#16123A"><rect x="132" y="360" width="100" height="12" rx="6" /><rect x="132" y="422" width="80" height="12" rx="6" /></g></svg></div>
+            <div class="pill" data-layout-allow-overlap style="left:345px"><div class="in">экраны<b class="ell" data-layout-allow-overlap>…</b><div class="ok" data-layout-allow-overlap><svg viewBox="0 0 34 34"><path d="M7 18 L14 25 L27 9" fill="none" stroke="#16123A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" /></svg>экраны</div></div></div>
+            <div class="pill" data-layout-allow-overlap style="left:825px"><div class="in">кнопки<b class="ell" data-layout-allow-overlap>…</b><div class="ok" data-layout-allow-overlap><svg viewBox="0 0 34 34"><path d="M7 18 L14 25 L27 9" fill="none" stroke="#16123A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" /></svg>кнопки</div></div></div>
+            <div class="pill" data-layout-allow-overlap style="left:1305px"><div class="in">тексты<b class="ell" data-layout-allow-overlap>…</b><div class="ok" data-layout-allow-overlap><svg viewBox="0 0 34 34"><path d="M7 18 L14 25 L27 9" fill="none" stroke="#16123A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" /></svg>тексты</div></div></div>
+            <div class="sy kit-rim" style="left:196px">%%CHAR:syshchik:230:focus%%</div><div class="sy kit-rim" style="left:676px">%%CHAR:syshchik:230:focus%%</div><div class="sy kit-rim" style="left:1156px">%%CHAR:syshchik:230:focus%%</div>
+          </div>
+          <div class="abs" id="s03-talk-list"><h3>Список экранов</h3><div class="row">Список цветов</div><div class="row">Добавить цветок</div><div class="row">Напоминание</div><div class="row">Календарь полива</div>
+            <div class="foot" id="s03-talk-foot">Экраны: 4 · Возможности: 7</div></div>
+          <div class="abs kit-rim" id="s03-talk-vy2">%%CHAR:vy:240#s03-talk-vy2kit%%</div>
+          <div class="abs" id="s03-talk-ring"></div>
+          <div class="abs" id="s03-talk-seal" data-layout-allow-overlap><span data-layout-allow-overlap>ДА</span></div>
+          <div class="abs" id="s03-talk-hand" data-layout-allow-overlap>%%STAMP:280#s03-talk-handkit%%</div>
+        </div>
+        <div class="abs" id="s03-talk-flash"></div>
+      </div>
+      <script>
+        (function () {
+          %%HELPERS%%
+          var C = %%CUES%%;
+          var D = %%DUR%%;
+          var H = window.MPV;
+          var tl = gsap.timeline({ paused: true });
+          var P = H.C, NS = "http://www.w3.org/2000/svg", i, el;
+          var id = function (s) { return document.getElementById("s03-talk-" + s); }, all = function (s) { return document.querySelectorAll("#s03-talk " + s); };
+          function ext(a, b) { var r = {}, n; for (n in a) r[n] = a[n]; for (n in b) r[n] = b[n]; return r; }
+          function to(e, f, v, t) { return tl.fromTo(e, f, ext({ immediateRender: false }, v), t); }
+          // xf(): SVG-internal parts move by a CSS transform written from a GSAP-tweened proxy, so the pivot comes from CSS
+          // transform-box/origin (kit chars.css) and never from a bbox GSAP would read at build time (it is 0 there).
+          function xf(tg, init) {
+            var els = typeof tg === "string" ? document.querySelectorAll(tg) : (tg.length != null ? tg : [tg]), st = ext({ x: 0, y: 0, h: 0, r: 0, s: 1, sx: 1, sy: 1, o: null }, init || {});
+            st.apply = function () { var t = "translate(" + st.x.toFixed(2) + "px," + (st.y + st.h).toFixed(2) + "px) rotate(" + st.r.toFixed(2) + "deg) scale(" + (st.s * st.sx).toFixed(4) + "," + (st.s * st.sy).toFixed(4) + ")";
+              for (var m = 0; m < els.length; m++) { els[m].style.transform = t; if (st.o != null) els[m].style.opacity = String(Math.round(st.o * 1000) / 1000); } };
+            st.apply(); return st;
+          }
+          function xt(st, f, v, t) { return tl.fromTo(st, f, ext(v, { immediateRender: false, onUpdate: st.apply }), t); }
+          function blink(lids, from, until, seed) {
+            for (var st = xf(lids), r = H.rng(seed), t = from + 0.3 + r() * 1.2; t + 0.12 < until; t += 2.4 + r() * 1.8) { xt(st, { sy: 1 }, { sy: 0.1, duration: 0.05, ease: "power1.in" }, t); xt(st, { sy: 0.1 }, { sy: 1, duration: 0.06, ease: "power1.out" }, t + 0.05); }
+          }
+          function pop(e, t, from, dur) { return tl.fromTo(e, ext({ scale: 0.3, opacity: 0 }, from || {}), { scale: 1, opacity: 1, x: 0, y: 0, rotation: 0, duration: dur || 0.42, ease: "back.out(1.9)" }, t); }
+          function bob(st, from, until, amp, per) { xt(st, { y: 0 }, { y: -amp, duration: per, ease: "sine.inOut", yoyo: true, repeat: H.repeats(until - from, per) }, from); }
+
+          // ---- setup (seeded): background dots/pluses/outlined bubbles, the chat thread, checklist ticks ----
+          for (var bg = id("bg"), rng = H.rng(303), i = 0; i < 40; i++) {
+            if (i % 5 === 4) { el = document.createElementNS(NS, "svg"); el.setAttribute("class", "qb"); el.setAttribute("viewBox", "0 0 90 74"); el.innerHTML = '<path d="M14 6 H76 Q86 6 86 16 V44 Q86 54 76 54 H36 L18 70 L22 54 H14 Q4 54 4 44 V16 Q4 6 14 6 Z" fill="none" stroke="#16123A" stroke-width="6" stroke-linejoin="round"/>'; }
+            else { el = document.createElement("span"); el.className = i % 2 ? "plus" : "dot"; var sz = i % 2 ? 18 + rng() * 12 : 9 + rng() * 13; el.style.width = el.style.height = sz.toFixed(0) + "px"; }
+            el.style.left = (40 + rng() * 2520).toFixed(0) + "px"; el.style.top = (130 + rng() * 640).toFixed(0) + "px"; bg.appendChild(el);
+          }
+          var TAIL = { b: '<path d="M6 2 L40 2 L4 36 Z" fill="#5B34F5"', v: '<path d="M40 2 L6 2 L42 36 Z" fill="#FFDA4F"' }, thread = id("thread");
+          [["b", 196, "Для кого?"], ["v", 318, "Для себя"], ["b", 440, "Как часто поливать?"], ["v", 562, "Раз в три дня"]].forEach(function (m, n) {
+            ["typ", "msg"].forEach(function (kind) {
+              el = document.createElement("div"); el.className = "bub " + m[0] + (kind === "typ" ? " typ" : ""); el.id = "s03-talk-" + (kind === "typ" ? "t" : "m") + (n + 1); el.style.top = m[1] + "px";
+              el.innerHTML = '<svg class="tail" viewBox="0 0 46 40">' + TAIL[m[0]] + ' stroke="#16123A" stroke-width="5" stroke-linejoin="round"/></svg><div class="box">' + (kind === "typ" ? "<i></i><i></i><i></i>" : m[2]) + "</div>";
+              thread.appendChild(el);
+            });
+          });
+          all("#s03-talk-list .row").forEach(function (r) { r.insertAdjacentHTML("afterbegin", '<svg viewBox="0 0 46 46"><circle class="cc" cx="23" cy="23" r="19" fill="#FFF6E6" stroke="#16123A" stroke-width="5"/><path class="ck" pathLength="1" d="M13 24 L20 31 L33 15" fill="none" stroke="#16123A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:1 2;stroke-dashoffset:1"/></svg>'); });
+          all(".shot").forEach(function (s) { s.insertAdjacentHTML("beforeend", '<span class="crn tl"></span><span class="crn tr"></span><span class="crn bl"></span><span class="crn br"></span>'); });
+
+          // ---- room A: characters, /mp-spec types in (discrete-text-sequence, smooth slice), background drift ----
+          H.drift(tl, "#s03-talk-bg", 0, D, { y: -36 });
+          var brigK = id("brigkit"), vyK = id("vykit"), brR = xf(brigK.querySelector(".c-char")), vyR = xf(vyK.querySelector(".c-char"));
+          var brArm = xf(brigK.querySelector(".c-arm-r")), vyArm = xf(vyK.querySelector(".c-arm-l"));
+          H.arrive(tl, "#s03-talk-brig", 0.12, { from: 0.5, y: 40, dur: 0.55 }); H.arrive(tl, "#s03-talk-vy", 0.3, { from: 0.5, y: 40, dur: 0.55 });
+          bob(brR, 0.8, 10.2, 8, 1.1); bob(vyR, 1.1, 10.5, 8, 1.0);
+          blink(brigK.querySelectorAll(".c-lid"), 0.6, 9.6, 11); blink(vyK.querySelectorAll(".c-lid"), 0.8, 9.6, 12);
+          pop("#s03-talk-cmd", 0.2, { x: -30 }, 0.4);
+          H.type(tl, all("#s03-talk-cmd span:not(#s03-talk-caret)"), 0.45, { cps: 16 });
+          to("#s03-talk-caret", { opacity: 1 }, { opacity: 0, duration: 0.32, ease: "steps(1)", yoyo: true, repeat: H.repeats(D - 1.2, 0.32) }, 1.1);
+
+          // ---- talk / brig: typing dots, then the reply lands and the dots die (agent-progress-theater, thread) ----
+          function msg(n, tType, tMsg, side, who) {
+            var t = "#s03-talk-t" + n, m = "#s03-talk-m" + n, o = side === "b" ? "0% 100%" : "100% 100%", ds = id("t" + n).querySelectorAll("i");
+            tl.fromTo(t, { scale: 0.3, opacity: 0, transformOrigin: o }, { scale: 1, opacity: 1, duration: 0.35, ease: "back.out(2)", transformOrigin: o }, tType);
+            for (var k = 0; k < 3; k++) to(ds[k], { y: 0 }, { y: -10, duration: 0.18, ease: "sine.inOut", yoyo: true, repeat: H.repeats(tMsg - tType - 0.2 - k * 0.1, 0.18) }, tType + 0.2 + k * 0.1);
+            to(t, { opacity: 1 }, { opacity: 0, duration: 0.01, ease: "none" }, tMsg);
+            tl.fromTo(m, { scale: 0.5, opacity: 0, transformOrigin: o }, { scale: 1, opacity: 1, duration: 0.42, ease: "back.out(2.2)", transformOrigin: o }, tMsg);
+            xt(who, { h: 0 }, { h: -26, duration: 0.14, ease: "power2.out", yoyo: true, repeat: 1 }, tMsg - 0.04);
+          }
+          msg(1, C.talk + 0.05, C.brig + 0.02, "b", brR);
+          xt(brArm, { r: 0 }, { r: -95, duration: 0.2, ease: "back.out(2)" }, C.brig);
+          xt(brArm, { r: -95 }, { r: -70, duration: 0.16, ease: "sine.inOut", yoyo: true, repeat: 3 }, C.brig + 0.2);
+          xt(brArm, { r: -95 }, { r: 0, duration: 0.3, ease: "power2.inOut" }, C.brig + 0.84);
+          msg(2, C.brig + 0.95, C.brig + 1.52, "v", vyR); msg(3, C.brig + 2.0, C.brig + 2.55, "b", brR); msg(4, C.brig + 3.05, C.brig + 3.6, "v", vyR);
+          xt(vyArm, { r: 0 }, { r: 90, duration: 0.22, ease: "back.out(2)" }, C.brig + 3.6); xt(vyArm, { r: 90 }, { r: 0, duration: 0.3, ease: "power2.inOut" }, C.brig + 4.3);
+
+          // ---- «…похожее приложение»: camera pans to room B · shots: flash, three screenshots fan out of the phone ----
+          var PAN = C.shots - 1.95, fan = [-7, 0, 7], shots = all(".shot");
+          to("#s03-talk-world", { x: 0 }, { x: -1920, duration: 0.8, ease: "power2.inOut" }, PAN);
+          to("#s03-talk-bg", { x: 0 }, { x: -640, duration: 0.8, ease: "power2.inOut" }, PAN);
+          H.bob(tl, "#s03-talk-phone", PAN + 0.8, C.shots, { y: 10, period: 1.2 });
+          all(".vfc").forEach(function (v, n) {   // a viewfinder closes in on the phone, then the flash takes the shot
+            tl.fromTo(v, { x: (n % 2 ? 1 : -1) * 230, y: (n < 2 ? -1 : 1) * 110, opacity: 0 }, { x: 0, y: 0, opacity: 1, duration: 0.9, ease: "power3.inOut" }, PAN + 0.85);
+            to(v, { opacity: 1, scale: 1 }, { opacity: 0, scale: 1.25, duration: 0.25, ease: "power2.out" }, C.shots + 0.04);
+          });
+          tl.fromTo("#s03-talk-flash", { opacity: 0 }, { opacity: 0.85, duration: 0.06, ease: "power1.out" }, C.shots);
+          to("#s03-talk-flash", { opacity: 0.85 }, { opacity: 0, duration: 0.3, ease: "power2.out" }, C.shots + 0.06);
+          to("#s03-talk-phone", { scale: 1, opacity: 1 }, { scale: 0.4, opacity: 0, duration: 0.3, ease: "power3.in" }, C.shots + 0.05);
+          tl.fromTo("#s03-talk-board", { scale: 0.9, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "power3.out" }, C.shots + 0.02);
+          shots.forEach(function (s, n) {
+            tl.fromTo(s, { x: (1 - n) * 480, y: 20, scale: 0.35, rotation: 0, opacity: 0 }, { x: 0, y: 0, scale: 1, rotation: fan[n], opacity: 1, duration: 0.62, ease: "back.out(1.4)" }, C.shots + 0.08 + n * 0.07);
+            to(s, { y: 0 }, { y: -10, duration: 1.3, ease: "sine.inOut", yoyo: true, repeat: H.repeats(C._out - C.shots - 0.8, 1.3) }, C.shots + 0.8 + n * 0.25);
+          });
+
+          // ---- analysts: three Сыщики scan AT THE SAME TIME; ai-tracking-box corners re-fit per frame; pills flip to done ----
+          all(".sy").forEach(function (s, n) {
+            var k = s.querySelector(".c-char"), arm = xf(k.querySelector(".c-arm-r"));
+            pop(s, C.analysts - 0.05 + n * 0.05, { y: 60 }, 0.45);
+            xt(arm, { r: 0 }, { r: -34, duration: 0.25, ease: "back.out(2)" }, C.analysts + 0.2); xt(arm, { r: -34 }, { r: -14, duration: 0.3, ease: "sine.inOut", yoyo: true, repeat: 3 }, C.analysts + 0.45);
+            bob(xf(k), C.analysts + 0.5, C._out, 6, 0.8); blink(k.querySelectorAll(".c-lid"), C.analysts, C._out, 40 + n);
+          });
+          var T = [[[20, 96, 230, 82], [20, 182, 230, 82], [20, 268, 230, 82], [20, 354, 230, 82]], [[50, 66, 170, 170], [28, 302, 214, 78], [28, 382, 214, 78], [40, 234, 190, 56]], [[20, 88, 226, 58], [20, 168, 226, 58], [20, 248, 226, 58], [20, 336, 228, 124]]];
+          var R = function (a) { return { x: a[0], y: a[1], w: a[2], h: a[3], o: 1 }; };
+          shots.forEach(function (s, n) {
+            var cr = s.querySelectorAll(".crn"), box = { x: -20, y: -20, w: 310, h: 520, o: 0 };
+            var put = function () {
+              var p = [[box.x - 10, box.y - 10], [box.x + box.w - 28, box.y - 10], [box.x - 10, box.y + box.h - 28], [box.x + box.w - 28, box.y + box.h - 28]];
+              for (var q = 0; q < 4; q++) { cr[q].style.transform = "translate(" + p[q][0].toFixed(1) + "px," + p[q][1].toFixed(1) + "px)"; cr[q].style.opacity = String(box.o); }
+            };
+            put();
+            var t0 = C.analysts + 0.25 + n * 0.04, seg = (C.inventory - 0.7 - t0) / T[n].length, prev = ext(box, {});
+            for (var q = 0; q < T[n].length; q++) { tl.fromTo(box, prev, ext(R(T[n][q]), { duration: q ? 0.32 : 0.4, ease: q ? "power3.inOut" : "back.out(1.6)", immediateRender: false, onUpdate: put }), q ? t0 + 0.08 + seg * q : t0); prev = R(T[n][q]); }
+            tl.fromTo(box, prev, ext(prev, { o: 0, duration: 0.2, immediateRender: false, onUpdate: put }), C.inventory - 0.55);
+          });
+          all(".pill").forEach(function (p, n) {
+            pop(p.querySelector(".in"), C.analysts + 0.08 + n * 0.04, { y: 20 }, 0.4);
+            to(p.querySelector(".ell"), { opacity: 1 }, { opacity: 0.2, duration: 0.25, ease: "steps(1)", yoyo: true, repeat: H.repeats(1.1, 0.25) }, C.analysts + 0.5);
+            tl.fromTo(p.querySelector(".ok"), { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2.5)" }, C.analysts + 1.3 + n * 0.03);
+          });
+
+          // ---- «Потом вы…»: the lab shrinks aside · inventory: the checklist ticks · ok: the «ДА» stamp (press-release-spring) ----
+          all(".pill, .sy").forEach(function (p) { to(p, { opacity: 1 }, { opacity: 0, duration: 0.22, ease: "power1.in" }, C.inventory - 0.45); });
+          to("#s03-talk-lab", { x: 0, y: 0, scale: 1 }, { x: -496, y: 40, scale: 0.4, duration: 0.6, ease: "power3.inOut" }, C.inventory - 0.35);
+          pop("#s03-talk-list", C.inventory - 0.1, { x: 420, rotation: 6, scale: 0.8 }, 0.55);
+          all("#s03-talk-list .row").forEach(function (r, n) {
+            var at = C.inventory + 0.4 + n * 0.32;
+            tl.fromTo(r.querySelector(".cc"), { attr: { fill: P.cream } }, { attr: { fill: P.mint }, duration: 0.12 }, at);
+            tl.fromTo(r.querySelector(".ck"), { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.22, ease: "power2.out", immediateRender: false }, at + 0.04);
+            to(r, { x: 0 }, { x: 10, duration: 0.1, ease: "power2.out", yoyo: true, repeat: 1 }, at);
+          });
+          pop("#s03-talk-foot", C.inventory + 1.75, { y: 16, scale: 0.8 }, 0.4);
+          pop("#s03-talk-vy2", C.inventory + 0.2, { y: 60 }, 0.5);
+          var v2 = id("vy2kit"), v2R = xf(v2.querySelector(".c-char")), v2Arm = xf(v2.querySelector(".c-arm-r")), stamp = xf("#s03-talk-handkit .c-stamphand");
+          blink(v2.querySelectorAll(".c-lid"), C.inventory, C._out, 21); bob(v2R, C.inventory + 0.7, C._out, 7, 0.95);
+          tl.fromTo("#s03-talk-hand", { y: -560 }, { y: 0, duration: 0.3, ease: "power3.in" }, C.ok - 0.3);
+          xt(stamp, { sy: 1, sx: 1 }, { sy: 0.9, sx: 1.05, duration: 0.08, ease: "power1.in" }, C.ok); xt(stamp, { sy: 0.9, sx: 1.05 }, { sy: 1, sx: 1, duration: 0.35, ease: "back.out(3)" }, C.ok + 0.08);
+          to("#s03-talk-hand", { y: 0 }, { y: -620, duration: 0.45, ease: "power2.in" }, C.ok + 0.42); to("#s03-talk-hand", { opacity: 1 }, { opacity: 0, duration: 0.1, ease: "none" }, C.ok + 0.8);
+          tl.fromTo("#s03-talk-seal", { scale: 1.6, opacity: 0, rotation: -20 }, { scale: 1, opacity: 1, rotation: 0, duration: 0.3, ease: "back.out(2.6)" }, C.ok + 0.02);
+          tl.fromTo("#s03-talk-ring", { scale: 0.6, opacity: 0 }, { scale: 0.6, opacity: 0, duration: 0.01 }, 0);
+          to("#s03-talk-ring", { scale: 0.6, opacity: 1 }, { scale: 1.8, opacity: 0, duration: 0.6, ease: "power2.out" }, C.ok + 0.06);
+          to("#s03-talk-list", { y: 0 }, { y: 10, duration: 0.08, ease: "power1.in", yoyo: true, repeat: 1 }, C.ok);
+          xt(v2R, { h: 0 }, { h: -40, duration: 0.18, ease: "power2.out", yoyo: true, repeat: 1 }, C.ok + 0.12); xt(v2Arm, { r: 0 }, { r: -110, duration: 0.25, ease: "back.out(2.5)" }, C.ok + 0.12);
+          to("#s03-talk-seal", { rotation: 0 }, { rotation: -4, duration: 0.8, ease: "sine.inOut", yoyo: true, repeat: H.repeats(C._out - C.ok - 0.6, 0.8) }, C.ok + 0.5);
+
+          window.__timelines["%%ID%%"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>
