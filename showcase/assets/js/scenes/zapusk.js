@@ -1062,9 +1062,9 @@
           },
           done: function () { if (!calm) setState('done'); }
         });
-        /* a touch brisker than the authored seconds: the whole path (with its three quick «да» and your stamp)
-         * stays close to the promised «20 секунд» — ≈19,5 s up to the stamp */
-        T.tl.timeScale(1.18);
+        /* half the original pace (1.18 → 0.59) so the eye can follow every station: ≈39 s up to the stamp,
+         * matching the promised «40 секунд» in the lead */
+        T.tl.timeScale(0.59);
         T.tl.eventCallback('onUpdate', syncProg);
         if (!calm) {
           blinkAnim = MP.blink ? MP.blink(stage.querySelector('svg'), api) : null;
@@ -1154,7 +1154,7 @@
       calmApply(i);
       if (STEPS[i][0] === 'wait') { onWaiting(); return; }
       if (STEPS[i][0] === 'done') { setState('done'); return; }
-      timer = setTimeout(calmNext, 1100);
+      timer = setTimeout(calmNext, 2200);
     }
     function calmPlay() {
       if (state === 'waiting') { nudgeStamp(); return; }
