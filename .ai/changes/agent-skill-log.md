@@ -718,3 +718,19 @@ summary: add four Russian audience levels, a source-linked feature story, parall
 reason: the technical topology did not explain agent responsibilities and launch timing to nontechnical viewers; the default view must make the human goal and delivered behavior visible
 affects:
 by: codex
+
+## 2026-09-27T15:00-deliver-telegram-shared-config
+type: update
+target: templates/common/scripts/{{PREFIX}}-deliver-telegram.sh, templates/common/commands/runtime/deliver.md, docs/TELEGRAM-DELIVERY.md, VERSION, CHANGELOG.md
+summary: deliver-telegram falls back to the machine-wide shared config ${TGSEND_HOME:-~/.config/tgsend}/config.env after env and the repo .env; the post-ship delivery offer also treats that file as "configured"
+reason: TG_* secrets were copied into every project's .env, so each new project needed its own setup and the login-equivalent StringSession multiplied across repos; the global brain tgsend skill already keeps them in one shared file
+affects: claude, codex
+by: mp-improve
+
+## 2026-09-27T15:30-deliver-telegram-empty-apk-guard
+type: fix
+target: templates/common/scripts/{{PREFIX}}-deliver-telegram.sh, CHANGELOG.md
+summary: when no app APK exists under */build/outputs/, fail instead of sending the newest file of the current directory
+reason: with empty input `xargs -0 ls -t` runs a bare `ls -t`, so the auto-pick returned the newest CWD entry (observed: brain INDEX.md was sent to Saved Messages from a repo with no APK)
+affects: claude, codex
+by: mp-improve

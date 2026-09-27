@@ -27,7 +27,10 @@ send the build to your own account. No bot, no local Bot API server.
    bash .claude/scripts/{{PREFIX}}-deliver-telegram.sh --login
    ```
    It prints a **StringSession** to stderr.
-2. Put the secrets in a **gitignored** `.env` at the repo root (or in CI secrets / the environment):
+2. Put the secrets in the machine-wide shared config `~/.config/tgsend/config.env`
+   (override the directory with `TGSEND_HOME`) — one setup serves every project and the global
+   `tgsend` skill — or per project in a **gitignored** `.env` at the repo root (or in CI secrets /
+   the environment). Precedence: environment → repo `.env` → shared config.
    ```dotenv
    TG_API_ID=1234567
    TG_API_HASH=0123456789abcdef0123456789abcdef

@@ -29,3 +29,8 @@ zero infra — the simplest path for "send <100 MB builds to myself".
 - Emits exactly one JSON line and mirrors `ok` → exit code (per the structured-payload rule).
 
 Added in v1.9.0 (`2026-06-17T12:00-telegram-build-delivery`).
+
+- Shared config (v1.18.0, `2026-09-27T15:00-deliver-telegram-shared-config`): lookup order is
+  env → repo-root `.env` → `${TGSEND_HOME:-~/.config/tgsend}/config.env`, the same file the global
+  brain `tgsend` skill (D:/Pet/brain/tools/tgsend) reads — one login serves every project. CRs in
+  `.env` values are stripped.

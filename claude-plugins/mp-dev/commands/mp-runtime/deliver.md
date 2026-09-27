@@ -10,8 +10,11 @@ Ship the just-built artifact to your own Telegram (Saved Messages by default) vi
 1. Get `api_id` + `api_hash` at https://my.telegram.org → "API development tools".
 2. Mint a session string: `bash ${CLAUDE_PLUGIN_ROOT}/scripts/mp-deliver-telegram.sh --login`
    (prompts for phone → login code → 2FA password if set; prints a `StringSession`).
-3. Put the three secrets in a **gitignored** `.env` at the repo root (or CI secrets / env):
-   `TG_API_ID=…`, `TG_API_HASH=…`, `TG_SESSION=…`, optional `TG_TARGET=me` (default).
+3. Put the three secrets in the machine-wide shared config
+   `${TGSEND_HOME:-~/.config/tgsend}/config.env` (one setup for every project; the same file the
+   global `tgsend` skill reads), or per project in a **gitignored** repo-root `.env` / CI secrets /
+   env: `TG_API_ID=…`, `TG_API_HASH=…`, `TG_SESSION=…`, optional `TG_TARGET=me` (default).
+   Precedence: env → repo `.env` → shared config.
    The session string is equivalent to a login — keep it secret, never commit it.
 
 Requires `python3` + the `telethon` package (`python3 -m pip install telethon`).
@@ -31,8 +34,9 @@ On `{"ok":false,...}` relay `error` verbatim and, when it mentions `TG_SESSION`/
 **Offer after a ship (epic-scoped, requires config).** Offer a delivery on the SAME timing as the
 post-ship feedback question (see Post-ship → **Epic-scoped timing**), but run it BEFORE the feedback question — the user should have the app in hand before rating it: once when an epic **completes**
 (its last SPEC shipped), or once when a **standalone** SPEC ships — never after a non-final slice of a
-multi-SPEC epic. Only when Telegram delivery is configured (a `.env`/env at the repo root has
-`TG_API_ID`). Ask EXACTLY ONCE (Claude → `AskUserQuestion`; Codex → in chat) in the project's configured UI language:
+multi-SPEC epic. Only when Telegram delivery is configured (`TG_API_ID` is set in the env, the
+repo-root `.env`, or `${TGSEND_HOME:-~/.config/tgsend}/config.env` — check for the key only,
+never print its value). Ask EXACTLY ONCE (Claude → `AskUserQuestion`; Codex → in chat) in the project's configured UI language:
 "Send the build to your Telegram now? (y/N)".
 
 On **y**, first **build a fresh artifact** so the delivery includes the shipped changes, *then* send:

@@ -8,7 +8,9 @@
 # Cross-platform Bash. The MTProto call itself is delegated to python3 + the `telethon` package
 # (there is no portable bash MTProto client); python3 is an external dependency like adb/gradle.
 #
-# Secrets are read from the environment (or a repo-root `.env`, TG_* keys only — never executed):
+# Secrets are read from the environment, then a repo-root `.env`, then the machine-wide shared
+# config `${TGSEND_HOME:-~/.config/tgsend}/config.env` (the same file the global `tgsend` skill
+# uses, so one login serves every project). TG_* keys only — files are never executed:
 #   TG_API_ID    — from https://my.telegram.org → "API development tools"   (required)
 #   TG_API_HASH  — from the same page                                        (required)
 #   TG_SESSION   — a Telethon StringSession (mint once with `--login`)       (required to send)
@@ -37,7 +39,7 @@ while [ $# -gt 0 ]; do
     --login)     MODE="login" ;;
     --caption)   CAPTION="${2-}"; shift ;;
     --target)    TARGET_ARG="${2-}"; shift ;;
-    -h|--help)   sed -n '2,33p' "$0"; exit 0 ;;
+    -h|--help)   sed -n '2,29p' "$0"; exit 0 ;;
     --*)         fail "unknown arg: $1" ;;
     *)           [ -z "$ARTIFACT" ] && ARTIFACT="$1" || fail "unexpected arg: $1" ;;
   esac
@@ -50,21 +52,24 @@ for c in python3 python; do command -v "$c" >/dev/null 2>&1 && { PYBIN="$c"; bre
 [ -n "$PYBIN" ] || fail "python3 not found (needed for the Telethon MTProto client)"
 "$PYBIN" -c 'import telethon' 2>/dev/null || fail "python package 'telethon' not installed — run: $PYBIN -m pip install telethon"
 
-# ----- load TG_* from .env (repo root) if not already in the environment --
+# ----- load TG_* not already in the environment: repo .env, then shared config --
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 ENV_FILE="$REPO_ROOT/.env"
+SHARED_ENV_FILE="${TGSEND_HOME:-$HOME/.config/tgsend}/config.env"
 load_env_var() {
-  name="$1"; eval "cur=\${$name:-}"
-  if [ -z "$cur" ] && [ -f "$ENV_FILE" ]; then
-    val="$(grep -E "^[[:space:]]*${name}=" "$ENV_FILE" 2>/dev/null | head -1 \
+  name="$1"; file="$2"; eval "cur=\${$name:-}"
+  if [ -z "$cur" ] && [ -f "$file" ]; then
+    val="$(grep -E "^[[:space:]]*${name}=" "$file" 2>/dev/null | head -1 | tr -d '\r' \
            | sed -E "s/^[[:space:]]*${name}=//; s/^[\"']//; s/[\"']\$//")"
     [ -n "$val" ] && export "$name=$val"
   fi
 }
-for v in TG_API_ID TG_API_HASH TG_SESSION TG_TARGET; do load_env_var "$v"; done
+for f in "$ENV_FILE" "$SHARED_ENV_FILE"; do
+  for v in TG_API_ID TG_API_HASH TG_SESSION TG_TARGET; do load_env_var "$v" "$f"; done
+done
 
-[ -n "${TG_API_ID:-}" ]   || fail "TG_API_ID not set (get it at https://my.telegram.org)"
-[ -n "${TG_API_HASH:-}" ] || fail "TG_API_HASH not set (get it at https://my.telegram.org)"
+[ -n "${TG_API_ID:-}" ]   || fail "TG_API_ID not set (env, $ENV_FILE or $SHARED_ENV_FILE; get it at https://my.telegram.org)"
+[ -n "${TG_API_HASH:-}" ] || fail "TG_API_HASH not set (env, $ENV_FILE or $SHARED_ENV_FILE; get it at https://my.telegram.org)"
 
 # ----- embed the Telethon helper (written to a temp file, then run) -------
 PYFILE="$(mktemp)"; trap 'rm -f "$PYFILE"' EXIT
@@ -84,7 +89,8 @@ if mode == "login":
     sys.stderr.write(
         "\n=== Telegram StringSession (store as TG_SESSION; keep it secret) ===\n"
         + s + "\n===================================================================\n"
-        "Add to your .env (gitignored) or CI secrets:\n  TG_SESSION=" + s + "\n\n")
+        "Add to ~/.config/tgsend/config.env (all projects), your repo .env (gitignored)\n"
+        "or CI secrets:\n  TG_SESSION=" + s + "\n\n")
     print(json.dumps({"ok": True, "mode": "login"}))
     sys.exit(0)
 
@@ -135,10 +141,13 @@ fi
 if [ -z "$ARTIFACT" ]; then
   # newest app *.apk under any */build/outputs/*, excluding instrumentation test APKs
   # (androidTest APKs are newer than the app APK when connectedAndroidTest ran last)
-  ARTIFACT="$(find "$REPO_ROOT" -type f -name '*.apk' 2>/dev/null \
-              | grep '/build/outputs/' \
-              | grep -v -i 'androidTest\|/androidTest/' \
-              | tr '\n' '\0' | xargs -0 ls -t 2>/dev/null | head -1)"
+  APKS="$(find "$REPO_ROOT" -type f -name '*.apk' 2>/dev/null \
+          | grep '/build/outputs/' \
+          | grep -v -i 'androidTest\|/androidTest/')"
+  # Guard: with empty input `xargs ls -t` lists the CWD and would pick a random newest file.
+  if [ -n "$APKS" ]; then
+    ARTIFACT="$(printf '%s\n' "$APKS" | tr '\n' '\0' | xargs -0 ls -t 2>/dev/null | head -1)"
+  fi
   [ -n "$ARTIFACT" ] || fail "no artifact given and no app *.apk found under */build/outputs/ — pass a path"
 fi
 [ -f "$ARTIFACT" ] || fail "artifact not found: $ARTIFACT"

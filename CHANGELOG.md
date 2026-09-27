@@ -6,6 +6,21 @@ This repo uses [Semantic Versioning](https://semver.org/) â€” see `README.md` â†
 
 ## [Unreleased]
 
+## [1.18.0] - 2026-09-27
+
+### Added
+- **Telegram delivery reads a machine-wide shared config.** `mp-deliver-telegram.sh` now looks
+  up `TG_*` in the environment, then the repo-root `.env`, then
+  `${TGSEND_HOME:-~/.config/tgsend}/config.env` - the file the global `tgsend` skill uses - so one
+  setup serves every project and the login-equivalent `TG_SESSION` no longer has to be copied into
+  each repo. The post-ship delivery offer counts that file as "configured". CR characters in
+  `.env` values are stripped.
+
+### Fixed
+- **No-APK auto-pick no longer sends a random file.** When no app APK exists under
+  `*/build/outputs/`, `mp-deliver-telegram.sh` now fails with its "no artifact" error; previously
+  `xargs ls -t` on empty input listed the working directory and sent its newest file.
+
 ## [1.17.2] - 2026-08-29
 
 ### Fixed
