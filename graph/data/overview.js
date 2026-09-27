@@ -6,7 +6,7 @@ window.MP_GRAPH_REGISTER({
   "id": "overview",
   "tab": "Обзор",
   "title": "Как всё устроено",
-  "pipelineVersion": "1.17.2",
+  "pipelineVersion": "1.18.1",
 
   "example": {
     "title": "Сквозной пример: «Избранное» в приложении рецептов",

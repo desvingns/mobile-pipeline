@@ -606,7 +606,13 @@ fi
 
 if [ "$DRY" = 0 ]; then
   build_stamp="$(date -u +%Y%m%dT%H%M%SZ)-$$"
-  ARCHIVE_DIR="$ROOT/archive/marketplace/$build_stamp"
+  if [ -n "${PET_ARCHIVE_ROOT:-}" ]; then
+    ARCHIVE_DIR="$PET_ARCHIVE_ROOT/mobile-pipeline/$(date -u +%Y-%m-%d)/marketplace/$build_stamp"
+    mkdir -p "$PET_ARCHIVE_ROOT"
+    printf '\n- %s mobile-pipeline marketplace regeneration: `%s`\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$ARCHIVE_DIR" >> "$PET_ARCHIVE_ROOT/INDEX.md"
+  else
+    ARCHIVE_DIR="$ROOT/archive/marketplace/$build_stamp"
+  fi
   WORK="$ARCHIVE_DIR/work"
   mkdir -p "$WORK"
   for generated in \

@@ -6,6 +6,15 @@ This repo uses [Semantic Versioning](https://semver.org/) â€” see `README.md` â†
 
 ## [Unreleased]
 
+## [1.18.1] - 2026-09-27
+
+### Security
+- Proposal publication stages explicit template, generated-plugin and lifecycle paths, rejects
+  unrelated pre-existing changes and patches outside `templates/`, and excludes secret file types.
+- GitHub tokens are supplied by a host-bound credential helper, never in command URLs. Push URL
+  overrides and redirects cannot send the token to another host.
+- `.env.*` files are ignored, except the public `.env.example` template.
+
 ## [1.18.0] - 2026-09-27
 
 ### Added

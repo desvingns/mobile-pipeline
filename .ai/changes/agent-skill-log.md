@@ -734,3 +734,11 @@ summary: when no app APK exists under */build/outputs/, fail instead of sending 
 reason: with empty input `xargs -0 ls -t` runs a bare `ls -t`, so the auto-pick returned the newest CWD entry (observed: brain INDEX.md was sent to Saved Messages from a repo with no APK)
 affects: claude, codex
 by: mp-improve
+
+## 2026-09-27T14:30-proposal-security
+type: fix
+target: templates/common/scripts/{{PREFIX}}-proposal-security.sh
+summary: Bound proposal staging and GitHub credentials to explicit paths and the GitHub HTTPS host.
+reason: Security review reproduced unrelated-secret commits and credential forwarding to arbitrary origins.
+affects: claude, codex
+by: codex

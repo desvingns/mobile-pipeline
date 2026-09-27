@@ -1,9 +1,18 @@
 # Handoff
 
-Last session: Codex · 2026-09-23 · larger typography and three visual themes.
+Last session: Codex · 2026-09-27 · publication security hardening.
 Previous uncommitted handoff preserved at `archive/handoff-2026-09-04-graph.md`.
 
 ## DONE
+
+- Released 1.18.1 security hardening: explicit proposal staging, template-only patch boundaries,
+  secret file exclusions, host-bound GitHub credential helper and checked push URL/redirects.
+- Regenerated both plugin adapters and hotfixed only the installed Codex 1.17.2 proposal helpers.
+  Original installed files and marketplace trees are preserved in D:/Pet/archive.
+- Canonical/installed/generated regression tests, queue lifecycle, bootstrap, GitHub contract,
+  ShellCheck, runtime, graph and exact canonical-to-adapter comparison PASS.
+- Existing user edits in AGENTS.md, README.md, ARCHITECTURE and two showcase scenes were preserved
+  and are excluded from the security commit.
 
 - Visual follow-up: replaced the small-text styling with 17–19 px story copy,
   larger role cards, a dimensional team illustration, a larger phone and explicit

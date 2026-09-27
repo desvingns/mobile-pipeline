@@ -7,7 +7,7 @@ window.MP_GRAPH_REGISTER({
   "id": "mp-spec",
   "tab": "/mp-spec",
   "title": "/mp-spec — сборка спеки",
-  "pipelineVersion": "1.17.2",
+  "pipelineVersion": "1.18.1",
 
   "example": {
     "title": "Сквозной пример: «Избранное» в приложении рецептов",

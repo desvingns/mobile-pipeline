@@ -47,3 +47,6 @@ selfimprove/runs/*.jsonl
 
 # Obsidian vault UI state (per-user, churns on every open) — keep local, do not track
 .obsidian/
+
+.env.*
+!.env.example

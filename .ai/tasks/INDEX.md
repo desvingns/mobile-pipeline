@@ -16,6 +16,7 @@ None.
 
 ## COMPLETE / HISTORICAL
 
+- `codex-006-security-publication.md` — scoped publication and GitHub credential hardening (1.18.1).
 - `codex-005-graph-visual.md` — larger type, dimensional visuals and persistent dark/light/paper themes.
 - `codex-004-graph-demo.md` — four audience levels, narrated HyperFrames film and graph regression checks.
 - `codex-003-github-chain-reliability.md` — repaired standard GitHub push and Codex chain hand-off.
@@ -23,4 +24,4 @@ None.
   and CI optimization release (`1.12.0`).
 - `claude-002-spec-integration.md`, `claude-003-marketplace.md`, `claude-005-grill-me.md`.
 
-Last reconciled: 2026-09-23 by codex.
+Last reconciled: 2026-09-27 by codex.

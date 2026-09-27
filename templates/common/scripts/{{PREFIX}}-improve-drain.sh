@@ -10,6 +10,9 @@
 #   {{PREFIX}}-improve-drain.sh <mp_repo> --reject <slug> --reason <text>
 #   {{PREFIX}}-improve-drain.sh <mp_repo> --archive-applied <slug> --reason <text>
 set -uo pipefail
+# shellcheck source=templates/common/scripts/{{PREFIX}}-proposal-security.sh
+. "$(dirname "${BASH_SOURCE[0]}")/{{PREFIX}}-proposal-security.sh"
+PROPOSAL_PATHS=()
 MP="${1:-}"
 emit() { printf '%s\n' "$1"; exit 0; }
 esc() { printf '%s' "$1" | tr -d '\r\n' | sed 's/\\/\\\\/g; s/"/\\"/g'; }
@@ -47,6 +50,7 @@ archive_one() {
 }
 
 if [ "$mode" != drain ]; then
+  [[ "$lifecycle_slug" =~ ^[a-z0-9][a-z0-9-]*$ ]] || emit '{"ok":false,"error":"invalid proposal slug"}'
   [ -n "$lifecycle_slug" ] || emit '{"ok":false,"error":"proposal slug is required"}'
   [ -n "$lifecycle_reason" ] || emit '{"ok":false,"error":"--reason is required"}'
   lifecycle_stamp="$(date -u +%Y%m%d-%H%M%S)"
@@ -58,7 +62,7 @@ shopt -s nullglob
 patches=( "$PROP"/*.patch )
 [ "${#patches[@]}" -gt 0 ] || emit '{"ok":true,"drained":0,"note":"no queued proposals in .ai/proposals/"}'
 
-[ -z "$(git status --porcelain 2>/dev/null)" ] \
+proposal_clean_worktree \
   || emit '{"ok":false,"error":"mobile-pipeline worktree must be clean before draining proposals"}'
 
 BASE=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null | sed 's#^origin/##')
@@ -68,6 +72,7 @@ BR="improve/batch-$STAMP"
 
 # pre-check every patch applies against current templates/ before touching anything
 for p in "${patches[@]}"; do
+  proposal_patch_paths "$p" || emit '{"ok":false,"error":"patch may only modify non-secret files under templates/"}'
   git apply --check "$p" 2>/dev/null || emit "{\"ok\":false,\"error\":\"patch does not apply cleanly: $p — rebase the queue\"}"
 done
 
@@ -102,19 +107,19 @@ fi
 for p in "${patches[@]}"; do
   slug="$(basename "$p" .patch)"
   archive_one "$slug" applied "included in batch branch $BR" "$STAMP"
+  for ext in patch changelog md meta; do
+    [ ! -f "$ARCHIVE_DEST/$slug.$ext" ] || PROPOSAL_PATHS+=("$PROP/$slug.$ext" "$ARCHIVE_DEST/$slug.$ext")
+  done
+  PROPOSAL_PATHS+=("$ARCHIVE_DEST/$slug.lifecycle.json")
 done
 
-git add -A
+proposal_stage || emit '{"ok":false,"error":"proposal staging failed; no unrelated files were staged"}'
 git commit -q -m "improve(batch): $STAMP — $n queued proposal(s)" -m "$body" \
   -m "Co-Authored-By: Claude <noreply@anthropic.com>" 2>/dev/null \
   || emit '{"ok":false,"error":"nothing to commit (patches produced no change?)"}'
 
 PUSHED=false
-RP=$(git remote get-url origin 2>/dev/null | sed -e 's#^https://[^/]*@#https://#' -e 's#^https://##')
-if [ -n "${GITHUB_TOKEN:-}" ] && [ -n "$RP" ]; then
-  git push "https://x-access-token:${GITHUB_TOKEN}@${RP}" "HEAD:refs/heads/$BR" >/dev/null 2>&1 && PUSHED=true
-fi
-[ "$PUSHED" = true ] || { git push -u origin "$BR" >/dev/null 2>&1 && PUSHED=true; }
+proposal_push "$BR" >/dev/null 2>&1 && PUSHED=true
 
 PR_URL=""
 if [ "$PUSHED" = true ] && command -v gh >/dev/null 2>&1; then

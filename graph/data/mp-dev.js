@@ -7,7 +7,7 @@ window.MP_GRAPH_REGISTER({
   "id": "mp-dev",
   "tab": "/mp",
   "title": "/mp — конвейер разработки",
-  "pipelineVersion": "1.17.2",
+  "pipelineVersion": "1.18.1",
 
   "example": {
     "title": "Сквозной пример: «Избранное» в приложении рецептов",
@@ -1387,6 +1387,7 @@ window.MP_GRAPH_REGISTER({
       "title": "Открыть PR с патчем",
       "tech": "{{PREFIX}}-propose-improvement.sh",
       "src": "templates/common/scripts/{{PREFIX}}-propose-improvement.sh",
+      "also": ["templates/common/scripts/{{PREFIX}}-proposal-security.sh"],
       "ports": {
         "in": [{ "id": "patch", "label": "патч + журнал" }],
         "out": [{ "id": "pr", "label": "ссылка на PR" }]

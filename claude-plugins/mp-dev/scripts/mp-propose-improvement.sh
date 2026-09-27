@@ -6,11 +6,18 @@
 #
 # Usage: mp-propose-improvement.sh <mp_repo> <slug> <patch_file_rel> <changelog_file_rel>
 set -uo pipefail
+# shellcheck source=templates/common/scripts/mp-proposal-security.sh
+. "$(dirname "${BASH_SOURCE[0]}")/mp-proposal-security.sh"
+PROPOSAL_PATHS=()
 MP="${1:-}"; SLUG="${2:-}"; PATCH_REL="${3:-}"; CL_REL="${4:-}"
 emit() { printf '%s\n' "$1"; exit 0; }
 [ -n "$MP" ] && [ -n "$SLUG" ] && [ -n "$PATCH_REL" ] || emit '{"ok":false,"error":"usage: <mp_repo> <slug> <patch_rel> <changelog_rel>"}'
 [ -d "$MP/.git" ] || emit "{\"ok\":false,\"error\":\"not a git repo: $MP\"}"
 cd "$MP" || emit '{"ok":false,"error":"cd failed"}'
+[[ "$SLUG" =~ ^[a-z0-9][a-z0-9-]*$ ]] || emit '{"ok":false,"error":"invalid proposal slug"}'
+[ "$PATCH_REL" = ".ai/proposals/$SLUG.patch" ] && [ "$CL_REL" = ".ai/proposals/$SLUG.changelog" ] || emit '{"ok":false,"error":"proposal paths must match the queued slug"}'
+proposal_clean_worktree || emit '{"ok":false,"error":"worktree has unrelated changes or staged files"}'
+proposal_patch_paths "$PATCH_REL" || emit '{"ok":false,"error":"patch may only modify non-secret files under templates/"}'
 [ -f "$PATCH_REL" ] || emit "{\"ok\":false,\"error\":\"patch not found: $PATCH_REL\"}"
 
 # base = remote default branch, else current
@@ -29,19 +36,17 @@ if [ -f "$CL_REL" ] && [ -f .ai/changes/agent-skill-log.md ]; then
 fi
 
 # regenerate the committed plugin trees from the edited templates/
-[ -x lib/build-marketplace.sh ] && ./lib/build-marketplace.sh >/dev/null 2>&1
+if [ -x lib/build-marketplace.sh ] && ! ./lib/build-marketplace.sh >/dev/null 2>&1; then
+  emit '{"ok":false,"error":"marketplace regeneration failed; proposal remains queued"}'
+fi
 
-git add -A
+proposal_stage || emit '{"ok":false,"error":"proposal staging failed; no unrelated files were staged"}'
 git commit -q -m "improve: $SLUG" -m "Improvement proposed from a downstream /mp --improve session; templates/ edited + plugin trees regenerated." -m "Co-Authored-By: Claude <noreply@anthropic.com>" 2>/dev/null \
   || emit '{"ok":false,"error":"nothing to commit (patch produced no change?)"}'
 
 # push: prefer GITHUB_TOKEN URL (non-interactive), else plain origin
 PUSHED=false
-RP=$(git remote get-url origin 2>/dev/null | sed -e 's#^https://[^/]*@#https://#' -e 's#^https://##')
-if [ -n "${GITHUB_TOKEN:-}" ] && [ -n "$RP" ]; then
-  git push "https://x-access-token:${GITHUB_TOKEN}@${RP}" "HEAD:refs/heads/$BR" >/dev/null 2>&1 && PUSHED=true
-fi
-[ "$PUSHED" = true ] || git push -u origin "$BR" >/dev/null 2>&1 && PUSHED=true
+proposal_push "$BR" >/dev/null 2>&1 && PUSHED=true
 
 # open PR via gh if available
 PR_URL=""
