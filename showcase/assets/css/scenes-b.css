@@ -47,3 +47,19 @@
   #proverki .stage { border-radius: 20px; box-shadow: var(--shadow-hard); }
   #chertyozh .stage { background-size: 64px 64px, 64px 64px, 16px 16px, 16px 16px; }
 }
+/* chertyozh on phones held sideways, 760–1023px wide: the scene keeps its square phone composition there (its PB.scene
+ * phone query), so the stage stays square too — as tall as the screen allows — and the step text takes the rest */
+@media (orientation: landscape) and (max-height: 520px) and (pointer: coarse) and (min-width: 760px) and (max-width: 1023px) {
+  #chertyozh .steps-layout { grid-template-columns: minmax(0, calc(100svh - var(--header-h) - 22px)) minmax(0, 1fr); }
+  #chertyozh .stage--steps { aspect-ratio: 1 / 1; width: 100%; }
+}
+/* sborka likewise (sborka.js passes the same phone query): the 16:10 crop's 19-unit labels would render at ~11px here */
+@media (orientation: landscape) and (max-height: 520px) and (pointer: coarse) and (min-width: 760px) and (max-width: 1023px) {
+  #sborka .steps-layout { grid-template-columns: minmax(0, calc(100svh - var(--header-h) - 22px)) minmax(0, 1fr); }
+  #sborka .stage--steps { aspect-ratio: 1 / 1; width: 100%; }
+}
+/* proverki likewise (proverki.js passes the same phone query): its 16:10 crop's 19-unit labels render at ~11px here */
+@media (orientation: landscape) and (max-height: 520px) and (pointer: coarse) and (min-width: 760px) and (max-width: 1023px) {
+  #proverki .steps-layout { grid-template-columns: minmax(0, calc(100svh - var(--header-h) - 22px)) minmax(0, 1fr); }
+  #proverki .stage--steps { aspect-ratio: 1 / 1; width: 100%; }
+}

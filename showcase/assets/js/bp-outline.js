@@ -8,25 +8,33 @@
   var E = window.BPE;
   if (!E) return;
   var esc = E.esc, h = E.h;
-  var ol = { built: false, box: null, root: null };
-  var mqNarrow = window.matchMedia ? window.matchMedia('(max-width: 760px)') : { matches: false };
+  var ol = { built: false, box: null, root: null, userChose: false };
+  // phones, also held sideways (bp-core); re-checked on rotation until the reader picks a view
+  var mqNarrow = E.mqSmall || (window.matchMedia ? window.matchMedia('(max-width: 760px)') : { matches: false });
 
   E.on('mount', function (root) {
     ol.root = root;
     ol.box = root.querySelector('.bp-outline');
     var v = root.querySelector('.bp-tb-view');
+    // the labels hide at ≤1100px: aria-label keeps the names for screen readers
     v.innerHTML = '<div class="bp-seg bp-viewseg" role="group" aria-label="Вид схемы">' +
-      '<button type="button" class="bp-btn" data-v="graph" aria-pressed="true">' + E.icon('nodes') + '<span class="bp-lbl">Граф</span></button>' +
-      '<button type="button" class="bp-btn" data-v="list" aria-pressed="false">' + E.icon('list') + '<span class="bp-lbl">Список</span></button></div>';
+      '<button type="button" class="bp-btn" data-v="graph" aria-pressed="true" aria-label="Граф">' + E.icon('nodes') + '<span class="bp-lbl">Граф</span></button>' +
+      '<button type="button" class="bp-btn" data-v="list" aria-pressed="false" aria-label="Список">' + E.icon('list') + '<span class="bp-lbl">Список</span></button></div>';
     v.addEventListener('click', function (e) { var b = e.target.closest('[data-v]'); if (b) E.setView(b.getAttribute('data-v'), { user: true }); });
     ol.box.addEventListener('click', onClick);
     ol.box.addEventListener('toggle', onToggle, true);
     if (mqNarrow.matches) E.setView('list');
+    function onMq() {
+      var note = ol.box.querySelector('.bp-ol-note'); if (note) note.hidden = !mqNarrow.matches;
+      if (!ol.userChose && (E.state.view === 'list') !== mqNarrow.matches) E.setView(mqNarrow.matches ? 'list' : 'graph');
+    }
+    if (mqNarrow.addEventListener) mqNarrow.addEventListener('change', onMq); else if (mqNarrow.addListener) mqNarrow.addListener(onMq);
   });
 
   E.setView = function (v, o) {
     o = o || {};
     var root = ol.root; if (!root) return;
+    if (o.user) ol.userChose = true;
     E.state.view = v === 'list' ? 'list' : 'graph';
     root.classList.toggle('view-list', E.state.view === 'list');
     Array.prototype.forEach.call(root.querySelectorAll('.bp-viewseg [data-v]'), function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-v') === E.state.view)); });
@@ -47,6 +55,8 @@
       if (o.user) { var hd = ol.box.querySelector('.bp-ol-top h2'); if (hd) hd.focus({ preventScroll: true }); }
     } else {
       E.measure(); E.requestApply();
+      // a node picked in the list was framed on a hidden canvas: the sheet or drawer may cover it now
+      if (E.keepSel) E.keepSel();
       if (o.user) try { E.canvas.focus({ preventScroll: true }); } catch (x) {}
     }
     E.emit('view', E.state.view);
@@ -89,7 +99,7 @@
   function build() {
     var D = E.D, s = '';
     s += '<div class="bp-ol-top">' +
-      (mqNarrow.matches ? '<div class="bp-ol-note"><p>На маленьком экране схема показана списком: те же ноды, в порядке выполнения.</p><button type="button" class="bp-btn bp-btn--primary" data-v="graph">' + E.icon('nodes') + 'Открыть граф всё равно</button></div>' : '') +
+      '<div class="bp-ol-note"' + (mqNarrow.matches ? '' : ' hidden') + '><p>На маленьком экране схема показана списком: те же ноды, в порядке выполнения.</p><button type="button" class="bp-btn bp-btn--primary" data-v="graph">' + E.icon('nodes') + 'Открыть граф всё равно</button></div>' +
       '<h2 tabindex="-1">Схема списком</h2><p class="bp-ol-lead">Каждый граф — по этапам, шаги в порядке выполнения. Раскройте пункт, чтобы увидеть детали: исполнитель, входы и выходы, исходники.</p>' +
       '<nav class="bp-ol-toc" aria-label="Графы">' + D.order.map(function (G) { return '<a href="#bp-ol-' + esc(G.id) + '" data-toc="' + esc(G.id) + '">' + esc(G.tab) + '<small>' + G.nodes.length + '</small></a>'; }).join('') + '</nav></div>';
     D.order.forEach(function (G) {
@@ -195,9 +205,10 @@
     if (sec && !G.sel) try { sec.scrollIntoView({ block: 'start' }); } catch (x) {}
   });
   /* keep the list in sync with deep links */
-  E.on('select', function (G, N) {
+  E.on('select', function (G, N, opts) {
     if (E.state.view !== 'list' || !N || !ol.built) return;
     var it = itemFor(G.id, N.id);
-    if (it) { openItem(it, false); try { it.scrollIntoView({ block: 'start' }); } catch (x) {} }
+    // a search pick asks for focus: it lands on the opened item's summary
+    if (it) { openItem(it, !!(opts && opts.focus)); try { it.scrollIntoView({ block: 'start' }); } catch (x) {} }
   });
 })();

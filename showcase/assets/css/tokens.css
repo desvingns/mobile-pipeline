@@ -37,12 +37,14 @@
   --radius-btn: 18px;
 
   --header-h: 72px;
-  --gutter: clamp(16px, 4vw, 56px);
+  /* the side gutters also clear the notch / rounded corners of a phone held sideways (viewport-fit=cover) */
+  --gutter: max(clamp(16px, 4vw, 56px), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
   --maxw: 1320px;
 
   --ease-pop: cubic-bezier(.34, 1.8, .64, 1);
   --ease-out: cubic-bezier(.22, 1, .36, 1);
 }
-@media (max-width: 760px) {
-  :root { --header-h: 64px; }
+/* phones (and phones held sideways, where every pixel of height counts): a slimmer header */
+@media (max-width: 760px), (orientation: landscape) and (max-height: 520px) and (pointer: coarse) {
+  :root { --header-h: 56px; }
 }

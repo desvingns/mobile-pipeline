@@ -42,7 +42,40 @@ Other helpers: `MP.$`, `MP.$$`, `MP.html(str)`, `MP.svg(inner, viewBox, cls)`, `
 `MP.watch(el, fn)`, `MP.lazy(el, fn)`, `MP.live(text)`, `MP.isCalm()`, `MP.prosto.jumpTo(id)`,
 CustomEase names `mp.pop`, `mp.stamp`, `mp.travel` (registered in prosto.js).
 Sticky steps (`chertyozh`, `sborka`, `proverki`) use CSS sticky `.stage-sticky` + `api.steps` — no GSAP pin.
-The only allowed GSAP `pin`+`scrub` is `konveyer` at ≥1024px (`api.wide`).
+The only allowed GSAP `pin`+`scrub` is `konveyer` in the desk band (see Responsive bands below).
+
+### Responsive bands (phones and tablets; added 2026-09-28)
+Layouts switch on width **and** on orientation/height. The query strings are repeated verbatim in CSS and in the scenes' JS
+(`gsap.matchMedia` / `matchMedia`) — keep them byte-identical when you touch one:
+
+| band | query | used for |
+|---|---|---|
+| phone | `(max-width: 759px)` | portrait phone compositions (tall/square viewBoxes), 4:5 stages |
+| tab | `(max-width: 1023px), (orientation: portrait) and (max-width: 1199px)` | one-column layouts, sticky «stage band» |
+| desk | `(min-width: 1024px) and (orientation: landscape), (min-width: 1200px)` | two-column desktop layouts, konveyer pin+scrub |
+| short | `(orientation: landscape) and (max-height: 520px) and (pointer: coarse)` (+ `min-width: 560px` in CSS) | phones held sideways: side-by-side, every stage capped by the height, 56px header |
+| touch tablet | `(min-width: 1024px) and (orientation: landscape) and (min-height: 521px) and (hover: none)` | bigger centred sticky stage, height-based section padding |
+
+`api.wide` is still `(min-width: 1024px)` (width only); scenes whose layout must follow the tab/desk split use their own
+nested `gsap.matchMedia` with the strings above. Never key a `matchMedia().add()` condition as `all` — GSAP never records
+that key and would revert + re-run the context on every media-query change of the page; use `any: '(min-width: 0px)'`.
+
+Shared contracts added for the bands:
+- **Stage band** (prosto.css, tab band): `.stage-sticky` is a full-width band of the section colour stuck under the header,
+  the step text is read in the window below it. Stage: 16:10 at 760–1023, 4:3 at 1024–1199 portrait, square on phones
+  (`MP.pb.PHONE_BOX` = 480×480 compositions, labels ≥ 20 units).
+- **Active step** (core.js): `MP.stepAt(section)` — side by side the step crossing the 62% line (`MP.stepLine`), in the band
+  the step whose text is the most readable below the band (`MP.stepBand`, `MP.bandBottom`). `api.steps` and `MP.pb.drive`
+  both use it.
+- **PB.scene** (chertyozh.js): registers a package-B scene with a nested `gsap.matchMedia` on its `o.phone` query (phone +
+  short band), rebuilding markup + timeline when it flips.
+- **Reading place** (prosto.js): kept across rotations/relayouts (section fraction, or the active step inside sticky
+  sections), re-applied after every ScrollTrigger refresh for ~1.6 s; height-only resizes (iOS toolbar) are ignored.
+- **Refreshes** while the reader may be scrolling use `ScrollTrigger.refresh(true)` (waits for the end of a touch fling).
+- **Hover** effects live inside `@media (hover: hover)` (they stick after a tap on touch screens); tap targets ≥ 44px.
+- Scenes with a third composition for the short band: konveyer (SHORT 16:7 once-play belt), ideya (SHORT), glavnyi and
+  pamyat (`land`), zapusk (`short`/`short-mid`, controls beside the stage); zapusk on phones pans a 720×1280 zigzag
+  through a 4:5 window (`.zp-cam`).
 
 ### Illustration API (chars.js — built by the illustration package, used by all scenes)
 ```js
@@ -93,7 +126,8 @@ lazily creates a fixed full-viewport canvas, own tiny physics ~2.5 s, removes it
    the letters P-I-P-E-L-I-N-E flow through as droplets; 30–50% pipe flattens into a belt (MorphSVG or crossfade);
    50–65% four characters drop onto 4 stations «Придумать · Собрать · Проверить · Выдать»; 65–100% a plain box
    rides the belt, at each station a lamp turns mint and the box gains a part (becomes a phone at the end).
-   <1024px: no pin; a toggle-once 4 s timeline. Calm: static 4-station belt with arrows. (The .station-list
+   Outside the desk band: no pin; a toggle-once 4 s timeline (TALL serpentine on portrait tablets/phones, SHORT belt on
+   phones held sideways). Calm: static 4-station belt with arrows. (The .station-list
    under the stage stays as text.)
 3. **ideya** (mint): windowsill with 3 potted plants with faces (фикус, кактус, **фиалка sad/drooping**).
    Toggle-once at top 65%: фиалка wilts further; a speech bubble "types" the phrase (chars revealed with stagger);
@@ -153,7 +187,8 @@ lazily creates a fixed full-viewport canvas, own tiny physics ~2.5 s, removes it
    running in sync: 49 → 7×7 grid of tiny faces popping; 23 → 23 lamps lighting; 18 → a fan of sheets; 4 → 4
    lemon lamps; 1 → a wrench; 25 → 25 calendar dots filling. Calm: final numbers, static visuals.
 11. **zapusk** (ink «night shift»): the full simulation. Diorama (desktop 16:9 viewBox 1600×900 serpentine belt
-   in 3 rows; <760px a vertical zigzag viewBox 720×1280 — rebuild by api.wide/matchMedia) with all stations and
+   in 3 rows; <760px a vertical zigzag viewBox 720×1280 seen through a 4:5 window that pans with the order; short-landscape
+   and tablet folds rebuild through the scene's own matchMedia listeners) with all stations and
    characters. One master `gsap.timeline({paused:true})` with labels; `[data-action=sim-play]` plays/pauses
    (label text «Запустить конвейер» ↔ «Пауза», icon swap), `[data-action=sim-reset]` rewinds, status
    `.sim-status` updated via tl.call (also MP.live for ~8 key moments). Timeline (s): 0 Воронка «Идея попала на
@@ -191,6 +226,9 @@ Scope CSS by section id (e.g. `#chertyozh .x`). Do not restyle shared classes gl
 - Opens with zero console errors; every scene works in animated AND calm mode; tab switch away/back keeps
   positions; resize 360 ↔ 1440 works (matchMedia re-init).
 - Text never overlaps illustrations at 360, 768, 1024, 1440; nothing overflows horizontally.
+- Phones and tablets (2026-09-28): 320×568, 375×548, 393×659 (WebKit), 430×740; sideways 667×375, 844×390, 932×430;
+  tablets 768×1024, 820×1180, 1024×1366, 1024×768, 1180×820, 1366×1024 — labels in illustrations ≥ 14px on a 390px phone
+  (≥ 12px at 320 / SE), every stage fits the visible height, tap targets ≥ 44px, rotation keeps the reading place.
 - Performance: transform/opacity only; lazy build; no rAF loops when off-screen.
 - Accessibility: stages aria-hidden; all meaning in HTML text; buttons are real <button>s with visible labels;
   focus visible; live regions polite and throttled.

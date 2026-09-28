@@ -150,6 +150,16 @@
   /* ---------- state ---------- */
   function tabsOf(cast) { return MP.$$('.cast-tab', cast); }
   function current(cast) { var t = tabsOf(cast); for (var i = 0; i < t.length; i++) if (t[i].getAttribute('aria-selected') === 'true') return i; return 0; }
+  /* scroll (instantly) so el's top is back at viewport y `top`; checked again on the next frame, in case the browser's
+     own scroll anchoring moves the page after the relayout */
+  function keepAt(el, top) {
+    var fix = function () {
+      var d = el.getBoundingClientRect().top - top;
+      if (Math.abs(d) >= 0.5) window.scrollTo(window.pageXOffset, Math.round(window.pageYOffset + d));   // rounded: no drift
+    };
+    fix();
+    if (window.requestAnimationFrame) window.requestAnimationFrame(fix);
+  }
 
   /* select tab i. fx = {gsap, ctx} to animate, null = instant. Returns the new art element. */
   function select(cast, i, fx, opts) {
@@ -237,11 +247,16 @@
       e.preventDefault();
       select(cast, to, fx, { focus: true });
     });
-    /* Назад / Дальше: step through the whole cast (wraps), announce who is in the spotlight now */
+    /* Назад / Дальше: step through the whole cast (wraps), announce who is in the spotlight now.
+       The card changes height with every character (one to five lines, one or two chip rows) and the buttons sit under
+       it: keep the button row at the same screen position, so the thumb that pressed «Дальше» can press it again. */
+    var nav = MP.$('.spot-nav', spot);
     MP.$$('.spot-step', spot).forEach(function (btn) {
       api.on(btn, 'click', function () {
         var n = tabsOf(cast).length, to = (current(cast) + (btn.classList.contains('spot-step--prev') ? -1 : 1) + n) % n;
+        var was = nav.getBoundingClientRect().top;
         select(cast, to, fx);
+        keepAt(nav, was);
         var li = MP.$('.cast-card[data-char="' + tabsOf(cast)[to].getAttribute('data-char') + '"]', cast);
         api.live(MP.$('.cast-name', li).textContent + '. ' + MP.$('.cast-line', li).textContent);
       });

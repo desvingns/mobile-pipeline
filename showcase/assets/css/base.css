@@ -53,11 +53,12 @@ p { margin: 0; }
   box-shadow: var(--shadow-hard);
   transition: transform .15s ease-out, box-shadow .15s ease-out;
 }
-.btn:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0 var(--ink); }
+/* hover lifts only where a real pointer hovers: on touch screens :hover sticks after a tap */
+@media (hover: hover) { .btn:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0 var(--ink); } }
 .btn:active { transform: translate(4px, 4px); box-shadow: 2px 2px 0 var(--ink); }
 .btn--you { background: var(--lemon); }             /* lemon = the human decision */
 .btn--ghost { background: transparent; box-shadow: none; }
-.btn--ghost:hover { box-shadow: none; background: rgba(255, 246, 230, .12); }
+@media (hover: hover) { .btn--ghost:hover { box-shadow: none; background: rgba(255, 246, 230, .12); } }
 .btn--dark { background: var(--ink); color: var(--cream); border-color: var(--cream); box-shadow: 6px 6px 0 rgba(0,0,0,.35); }
 .btn[disabled] { opacity: .55; cursor: not-allowed; transform: none; }
 /* keep the lemon focus ring even though buttons carry their own hard shadow */

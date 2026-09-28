@@ -151,24 +151,56 @@ html:not(.js) .stage--sim, html:not(.js) .sim-controls { display: none; }
 .gh { margin-top: 22px; font-weight: 700; }
 .site-footer { width: min(100% - 2 * var(--gutter), var(--maxw)); margin: 56px auto 0; font-size: 16px; font-weight: 600; }
 
+/* ---------- touch targets (≥44px tall on every device) ---------- */
+.cast-link { display: inline-flex; align-items: center; min-height: 44px; align-self: flex-start; }
+.film-text summary { padding-block: 10px; }
+.gh a { display: inline-flex; align-items: center; min-height: 44px; }
+
 /* ---------- responsive ---------- */
 @media (max-width: 1023px) {
   .hero-grid, .split, .boss-grid, .memory-grid, .final-grid { grid-template-columns: 1fr; }
-  .steps-layout { grid-template-columns: 1fr; }
-  .stage-sticky { top: calc(var(--header-h) + 8px); z-index: 2; }
-  .stage--steps { aspect-ratio: 16 / 10; max-height: 42svh; margin: 0 auto; }
-  .step { min-height: 55svh; justify-content: flex-end; padding-bottom: 6vh; }
-  .step h3, .step p { background: inherit; }
   .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* also tall portrait tablets that reach the desktop width (iPad Pro 12.9: 1024×1366) — side by side, the stage would
+ * be a 520px postcard with ~800px of empty field under it */
+@media (max-width: 1023px), (orientation: portrait) and (max-width: 1199px) {
+  /* Sticky steps: the stage rides in a full-width band of the section's colour right under the header, and the step
+   * text is read in the window below it. MP.stepLine (core.js) puts the step trigger line just under the band, so a
+   * step turns active as its text comes into view; read text then slides away behind the band (never around it). */
+  .steps-layout { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .stage-sticky {
+    --band: var(--cream);
+    top: var(--header-h); z-index: 2;
+    /* 16px on top: the header's progress token hangs ~15px below the header */
+    margin: 0 calc(-1 * var(--gutter)); padding: 16px var(--gutter) 12px;
+    background: var(--band);
+  }
+  .stage-sticky::after {
+    content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 28px; pointer-events: none;
+    background: linear-gradient(var(--band), transparent);
+  }
+  .field-sky .stage-sticky { --band: var(--sky); }
+  /* as large as leaves ~290px for the text: the 4:3 desktop composition here, the 16:10 tablet crop below 1024px */
+  .stage--steps { width: min(100%, calc((100svh - var(--header-h) - 290px) * 4 / 3)); max-height: none; margin: 0 auto; }
+  /* the gap after a step is its own padding (no extra tail after the last one: an empty window under a stuck band) */
+  .steps { padding: 6px 0 0; }
+  .step { min-height: 0; justify-content: flex-start; gap: 10px; padding: 18px 0 max(16svh, 120px); }
+  .step p { max-width: 52ch; }
+}
+@media (max-width: 1023px) {
+  .stage--steps { aspect-ratio: 16 / 10; width: min(100%, calc((100svh - var(--header-h) - 290px) * 1.6)); }
 }
 /* Phones: portrait stages so SVG labels can render at a readable size (scenes switch to a tall
  * viewBox below 760px — see docs/design-prosto.md §0). */
 @media (max-width: 759px) {
-  .stage--steps { aspect-ratio: 4 / 5; max-height: 54svh; width: auto; }
   .stage--square, .stage--memory, .stage--release { aspect-ratio: 4 / 5; }
-  .stage-sticky .stage { margin: 0 auto; }
-  /* sborka/proverki pan a 720×540 camera window along the belt: keep them landscape and edge-to-edge */
-  #sborka .stage--steps, #proverki .stage--steps { aspect-ratio: 4 / 3; max-height: none; width: calc(100% + 2 * var(--gutter)); margin: 0 calc(-1 * var(--gutter)); }
+  /* sticky steps: a square stage for the 480×480 phone compositions (MP.pb.PHONE_BOX), full width but capped so
+   * ~210px of the screen stay for the step text below the band */
+  .stage-sticky { padding: 16px calc(var(--gutter) - 6px) 10px; }
+  .stage--steps { aspect-ratio: 1 / 1; width: min(100%, calc(100svh - var(--header-h) - 216px)); }
+  .step { padding-bottom: max(14svh, 96px); }
+  .step h3 { font-size: 23px; }
+  .step p { font-size: 18px; line-height: 1.45; }
 }
 @media (max-width: 560px) {
   .tiles { grid-template-columns: 1fr; }
@@ -176,4 +208,39 @@ html:not(.js) .stage--sim, html:not(.js) .sim-controls { display: none; }
   .sim-fallback { columns: 1; }
   .btn { width: 100%; }
   .ctas .btn { width: auto; flex: 1 1 100%; }
+}
+/* Touch tablets in landscape (iPad 1024–1366 wide, 690–950px visible): the desktop split gives the stage only ~520px
+ * while the screen has height to spare — a bigger stage column, the stage centred in the visible height. Mouse
+ * desktops keep their layout (hover: hover). */
+@media (min-width: 1024px) and (orientation: landscape) and (min-height: 521px) and (hover: none) {
+  .steps-layout { grid-template-columns: minmax(0, 1.3fr) minmax(0, .7fr); }
+  .stage-sticky { top: var(--header-h); height: calc(100svh - var(--header-h)); display: grid; align-content: center; }
+  .stage--steps { width: min(100%, calc((100svh - var(--header-h) - 48px) * 4 / 3)); }
+  /* the centred stage starts lower than the list: let the first step wait until most of the stage is in view */
+  .steps { padding: calc((100svh - var(--header-h)) * .15) 0 10svh; }
+  /* section padding from the height, not the width (11vw leaves 230–300px of empty field between scenes here) */
+  .scene:not(.scene--hero) { padding-block: clamp(56px, 13svh, 150px); }
+}
+/* Phones held sideways (the height, not the width, is the constraint): desktop-like side-by-side layouts, every stage
+ * capped by the viewport height. Tablets never match (their landscape height is ≥ 700px). */
+@media (orientation: landscape) and (max-height: 520px) and (pointer: coarse) and (min-width: 560px) {
+  .scene { padding: clamp(40px, 9svh, 64px) 0; }
+  .scene-head { margin-bottom: 24px; }
+  .scene-head h2 { font-size: clamp(28px, 4.4vw, 44px); }
+  .lead { font-size: clamp(18px, 2.2vw, 22px); }
+  .hero-grid, .split, .final-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .scene--hero { padding-top: 24px; padding-bottom: 32px; }
+  /* sticky steps side by side again: stage left (under the header), text right */
+  .steps-layout { grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 24px; }
+  .stage-sticky { top: calc(var(--header-h) + 10px); margin: 0; padding: 0; background: none; }
+  .stage-sticky::after { display: none; }
+  .stage--steps { width: min(100%, calc((100svh - var(--header-h) - 22px) * 1.6)); }
+  .steps { padding: 0 0 18svh; }
+  .step { min-height: 78svh; justify-content: center; padding: 0; }
+  .step h3 { font-size: 22px; }
+  .step p { font-size: 17px; max-width: 34ch; }
+}
+@media (orientation: landscape) and (max-height: 520px) and (pointer: coarse) and (min-width: 560px) and (max-width: 759px) {
+  /* small phones sideways keep the square phone compositions */
+  .stage--steps { width: min(100%, calc(100svh - var(--header-h) - 22px)); }
 }

@@ -2,11 +2,19 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Фабрика приложений — Mobile Pipeline</title>
   <meta name="description" content="Mobile Pipeline простыми словами: как команда ИИ-мастеров превращает одну фразу в приложение для телефона — и где последнее слово за вами.">
   <meta name="theme-color" content="#16123A">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <!-- link previews (iMessage, Telegram, WhatsApp): og:image must be an absolute URL -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Фабрика приложений — Mobile Pipeline">
+  <meta property="og:description" content="Mobile Pipeline простыми словами: как команда ИИ-мастеров превращает одну фразу в приложение для телефона — и где последнее слово за вами.">
+  <meta property="og:url" content="https://desvingns.github.io/mobile-pipeline/showcase/">
+  <meta property="og:image" content="https://desvingns.github.io/mobile-pipeline/showcase/media/poster.jpg">
+  <meta name="twitter:card" content="summary_large_image">
   <script>
     /* Runs before first paint: JS flag, calm preference and initial tab (no flash of the wrong tab). */
     (function (d) {
@@ -44,8 +52,8 @@
     <button class="tab" role="tab" id="tab-prosto" aria-controls="panel-prosto" aria-selected="true">Просто</button>
     <button class="tab" role="tab" id="tab-skhema" aria-controls="panel-skhema" aria-selected="false" tabindex="-1">Схема</button>
   </div>
-  <button class="calm-toggle" id="calm-toggle" type="button" aria-pressed="false" aria-label="Без анимации">
-    <span class="knob" aria-hidden="true"></span><span class="label">Без анимации</span>
+  <button class="calm-toggle" id="calm-toggle" type="button" aria-pressed="false" aria-label="Без анимации" title="Без анимации">
+    <svg class="ico calm-ico" aria-hidden="true"><use href="#i-pause"/></svg><span class="knob" aria-hidden="true"></span><span class="label">Без анимации</span>
   </button>
   <div class="progress-belt" aria-hidden="true"><div class="fill"></div><div class="token"></div></div>
 </header>
@@ -266,7 +274,7 @@
         <li class="tile tile--mint"><span class="num" data-fact="specSheets">18</span><span class="tile-label">листов в чертеже — примерно столько</span><div class="tile-viz" aria-hidden="true"></div></li>
         <li class="tile tile--lemon"><span class="num" data-fact="humanYes">4</span><span class="tile-label">раза фабрика ждёт вашего «да»</span><span class="tile-sub">2 — за чертёж, 1 — за план, 1 — за каждый выпуск</span><div class="tile-viz" aria-hidden="true"></div></li>
         <li class="tile tile--raspberry"><span class="num" data-fact="autofix">1</span><span class="tile-label">раз фабрика сама чинит непройденные испытания — дальше решаете вы</span><div class="tile-viz" aria-hidden="true"></div></li>
-        <li class="tile tile--tangerine"><span class="num" data-fact="releases">25</span><span class="tile-label">обновлений фабрики с 18 мая 2026</span><div class="tile-viz" aria-hidden="true"></div></li>
+        <li class="tile tile--tangerine"><span class="num" data-fact="releases">27</span><span class="tile-label">обновлений фабрики с 18 мая 2026</span><div class="tile-viz" aria-hidden="true"></div></li>
       </ul>
     </div>
   </section>
@@ -331,7 +339,7 @@
       </div>
       <div class="stage stage--final" data-stage aria-hidden="true"></div>
     </div>
-    <footer class="site-footer">Mobile Pipeline <span data-fact="version">1.17.2</span></footer>
+    <footer class="site-footer">Mobile Pipeline <span data-fact="version">1.18.1</span></footer>
   </section>
 </div>
 

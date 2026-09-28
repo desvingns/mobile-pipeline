@@ -726,13 +726,20 @@
   var KMIN = 0.08, KMAX = 2.0;
   var applyQueued = false, lodNow = '', ikLast = 0, movingTimer = 0;
   E.vw = 1000; E.vh = 600; E.dpr = 1;
+  function mq(q) { return window.matchMedia ? window.matchMedia(q) : { matches: false }; }
+  /* Small screens — phones in portrait and phones held sideways (short landscape, like the site header):
+   * the list view is the default there, the log never opens by itself, the HUD is crumbs only. */
+  E.mqSmall = mq('(max-width: 760px), (orientation: landscape) and (max-height: 520px) and (pointer: coarse)');
+  var mqShort = mq('(orientation: landscape) and (max-height: 520px) and (pointer: coarse)');
+  E.mqCoarse = mq('(pointer: coarse)');
   function measure() {
     if (!E.canvas) return;
     var w = E.canvas.clientWidth, hh = E.canvas.clientHeight;
     if (w > 0 && hh > 0) { E.vw = w; E.vh = hh; }
     E.dpr = Math.min(2, window.devicePixelRatio || 1);
     if (E.grid && (E.grid.width !== Math.round(E.vw * E.dpr) || E.grid.height !== Math.round(E.vh * E.dpr))) { E.grid.width = Math.round(E.vw * E.dpr); E.grid.height = Math.round(E.vh * E.dpr); }
-    E.inset.t = E.vw < 760 ? 56 : 104;
+    // HUD height: crumbs + stage chips; sideways phones keep the crumbs only. Touch chrome is taller (44px targets).
+    E.inset.t = (mqShort.matches ? 56 : 104) + (E.mqCoarse.matches ? 8 : 0);
   }
   E.measure = measure;
   E.requestApply = function () {
@@ -821,14 +828,18 @@
    * overlays the canvas (drawer ≤1100px, bottom sheet ≤760px) — the panel too, so a selected node is
    * framed where the viewer can actually see it. */
   var mqDrawer = window.matchMedia ? window.matchMedia('(max-width: 1100px)') : { matches: false };
-  var mqSheet = window.matchMedia ? window.matchMedia('(max-width: 760px)') : { matches: false };
+  // the bottom sheet (≤760px) — but a phone held sideways keeps the right-hand drawer (blueprint.css)
+  var mqNarrow = mq('(max-width: 760px)');
+  function sheetOn() { return mqNarrow.matches && !mqShort.matches; }
   E.view = function () {
     var v = { t: E.inset.t, b: E.inset.b, r: 0 };
     var open = E.root && E.root.classList.contains('dt-open') && !E.root.classList.contains('view-list');
     var aside = open && E.root.querySelector('.bp-details');
-    if (aside && mqSheet.matches) {
+    if (aside && sheetOn()) {
       var out = E.root.querySelector('.bp-output');
       v.b = Math.max(v.b, aside.offsetHeight - (out ? out.offsetHeight : 0) + 12);
+      // the sheet leaves a strip of canvas: the stage chips hide there (blueprint.css), only the crumbs stay on top
+      v.t = 56 + (E.mqCoarse.matches ? 8 : 0);
     } else if (aside && mqDrawer.matches) v.r = Math.min(aside.offsetWidth, E.vw * 0.6);
     return v;
   };
@@ -848,11 +859,40 @@
     E.inset.b = b0;
     return cam;
   }
-  E.fit = function (dur) { var G = S.graph; if (G) E.flyTo(frameClear(G.bounds, 48, 1), dur); };
+  /* «Show all» on a phone or a touch canvas: the whole graph would be a strip at k ≈ 0.08 that says nothing.
+   * The first press frames the stage in view (its name stays readable), a second press shows everything. */
+  var fitStage = null;
+  function stageFor(G) {
+    var c = G.cam, v = E.view(), N = G.sel && G.byId[G.sel];
+    var wx = N ? N.x + N.w / 2 : ((E.vw - v.r) / 2 - c.x) / c.k, wy = N ? N.y + N.h / 2 : ((E.vh + v.t - v.b) / 2 - c.y) / c.k;
+    var best = null, bd = Infinity;
+    G.marks.forEach(function (C) {
+      var dx = Math.max(C.x - wx, 0, wx - C.x - C.w), dy = Math.max(C.y - wy, 0, wy - C.y - C.h), d = dx * dx + dy * dy;
+      if (d < bd) { bd = d; best = C; }
+    });
+    return best;
+  }
+  E.fit = function (dur) {
+    var G = S.graph; if (!G) return;
+    var cam = frameClear(G.bounds, 48, 1), c = G.cam;
+    if (cam.k < 0.2 && (E.mqSmall.matches || E.mqCoarse.matches) && G.marks.length) {
+      var again = fitStage && fitStage.G === G && c && Math.abs(c.k - fitStage.k) < 0.005 && Math.abs(c.x - fitStage.x) < 3 && Math.abs(c.y - fitStage.y) < 3;
+      var C = !again && stageFor(G);
+      fitStage = null;
+      if (C) { cam = E.frameRect(C, 24, 1, 0.2); fitStage = { G: G, x: cam.x, y: cam.y, k: cam.k }; }
+    }
+    E.flyTo(cam, dur);
+  };
+  /* A node taller than the strip a phone's sheet leaves shows its header, not its middle. */
+  E.camForNode = function (N, k) {
+    var cam = E.camFor(N.x + N.w / 2, N.y + N.h / 2, k), v = E.view();
+    if (E.mqSmall.matches && N.h * k > E.vh - v.t - v.b - 16) cam.y = v.t + 8 - N.y * k;
+    return cam;
+  };
   E.centerNode = function (N, k, dur) {
     var G = S.graph; if (!G) return;
     k = k || Math.max(G.cam ? G.cam.k : 1, 0.8);
-    E.flyTo(E.camFor(N.x + N.w / 2, N.y + N.h / 2, k), dur);
+    E.flyTo(E.camForNode(N, k), dur);
   };
   E.nodeOnScreen = function (N, margin) {
     var G = S.graph, c = G.cam; margin = margin == null ? 0 : margin;
@@ -863,13 +903,14 @@
   E.ensureVisible = function (N, dur) {
     if (E.nodeOnScreen(N, 0.04)) return;
     var G = S.graph;
-    E.flyTo(E.camFor(N.x + N.w / 2, N.y + N.h / 2, Math.max(G.cam.k, 0.55)), dur == null ? 0.4 : dur);
+    E.flyTo(E.camForNode(N, Math.max(G.cam.k, 0.55)), dur == null ? 0.4 : dur);
   };
   E.initialCam = function (G) {
     var r = G.bounds;
     var cam = frameClear(r, 40, 1);
     if (cam.k < 0.4) {
-      var k = 0.5, en = G.entry;
+      // touch tablets land a little closer: node titles stay readable at arm's length (pinch is at hand)
+      var k = E.mqCoarse.matches && E.vw >= 700 ? 0.62 : 0.5, en = G.entry;
       var left = en ? en.x - 60 : r.x;
       var cy = r.y + r.h / 2;
       var avail = E.vh - E.inset.t - E.inset.b;
@@ -912,7 +953,11 @@
     var N = id ? G.byId[id] : null;
     clearSelClasses(G);
     G.sel = N ? N.id : null; G.selCmt = null;
-    if (E.root) E.root.classList.toggle('dt-open', !!N); // before any camera move: the panel may overlay the canvas
+    clearTimeout(E.revealT);
+    // before any camera move: the panel may overlay the canvas (opts.later: a touch tap on a composite
+    // keeps a shut panel shut until the double-tap window has passed, see end(); an open one stays open;
+    // opts.shut: select without opening it)
+    if (E.root) { var was = E.root.classList.contains('dt-open'); E.root.classList.toggle('dt-open', !!N && !opts.shut && (!opts.later || was)); }
     if (N && N.el) {
       G.world.classList.add('has-sel');
       N.el.classList.add('is-sel', 'is-rel');
@@ -958,6 +1003,9 @@
       E.emit('leaveGraph', prev);
       if (prev.world) prev.world.hidden = true;
       E.killCam();
+      clearTimeout(E.revealT);
+      // an overlaying drawer / sheet (≤1100px) would hide the graph just entered; a stage focus re-opens it
+      if (E.root && mqDrawer.matches) E.root.classList.remove('dt-open');
     }
     E.renderGraph(G);
     G.world.hidden = false;
@@ -1060,12 +1108,13 @@
       var P = E.D.graphs[G.parent];
       var by = G.openedBy && G.openedBy.graph === P ? G.openedBy : null;
       E.setGraph(P.id, {});
-      if (by) E.select(by.id, { reveal: true });
+      // ≤1100px the panel overlays the canvas: the node we came from is highlighted, the graph stays in view
+      if (by) E.select(by.id, { reveal: true, shut: mqDrawer.matches });
       return;
     }
     E.setGraph(fr.graph, { cam: fr.cam });
     if (fr.sel) {
-      E.select(fr.sel, {});
+      E.select(fr.sel, { shut: mqDrawer.matches });
       // keep keyboard shortcuts alive: the focused node lived in the graph we just left
       var back = S.graph.byId && S.graph.byId[fr.sel];
       if (back && back.el) back.el.focus({ preventScroll: true });
@@ -1201,7 +1250,7 @@
 
   /* ---------------------------------------------------------------- input: pointer / wheel / keys */
   function bindInput() {
-    var cv = E.canvas, pointers = {}, gest = null, pinch = null, lastClick = { t: 0, id: null };
+    var cv = E.canvas, pointers = {}, gest = null, pinch = null, lastClick = { t: 0, id: null, x: 0, y: 0 };
     function local(e) { var r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
     cv.addEventListener('pointerdown', function (e) {
       if (e.target.closest('button, a, input, select, textarea, label, .bp-ui, .bp-menu')) return;
@@ -1209,18 +1258,28 @@
       var p = local(e);
       pointers[e.pointerId] = p;
       E.killCam();
+      clearTimeout(tipT);
       E.emit('gesture');
       try { cv.setPointerCapture(e.pointerId); } catch (x) {}
       var ids = Object.keys(pointers);
       if (ids.length === 2) {
+        if (gest) clearTimeout(gest.lp);
         var a = pointers[ids[0]], b = pointers[ids[1]];
         pinch = { d: dist(a, b) || 1, k: S.graph.cam.k, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 };
         gest = null; return;
       }
       var nodeEl = e.target.closest('.bp-node'), cbar = e.target.closest('.bp-cmt-bar');
+      var touch = e.pointerType === 'touch' || e.pointerType === 'pen';
+      // a finger drifts while tapping: touch gets a finger-sized slop before a tap turns into a pan
       gest = { id: e.pointerId, sx: p.x, sy: p.y, lx: p.x, ly: p.y, moved: false, btn: e.button, node: nodeEl && nodeEl._N,
-        cmt: cbar && cbar.parentNode._C, hist: [[now(), p.x, p.y]], edit: E.editing && nodeEl && e.button === 0 };
+        cmt: cbar && cbar.parentNode._C, hist: [[now(), p.x, p.y]], edit: E.editing && nodeEl && e.button === 0,
+        touch: touch, slop: e.pointerType === 'touch' ? 12 : e.pointerType === 'pen' ? 8 : 4, tgt: e.target };
       if (gest.edit) gest.at0 = [gest.node.x, gest.node.y];
+      // touch long-press = the right-click context menu (breakpoints, «Показать в симуляции», copy id)
+      if (touch && !gest.edit) {
+        var g0 = gest;
+        g0.lp = setTimeout(function () { if (gest === g0 && !g0.moved) { g0.lpFired = true; E.emit('context', g0.node, { x: g0.sx, y: g0.sy, touch: true }, g0.cmt); } }, 500);
+      }
       if (!nodeEl) try { cv.focus({ preventScroll: true }); } catch (x) {}
     });
     cv.addEventListener('pointermove', function (e) {
@@ -1234,9 +1293,9 @@
         E.zoomAt(mx, my, pinch.k * d / pinch.d);
         return;
       }
-      if (!gest || gest.id !== e.pointerId) return;
+      if (!gest || gest.id !== e.pointerId || gest.lpFired) return;
       var dx = p.x - gest.lx, dy = p.y - gest.ly;
-      if (!gest.moved && Math.abs(p.x - gest.sx) + Math.abs(p.y - gest.sy) > 4) { gest.moved = true; cv.classList.add('is-panning'); E.emit('tipHide'); }
+      if (!gest.moved && Math.abs(p.x - gest.sx) + Math.abs(p.y - gest.sy) > gest.slop) { gest.moved = true; clearTimeout(gest.lp); cv.classList.add('is-panning'); E.emit('tipHide'); }
       if (gest.moved) {
         if (gest.edit) {
           var k = S.graph.cam.k;
@@ -1250,9 +1309,18 @@
       if (!pointers[e.pointerId]) return;
       delete pointers[e.pointerId];
       cv.classList.remove('is-panning');
-      if (pinch) { if (Object.keys(pointers).length < 2) pinch = null; E.markMoving(); return; }
+      if (pinch) {
+        var rest = Object.keys(pointers);
+        if (rest.length < 2) {
+          pinch = null;
+          // one finger stays down after a pinch: it keeps panning, like a map
+          if (rest.length === 1) { var q = pointers[rest[0]]; gest = { id: +rest[0], sx: q.x, sy: q.y, lx: q.x, ly: q.y, moved: true, btn: 0, hist: [[now(), q.x, q.y]], slop: 12 }; }
+        }
+        E.markMoving(); return;
+      }
       var g = gest; gest = null;
       if (!g || g.id !== e.pointerId) return;
+      clearTimeout(g.lp);
       if (g.moved) {
         if (g.edit) { E.emit('editDrop', g.node); return; }
         var H = g.hist, t = now();
@@ -1261,27 +1329,67 @@
         if (e.type === 'pointerup' && t - last[0] < 60) startInertia((last[1] - old[1]) / dt, (last[2] - old[2]) / dt);
         return;
       }
+      if (g.lpFired) { if (e.type === 'pointerup') swallowClick(); return; }
       if (e.type !== 'pointerup') return;
       var p = local(e);
       if (g.btn === 2) { E.emit('context', g.node, p, g.cmt); return; }
       if (g.btn === 1) return;
       if (g.node) {
-        var dbl = now() - lastClick.t < 380 && lastClick.id === g.node.id;
-        lastClick = { t: now(), id: g.node.id };
-        if (dbl && E.isComposite(g.node)) { E.open(g.node); return; }
-        E.select(g.node.id, {});
-        try { g.node.el.focus({ preventScroll: true }); } catch (x) {}
+        var N = g.node;
+        // a finger's second tap lands a few pixels off: it still counts as a double tap on the same node
+        var dbl = now() - lastClick.t < 380 && lastClick.id === N.id && (!g.touch || Math.abs(p.x - lastClick.x) + Math.abs(p.y - lastClick.y) < 48);
+        lastClick = { t: now(), id: N.id, x: p.x, y: p.y };
+        if (dbl && E.isComposite(N)) { clearTimeout(E.revealT); E.open(N); return; }
+        if (!g.touch) {
+          E.select(N.id, {});
+          try { N.el.focus({ preventScroll: true }); } catch (x) {}
+        } else {
+          // touch: nothing may move under the finger before a possible second tap — a composite keeps
+          // the drawer shut and the camera still until the double-tap window has passed
+          var later = g.later = E.isComposite(N);
+          E.select(N.id, { later: later });
+          E.pointerFocus = true;
+          try { N.el.focus({ preventScroll: true }); } catch (x) {}
+          E.pointerFocus = false;
+          if (!later) E.ensureVisible(N);
+          else E.revealT = setTimeout(function () { if (S.graph && S.graph.sel === N.id) { E.root.classList.add('dt-open'); E.ensureVisible(N); } }, 400);
+          tapTip(g);
+        }
       } else if (g.cmt) {
         E.selectComment(g.cmt.id, { fly: false });
       } else {
         E.select(null);
         E.emit('bgClick', p);
+        if (g.touch) tapTip(g);
       }
+    }
+    /* the finger lifting after a long press still sends a click: it must not land on the menu just opened */
+    function swallowClick() {
+      var kill = function (ev) { ev.preventDefault(); ev.stopPropagation(); };
+      doc.addEventListener('click', kill, true);
+      setTimeout(function () { doc.removeEventListener('click', kill, true); }, 400);
+    }
+    /* touch has no hover: a tap on a pin or a wire shows its tooltip for a while instead */
+    var tipT = 0;
+    function tapTip(g) {
+      var t = g.tgt, pin = t && t.closest && t.closest('.bp-pin'), t0 = now(), first = true;
+      if (!pin && !(t && t.closest && t.closest('.bp-wh'))) return;
+      clearTimeout(tipT);
+      (function show() {
+        // a pin's node may be moving into view (the camera, or a composite after the double-tap window):
+        // its tooltip waits for the camera to settle and points at the pin where it ends up
+        if (pin && (first || E.camTween || g.later && now() - t0 < 450) && now() - t0 < 1500) { first = false; tipT = setTimeout(show, 90); return; }
+        var r = (pin && (pin.querySelector('.bp-pg') || pin) || cv).getBoundingClientRect();
+        var x = pin ? r.left + r.width / 2 : r.left + g.sx, y = pin ? r.top + r.height / 2 : r.top + g.sy;
+        E.emit('hover', { target: t, clientX: x, clientY: y, touch: true });
+        tipT = setTimeout(function () { E.emit('tipHide'); }, 2600);
+      })();
     }
     cv.addEventListener('pointerup', end);
     cv.addEventListener('pointercancel', end);
     cv.addEventListener('contextmenu', function (e) { if (!e.target.closest('input, textarea')) e.preventDefault(); });
-    cv.addEventListener('pointerleave', function () { E.emit('tipHide'); });
+    // a finger leaves the canvas right after every tap: only a hovering pointer takes its tooltip away
+    cv.addEventListener('pointerleave', function (e) { if (e.pointerType !== 'touch') E.emit('tipHide'); });
     cv.addEventListener('wheel', function (e) {
       if (e.target.closest('.bp-ui .bp-scroll, .bp-menu')) return;
       e.preventDefault();
@@ -1372,16 +1480,34 @@
     S.mounted = true;
     E.emit('mount', E.root);
     measure();
+    // a rotation or a breakpoint swaps the sheet, the drawer and the HUD: the selected node stays in sight.
+    // The layout may pass through a transient size first (a rotating phone), so the canvas resizes of the
+    // next moments re-check it too.
+    var keepUntil = 0;
     if (window.ResizeObserver) {
-      new ResizeObserver(function () {
-        var ow = E.vw, oh = E.vh; measure();
-        var G = S.graph;
-        if (G && G.cam && (ow !== E.vw || oh !== E.vh)) { G.cam.x += (E.vw - ow) / 2; G.cam.y += (E.vh - oh) / 2; E.requestApply(); }
-        E.emit('resize');
-      }).observe(E.canvas);
+      new ResizeObserver(function () { resized(); if (now() < keepUntil) E.keepSel(); E.emit('resize'); }).observe(E.canvas);
     } else window.addEventListener('resize', function () { measure(); E.emit('resize'); });
+    [mqNarrow, mqShort, mqDrawer, mq('(orientation: portrait)')].forEach(function (m) {
+      var fn = function () {
+        if (!S.visible || S.view !== 'graph') return;
+        resized(); E.keepSel();
+        keepUntil = now() + 800; setTimeout(E.keepSel, 400);
+      };
+      if (m.addEventListener) m.addEventListener('change', fn); else if (m.addListener) m.addListener(fn);
+    });
     S.pendingRoute = route || '';
   }
+  // the canvas changed size: the camera keeps its centre
+  function resized() {
+    var ow = E.vw, oh = E.vh; measure();
+    var G = S.graph;
+    if (G && G.cam && (ow !== E.vw || oh !== E.vh)) { G.cam.x += (E.vw - ow) / 2; G.cam.y += (E.vh - oh) / 2; E.requestApply(); }
+  }
+  /* after a change of layout or view (bp-outline: list → graph) the selected node is framed where it can be seen */
+  E.keepSel = function () {
+    var G = S.graph, N = G && G.sel && G.byId[G.sel];
+    if (N && N.el && S.visible && S.view === 'graph' && E.canvas.clientWidth) E.ensureVisible(N, 0);
+  };
   /* router.js appends blueprint.css and the scripts at the same time; the first camera must not be
    * computed from an unstyled (zero-height) canvas, so wait until the stylesheet applies (≤ 2 s). */
   function styled() { return getComputedStyle(E.root).display === 'flex' && E.root.clientHeight > 40; }

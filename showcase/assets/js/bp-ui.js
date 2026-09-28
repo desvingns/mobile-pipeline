@@ -140,7 +140,9 @@
         '<button type="button" class="bp-zb" data-z="in" aria-label="Приблизить (+)" title="Приблизить (+)"><svg class="bp-i" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3.5 8h9M8 3.5v9"/></svg></button>' +
         '<button type="button" class="bp-zb" data-z="fit" aria-label="Показать всё (F)" title="Показать всё (F)">' + E.icon('fit') + '</button>' +
       '</div>' +
-      '<div class="bp-preset" hidden><span class="bp-preset-tag"></span><span class="bp-preset-t"></span><button type="button" class="bp-preset-x" aria-label="Скрыть режим">' + E.icon('close') + '</button></div>' +
+      '<div class="bp-preset" hidden><span class="bp-preset-tag"></span>' +
+        '<button type="button" class="bp-preset-more" aria-expanded="false" aria-label="Описание режима">' + E.icon('chev') + '</button>' +
+        '<span class="bp-preset-t"></span><button type="button" class="bp-preset-x" aria-label="Скрыть режим">' + E.icon('close') + '</button></div>' +
       '<div class="bp-editbar" hidden><b>Режим правки</b><span>Перетаскивайте ноды · шаг 0,05</span><button type="button" class="bp-btn" data-edit="copy">' + E.icon('copy') + 'Скопировать at[]</button><button type="button" class="bp-btn bp-btn--icon" data-edit="close" aria-label="Выйти из режима правки">' + E.icon('close') + '</button></div>');
     ov.querySelector('.bp-zoomctl').addEventListener('click', function (e) {
       var b = e.target.closest('[data-z]'); if (!b) return;
@@ -150,6 +152,11 @@
       else E.flyTo(zoomCam(G.cam, z === 'in' ? 1.25 : 0.8), 0.25);
     });
     ov.querySelector('.bp-preset-x').addEventListener('click', function () { E.setPreset(null); });
+    // phones show the banner folded to its tag (blueprint.css): the tag or the chevron unfolds the text
+    ov.querySelector('.bp-preset').addEventListener('click', function (e) {
+      if (!e.target.closest('.bp-preset-more, .bp-preset-tag')) return;
+      presetOpen(!this.classList.contains('is-open'));
+    });
     ov.querySelector('.bp-editbar').addEventListener('click', function (e) {
       var b = e.target.closest('[data-edit]'); if (!b) return;
       if (b.getAttribute('data-edit') === 'close') toggleEdit(false); else copyText(editDump(), b);
@@ -173,14 +180,20 @@
     ui.renderDetails();
     el.querySelector('.bp-preset-tag').textContent = P.title || P.name;
     el.querySelector('.bp-preset-t').textContent = P.banner;
+    presetOpen(false);
     el.hidden = false;
   });
+  function presetOpen(on) {
+    var el = E.overlays.querySelector('.bp-preset');
+    el.classList.toggle('is-open', on);
+    el.querySelector('.bp-preset-more').setAttribute('aria-expanded', String(on));
+  }
 
   /* ---------------------------------------------------------------- details panel (spec §7) */
   function buildDetails(root) {
     var aside = root.querySelector('.bp-details');
     aside.innerHTML = '<div class="bp-dt-resize" role="separator" aria-orientation="vertical" aria-label="Ширина панели деталей" tabindex="-1"></div>' +
-      '<div class="bp-dt-top"><span class="bp-dt-tab">' + E.icon('legend') + 'Детали</span><button type="button" class="bp-dt-close bp-btn bp-btn--icon" aria-label="Закрыть детали">' + E.icon('close') + '</button></div>' +
+      '<div class="bp-dt-top"><span class="bp-dt-tab">' + E.icon('legend') + 'Детали</span><span class="bp-dt-simstep mono" aria-hidden="true"></span><button type="button" class="bp-dt-close bp-btn bp-btn--icon" aria-label="Закрыть детали">' + E.icon('close') + '</button></div>' +
       '<div class="bp-dt-scroll bp-scroll"></div>';
     ui.aside = aside;
     ui.dscroll = aside.querySelector('.bp-dt-scroll');
@@ -472,8 +485,7 @@
     if (MP.nbsp) try { MP.nbsp(ui.dscroll); } catch (e) {}
   };
   E.on('select', function (G, N, opts) {
-    ui.renderDetails();
-    ui.root.classList.toggle('dt-open', !!N);
+    ui.renderDetails(); // dt-open: E.select has set it already (opts.later / opts.shut, see bp-core)
     if (N && opts && opts.focusDetails) focusDetails();
   });
   E.on('selectComment', function () { ui.renderDetails(); ui.root.classList.add('dt-open'); });
@@ -525,16 +537,23 @@
     }
     var r = E.canvas.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
     if (!key) { hideTip(); return; }
+    // a tap (bp-core tapTip): at once, and above the finger that would hide it
+    if (e.touch) { clearTimeout(tipTimer); tipKey = key; tip.innerHTML = html; tip.hidden = false; place(x, y, true); return; }
     if (key === tipKey && !tip.hidden) { place(x, y); return; }
     clearTimeout(tipTimer);
     tipKey = key;
     tipTimer = setTimeout(function () { tip.innerHTML = html; tip.hidden = false; place(x, y); }, tip.hidden ? 260 : 60);
   });
-  function place(x, y) {
+  function place(x, y, touch) {
     var w = tip.offsetWidth, hh = tip.offsetHeight;
     var left = x + 16, top = y + 18;
-    if (left + w > E.vw - 8) left = x - w - 12;
-    if (top + hh > E.vh - 8) top = y - hh - 12;
+    if (touch) {
+      left = E.clamp(x - w / 2, 6, Math.max(6, E.vw - w - 6));
+      top = y - hh - 24; if (top < 6) top = Math.min(y + 28, E.vh - hh - 6);
+    } else {
+      if (left + w > E.vw - 8) left = x - w - 12;
+      if (top + hh > E.vh - 8) top = y - hh - 12;
+    }
     tip.style.transform = 'translate(' + Math.max(6, left) + 'px,' + Math.max(6, top) + 'px)';
   }
 
@@ -663,7 +682,7 @@
     function render() {
       items = search(inp.value);
       if (!inp.value.trim()) { close(); return; }
-      if (!items.length) { list.innerHTML = '<div class="bp-sr-empty">Ничего не нашлось. Попробуйте id агента или имя файла.</div>'; list.hidden = false; inp.setAttribute('aria-expanded', 'true'); return; }
+      if (!items.length) { list.innerHTML = '<div class="bp-sr-empty">Ничего не нашлось. Попробуйте id агента или имя файла.</div>'; list.hidden = false; inp.setAttribute('aria-expanded', 'true'); fitList(); return; }
       var groups = {}, order = [];
       items.forEach(function (it, i) { if (!groups[it.G.id]) { groups[it.G.id] = []; order.push(it.G); } groups[it.G.id].push(i); });
       list.innerHTML = order.map(function (G) {
@@ -673,17 +692,34 @@
         }).join('') + '</div>';
       }).join('');
       list.hidden = false; inp.setAttribute('aria-expanded', 'true');
+      fitList();
       setAct(0);
     }
+    // the box may sit mid-toolbar (tablets): slide the results left so they end inside the screen
+    function fitList() {
+      list.style.left = '';
+      var r = list.getBoundingClientRect(), over = r.right - (document.documentElement.clientWidth - 8);
+      if (over > 0) list.style.left = -Math.min(over, r.left - 8) + 'px';
+      // touch: the on-screen keyboard covers the bottom of the page (vh does not shrink for it) — the list
+      // ends above it, so every result can still be scrolled to
+      var vv = window.visualViewport;
+      if (vv && E.mqCoarse.matches) list.style.maxHeight = 'min(70vh, 32rem, ' + Math.round(Math.max(160, vv.height + vv.offsetTop - r.top - 8)) + 'px)';
+    }
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', function () { if (!list.hidden) fitList(); });
     function setAct(i) {
       act = i;
-      Array.prototype.forEach.call(list.querySelectorAll('.bp-sr'), function (el) { var on = +el.getAttribute('data-i') === i; el.setAttribute('aria-selected', String(on)); el.classList.toggle('is-act', on); if (on) try { el.scrollIntoView({ block: 'nearest' }); } catch (x) {} });
+      Array.prototype.forEach.call(list.querySelectorAll('.bp-sr'), function (el) {
+        var on = +el.getAttribute('data-i') === i; el.setAttribute('aria-selected', String(on)); el.classList.toggle('is-act', on);
+        // scroll the list only: scrollIntoView would also scroll every ancestor, the whole «Схема» sideways
+        if (on) { var t = el.offsetTop, b = t + el.offsetHeight; if (t < list.scrollTop) list.scrollTop = t; else if (b > list.scrollTop + list.clientHeight) list.scrollTop = b - list.clientHeight; }
+      });
       if (i >= 0) inp.setAttribute('aria-activedescendant', 'bp-sr-' + i); else inp.removeAttribute('aria-activedescendant');
     }
     function go(i) {
       var it = items[i]; if (!it) return;
       close(); inp.blur();
-      if (E.state.view !== 'graph' && E.setView) E.setView('graph');
+      // small screens stay in the list view chosen for them: the list opens and scrolls to the item itself
+      if (E.state.view !== 'graph' && E.setView && !E.mqSmall.matches) E.setView('graph');
       E.jump(it.G.id, it.N.id, { focus: true });
     }
     inp.addEventListener('input', render);
@@ -694,7 +730,8 @@
       else if (e.key === 'Enter') { e.preventDefault(); go(act < 0 ? 0 : act); }
       else if (e.key === 'Escape') { e.preventDefault(); if (inp.value) { inp.value = ''; close(); } else { close(); E.canvas.focus(); } }
     });
-    list.addEventListener('pointerdown', function (e) { e.preventDefault(); });
+    // keep the focus in the input; not on pointerdown: WebKit then drops the click of a finger tap
+    list.addEventListener('mousedown', function (e) { e.preventDefault(); });
     list.addEventListener('click', function (e) { var el = e.target.closest('.bp-sr'); if (el) go(+el.getAttribute('data-i')); });
     inp.addEventListener('blur', function () { setTimeout(close, 120); });
   }
@@ -769,8 +806,13 @@
       ['Space', 'симуляция: пуск / пауза'], ['N', 'симуляция: следующий шаг'], ['F9', 'точка останова на выбранной ноде'],
       ['L', 'легенда'], ['?', 'эта подсказка']
     ];
-    dialog('keys', 'Клавиши', '<p class="bp-lg-p">Однобуквенные клавиши работают, когда фокус на холсте.</p><table class="bp-keys"><tbody>' +
-      rows.map(function (r) { return '<tr><th><kbd>' + esc(r[0]) + '</kbd></th><td>' + esc(r[1]) + '</td></tr>'; }).join('') + '</tbody></table>');
+    // touch screens: the gestures that actually work come first (the keys still help an iPad keyboard)
+    var touch = E.mqCoarse.matches, gestures = [
+      ['Один палец', 'сдвиг холста'], ['Два пальца', 'масштаб: развести или свести'], ['Касание', 'выбрать ноду; на пине или связи — подсказка'],
+      ['Двойное касание', 'открыть составную ноду'], ['Долгое нажатие', 'меню: точка останова, показать в симуляции, скопировать id']
+    ];
+    function table(list) { return '<table class="bp-keys"><tbody>' + list.map(function (r) { return '<tr><th><kbd>' + esc(r[0]) + '</kbd></th><td>' + esc(r[1]) + '</td></tr>'; }).join('') + '</tbody></table>'; }
+    dialog('keys', touch ? 'Жесты и клавиши' : 'Клавиши', (touch ? table(gestures) : '') + '<p class="bp-lg-p">Однобуквенные клавиши работают, когда фокус на холсте.</p>' + table(rows));
   }
   ui.openLegend = openLegend; ui.openKeys = openKeys;
   E.on('key', function (e, N, key) {
@@ -809,9 +851,22 @@
     menu.setAttribute('role', 'menu');
     menu.innerHTML = items.map(function (it) { return '<button type="button" role="menuitem" data-m="' + it[0] + '">' + E.icon(it[2]) + '<span>' + esc(it[1]) + '</span></button>'; }).join('');
     E.overlays.appendChild(menu);
-    var w = menu.offsetWidth, hh = menu.offsetHeight;
-    menu.style.left = Math.min(p.x, E.vw - w - 8) + 'px';
-    menu.style.top = Math.min(p.y, E.vh - hh - 8) + 'px';
+    var w = menu.offsetWidth, hh = menu.offsetHeight, L = Math.min(p.x, E.vw - w - 8), T = Math.min(p.y, E.vh - hh - 8);
+    if (p.touch) {
+      // a long press: the menu opens clear of the finger — above it, else below (scrolling if it must), else
+      // beside it on a canvas too short for either
+      var gap = 28, up = p.y - gap - 8, down = E.vh - p.y - gap - 8, room = Math.max(up, down);
+      if (hh <= up || hh <= down || room >= 132) {
+        if (hh > up && hh > down) { menu.style.maxHeight = room + 'px'; hh = room; }
+        T = hh <= up ? p.y - gap - hh : p.y + gap;
+        L = E.clamp(p.x - w / 2, 8, Math.max(8, E.vw - w - 8));
+      } else {
+        L = E.vw - p.x >= p.x ? Math.min(p.x + gap, E.vw - w - 8) : Math.max(8, p.x - gap - w);
+        T = E.clamp(p.y - hh / 2, 8, Math.max(8, E.vh - hh - 8));
+      }
+    }
+    menu.style.left = L + 'px';
+    menu.style.top = T + 'px';
     menu.addEventListener('click', function (e) {
       var b = e.target.closest('[data-m]'); if (!b) return;
       var m = b.getAttribute('data-m');

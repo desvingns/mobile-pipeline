@@ -180,6 +180,7 @@
     tb.pp.setAttribute('aria-label', sim.playing ? 'Пауза' : done ? 'Повторить с начала' : 'Пуск');
     tb.go.classList.toggle('is-on', !!sim.S);
     tb.go.querySelector('.bp-lbl').textContent = lbl;
+    tb.go.setAttribute('aria-label', lbl); // the label is hidden at ≤1100px
     tb.go.setAttribute('title', done ? 'Повторить симуляцию с начала (Space)' : 'Запустить симуляцию (Space)');
     tb.go.firstElementChild.outerHTML = E.icon(ic);
     tb.stop.disabled = !sim.S;
@@ -413,7 +414,7 @@
     var G = sim.G;
     if (sim.follow && sim.playing && !E.nodeOnScreen(it.N, 0.2)) {
       // reduced motion: jump instantly (no camera tween)
-      E.flyTo(E.camFor(it.N.x + it.N.w / 2, it.N.y + it.N.h / 2, Math.max(G.cam.k, 0.55)), E.calm() ? 0 : 0.6);
+      E.flyTo(E.camForNode(it.N, Math.max(G.cam.k, 0.55)), E.calm() ? 0 : 0.6);
     }
     var st = stOf(it);
     var stRu = { ok: 'готово', fail: 'ошибка', skip: 'пропущено', wait: 'ждёт человека', warn: 'предупреждение' }[st] || st;
@@ -550,6 +551,9 @@
     if (!bar.el || !sim.S) return;
     var n = sim.items.length, cur = Math.max(0, started + 1);
     bar.step.textContent = 'шаг ' + pad2(cur) + '/' + pad2(n);
+    // a phone's Details sheet covers the sim bar: its top bar repeats the step (blueprint.css)
+    if (!bar.dt) bar.dt = E.root.querySelector('.bp-dt-simstep');
+    if (bar.dt) bar.dt.textContent = bar.step.textContent;
     bar.track.setAttribute('aria-valuenow', String(cur));
     bar.track.setAttribute('aria-valuetext', 'шаг ' + cur + ' из ' + n);
     updateProgress();
@@ -598,7 +602,8 @@
     // unless the viewer has toggled it; the canvas keeps the room otherwise.
     setCollapsed(true);
   }
-  function narrow() { return !!(window.matchMedia && window.matchMedia('(max-width: 760px)').matches); }
+  // phones, also held sideways: the log would eat most of the canvas, so it opens only on request
+  function narrow() { return !!(E.mqSmall ? E.mqSmall.matches : window.matchMedia && window.matchMedia('(max-width: 760px)').matches); }
   function setCollapsed(c) {
     if (!out.el) return;
     sim.collapsed = c;

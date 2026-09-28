@@ -1,11 +1,12 @@
 /* scenes/konveyer.js — «Пайплайн — это просто конвейер» (package A, docs/design-prosto.md §2.2).
- * Two layouts are built once (CSS shows one): WIDE (≥1024px, viewBox 1600×700, straight belt) and TALL (<1024px,
- * viewBox 620×650, serpentine belt in two rows). The built DOM is the calm poster: a 4-station belt with arrows, a
- * worker at every station, lamps mint, the finished phone at the end (wide: end of the belt; tall: at «Выдать»).
+ * Three layouts are built once (CSS shows one, see MQ): WIDE (desktop, viewBox 1600×700, straight belt), SHORT (phones
+ * held sideways: the same belt with bigger signs, the stage sized by the screen height) and TALL (phones and portrait
+ * tablets, viewBox 620×650, serpentine belt in two rows). The built DOM is the calm poster: a 4-station belt with arrows,
+ * a worker at every station, lamps mint, the finished phone at the end (wide/short: end of the belt; tall: at «Выдать»).
  * init, wide  : pre-roll (pipe draws while the stage scrolls in) + pinned scrub (+120%, 0.6): letters P-I-P-E-L-I-N-E
  *               flow through the pipe → the pipe flattens into a belt → characters drop onto 4 stations → a box rides
  *               the belt, each station lights mint and adds a part → a phone.
- * init, narrow: the same story as one toggle-once timeline (~4.5 s).
+ * init, short / tall: the same story as one toggle-once timeline (~4.5 s).
  * final       : the poster as built. */
 (function () {
   'use strict';
@@ -28,7 +29,7 @@
    * the product's stop a little upstream (st.x − dir·off) — so the product never parks in front of a worker's face.
    * rows[] = the belt's top surface per row (the product track and the workers' feet). */
   var WIDE = {
-    key: 'wide', w: 1600, h: 700,
+    key: 'wide', line: true, w: 1600, h: 700,
     pipe: [[-70, 300], [380, 300], [380, 140], [760, 140], [760, 470], [1140, 470], [1140, 270], [1680, 270]], pipeR: 90, pipeW: 66,
     belt: { x: 28, y: 540, w: 1548, h: 48, pitch: 32, legs: 58 },
     flat: 'M28 564L1576 564',
@@ -39,6 +40,11 @@
     arrows: [[408, 207], [760, 207], [1128, 207]], arrowAt: [1, 2, 3],
     cap: [{ x: 60, y: 18, size: 34 }, { x: 800, y: 396, size: 40, center: true }], capOut: 4.75
   };
+  /* phones held sideways: the WIDE belt at ~0.45 scale, so the station signs grow to stay ≥14px («Собрать» and
+     «Проверить» still clear the arrow between them) */
+  var SHORT = {};
+  Object.keys(WIDE).forEach(function (k) { SHORT[k] = WIDE[k]; });
+  SHORT.key = 'short'; SHORT.signSize = 36;
   var TALL = {
     key: 'tall', w: 620, h: 650,
     pipe: [[-60, 262], [560, 262], [560, 576], [-60, 576]], pipeR: 110, pipeW: 48,
@@ -48,7 +54,7 @@
     charOff: 55, stopOff: 55, restAtLast: true,
     rows: [240, 554], charScale: 1.1, signY: [22, 336], signSize: 28, product: 0.9, letter: 0.9, letterGap: 54,
     arrows: [[262, 310, 0], [242, 624, 180]], arrowAt: [1, 3],
-    cap: [{ x: 310, y: 380, size: 34, center: true }, { x: 310, y: 380, size: 34, center: true }], capOut: 4.45
+    cap: [{ x: 310, y: 118, size: 34, center: true }, { x: 310, y: 380, size: 34, center: true }], capOut: 4.45
   };
   function stopX(L0, st) { return st.x - st.dir * L0.stopOff; }
   function charX(L0, st) { return st.x + st.dir * L0.charOff; }
@@ -190,10 +196,10 @@
     gsap.set(flange, { autoAlpha: 0 });
     gsap.set(letters, { autoAlpha: 0, scale: L0.letter, transformOrigin: '50% 50%' });
     gsap.set(belt, { autoAlpha: 0 });
-    gsap.set(signs, { autoAlpha: 0, y: L0.key === 'wide' ? -160 : -60 });
+    gsap.set(signs, { autoAlpha: 0, y: L0.line ? -160 : -60 });
     if (rail) gsap.set(rail, { autoAlpha: 0, y: -60 });
     gsap.set(arrows, { autoAlpha: 0, scale: 0, transformOrigin: '50% 50%' });
-    gsap.set(chars, { autoAlpha: 0, y: L0.key === 'wide' ? -520 : -130 });
+    gsap.set(chars, { autoAlpha: 0, y: L0.line ? -520 : -130 });
     gsap.set(qa('.kv-lamp-on'), { autoAlpha: 0 });
     gsap.set([sheet, phone, icon, check, spark], { autoAlpha: 0 });
     gsap.set(box, { autoAlpha: 1 });
@@ -210,8 +216,8 @@
     var n = letters.length, trackLen = track.getTotalLength() || 1600;
     for (var k = 0; k < n; k++) {
       var j = n - 1 - k, el = letters[k];
-      /* wide: spread along the wavy pipe; tall: line up on the first straight run */
-      var endAt = L0.key === 'wide' ? 0.9 - j * 0.1 : (100 + k * L0.letterGap) / trackLen;
+      /* wide / short: spread along the wavy pipe; tall: line up on the first straight run */
+      var endAt = L0.line ? 0.9 - j * 0.1 : (100 + k * L0.letterGap) / trackLen;
       tl.set(el, { autoAlpha: 1 }, 0.1 + j * 0.2)
         .to(el, { motionPath: { path: track, start: 0, end: endAt }, duration: 2.5 - j * 0.2, ease: 'power1.inOut' }, 0.1 + j * 0.2);
     }
@@ -263,7 +269,7 @@
     tl.to({}, { duration: 0.01 }, T1);
 
     function moveBelt(t, dur, len) {
-      var dist = len * (L0.key === 'wide' ? 1400 : 1500);
+      var dist = len * (L0.line ? 1400 : 1500);
       if (chev.length) {
         var pitch = +chev[0].getAttribute('data-pitch') || 32;
         tl.to(chev, { x: '+=' + dist, duration: dur, ease: 'none', modifiers: { x: gsap.utils.unitize(function (x) { return parseFloat(x) % pitch; }) } }, t);
@@ -346,34 +352,56 @@
     });
   }
 
+  /* Which composition is on screen (scenes-a.css shows the matching svg). prosto re-inits the scenes only when crossing
+   * 1024px, but the layout also follows the orientation (iPad Pro 12.9 portrait gets TALL) and the height (phones held
+   * sideways get SHORT), so init picks it in a nested gsap.matchMedia: a change reverts that run and starts the other. */
+  var MQ = {
+    wide: '(min-width: 1024px) and (orientation: landscape), (min-width: 1200px)',
+    short: '(orientation: landscape) and (max-height: 520px) and (pointer: coarse) and (min-width: 560px)',
+    tall: '(max-width: 1023px), (orientation: portrait) and (max-width: 1199px)'
+  };
+  var LAYOUT = { wide: WIDE, short: SHORT, tall: TALL };
+
+  function run(section, api, mode, again) {
+    restore(api.stage);
+    var gsap = api.gsap, ST = window.ScrollTrigger, L0 = LAYOUT[mode];
+    var t = timelines(MP.$('.kv-svg--' + mode, api.stage), L0, gsap);
+    if (mode === 'wide') {
+      var header = function () { var h = document.querySelector('.site-header'); return h ? h.offsetHeight : 0; };
+      var pinStart = function () { return 'center ' + Math.round((window.innerHeight + header()) / 2) + 'px'; };
+      ST.create({ trigger: api.stage, start: 'top 92%', end: pinStart, scrub: 0.6, animation: t.draw });
+      ST.create({ trigger: api.stage, start: pinStart, end: '+=120%', pin: true, scrub: 0.6, animation: t.main, anticipatePin: 1 });
+      requestAnimationFrame(function () { ST.refresh(true); });
+      return;
+    }
+    t.draw.paused(false).duration(0.8);
+    t.main.paused(false);
+    var all = gsap.timeline({ paused: true }).add(t.draw, 0).add(t.main, 0.6);
+    all.timeScale(all.duration() / 4.8);
+    /* sideways the stage fills the screen height: start once most of it is in view, not while it is still below */
+    var line = mode === 'short' ? 45 : 72;
+    /* a re-run after a rotation, with the stage already scrolled into view: show the finished belt, no replay */
+    if (again && api.stage.getBoundingClientRect().top < window.innerHeight * line / 100) { all.progress(1); return; }
+    ST.create({ trigger: api.stage, start: 'top ' + line + '%', once: true, onEnter: function () { all.play(0); } });
+  }
+
   MP.scene('konveyer', {
     build: function (section, api) {
       var st = api.stage;
       st.appendChild(build(WIDE));
+      st.appendChild(build(SHORT));
       st.appendChild(build(TALL));
       snap(st);
     },
     final: function (section, api) { restore(api.stage); },
     init: function (section, api) {
       restore(api.stage);
-      var gsap = api.gsap, ST = window.ScrollTrigger;
       headIn(section, api);
-      var svg = MP.$(api.wide ? '.kv-svg--wide' : '.kv-svg--tall', api.stage);
-      var L0 = api.wide ? WIDE : TALL;
-      var t = timelines(svg, L0, gsap);
-      if (api.wide) {
-        var header = function () { var h = document.querySelector('.site-header'); return h ? h.offsetHeight : 0; };
-        var pinStart = function () { return 'center ' + Math.round((window.innerHeight + header()) / 2) + 'px'; };
-        ST.create({ trigger: api.stage, start: 'top 92%', end: pinStart, scrub: 0.6, animation: t.draw });
-        ST.create({ trigger: api.stage, start: pinStart, end: '+=120%', pin: true, scrub: 0.6, animation: t.main, anticipatePin: 1 });
-        requestAnimationFrame(function () { ST.refresh(); });
-      } else {
-        t.draw.paused(false).duration(0.8);
-        t.main.paused(false);
-        var all = gsap.timeline({ paused: true }).add(t.draw, 0).add(t.main, 0.6);
-        all.timeScale(all.duration() / 4.8);
-        ST.create({ trigger: api.stage, start: 'top 72%', once: true, onEnter: function () { all.play(0); } });
-      }
+      var runs = 0;
+      api.gsap.matchMedia().add(MQ, function (ctx) {
+        var c = ctx.conditions;
+        run(section, api, c.short ? 'short' : c.wide ? 'wide' : 'tall', runs++ > 0);
+      });
     }
   });
 })();

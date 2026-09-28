@@ -7,8 +7,11 @@
  * Рационализатор's bulb lights («Есть идея!») → envelope «Рацпредложение: улучшить фабрику» → lemon stamp
  * «Одобрено вами» → a new shiny gear flies into the factory model.
  * Rating buttons: aria-pressed + .rating-out; 5/4 → stars sparkle around the rating card; ≤ 3 → the lesson flow replays.
- * Two layouts (wide 800×600; tall 440×550 = the shared 4:5 phone stage below 760px, see scenes-c.css), both driven
- * by the same timelines. The rating card is a passing reaction: it fades after ~2 s (calm: hidden after ~2 s).
+ * Three layouts (wide 800×600; tall 440×550 = the shared 4:5 phone stage below 760px; land 630×400 for phones held
+ * sideways, where the room is bound by the height — see scenes-c.css), all driven by the same timelines, so rotating
+ * the phone never needs a rebuild. The rating card is a passing reaction: it fades after ~2 s (calm: hidden after
+ * ~2 s). On touch screens and one-column layouts a rating first brings the whole room and the answer line
+ * (.rating-out) into view — with the rating itself when it fits too — and the room reacts there.
  * build() = FINAL state (lesson filed, door open, bulb lit, envelope stamped, gear in place).
  */
 (function () {
@@ -111,6 +114,27 @@
       rate: { cx: 170, cy: 282, s: 0.9 },
       bubLib: { x: 58, y: 404, w: 170, dx: 50 },
       bubRat: { x: 176, y: 404, w: 146, dx: 40 }
+    },
+    land: {
+      /* phones held sideways (the room is bound by the ~330px visible height, so the parts are drawn larger): both
+       * shelves along the top, the door «Проект №2» in its own corner under a wall clock, Библиотекарь, Рационализатор
+       * and the approved envelope on the floor */
+      W: 630, H: 400, floor: 366,
+      shelfA: { x: 14, w: 294, y: 150, plate: [34, 166, 254, 36], label: ['Память этого проекта'], ls: 20 },
+      note: { x: 26, y: 52, w: 46, h: 98 },
+      lesson: { cx: 188, cy: 92, rot: 2 },
+      shelfB: { x: 322, w: 172, y: 150, plate: [324, 166, 166, 58], label: ['Копилка', 'всей фабрики'], ls: 20 },
+      book: { x: 332, y: 52, w: 56, h: 98 },
+      factory: { x: 398, y: 83, s: 0.62 },
+      door: { x: 520, y: 152, w: 84, h: 214, plate: [494, 102, 118, 36], ls: 19, cdx: 0 },
+      clock: [568, 50, 24],
+      mini: 1.06,   // the copy card's «Урок» stays ≥ 12px on an iPhone SE held sideways
+      lib: { x: 12, y: 246, s: 0.85 },
+      rat: { x: 132, y: 246, s: 0.85 },
+      env: { cx: 382, cy: 306, s: 0.92 },
+      rate: { cx: 300, cy: 262, s: 0.9 },
+      bubLib: { x: 70, y: 259, w: 170, dx: 50 },
+      bubRat: { x: 208, y: 259, w: 146, dx: 40 }
     }
   };
   /* derived points */
@@ -268,7 +292,7 @@
 
   /* ---------- DOM ---------- */
   function refs(svg) {
-    var key = svg.classList.contains('pm-svg--tall') ? 'tall' : 'wide';
+    var key = svg.classList.contains('pm-svg--tall') ? 'tall' : svg.classList.contains('pm-svg--land') ? 'land' : 'wide';
     var q = function (s) { return svg.querySelector(s); }, qa = function (s) { return MP.$$(s, svg); };
     return {
       key: key, L: LAYOUTS[key], svg: svg, shake: q('.pm-shake'),
@@ -290,7 +314,7 @@
 
   function build(sec, api) {
     if (!api.stage) return;
-    api.stage.innerHTML = markup('wide') + markup('tall');
+    api.stage.innerHTML = markup('wide') + markup('tall') + markup('land');
     MP.$$('.rate', sec).forEach(function (b) { if (!b.hasAttribute('aria-pressed')) b.setAttribute('aria-pressed', 'false'); });
   }
 
@@ -417,14 +441,29 @@
     return tl;
   }
 
+  /* Brings the room into view before it reacts: in one column (and on touch screens) the buttons sit above the room,
+   * which is then still below the fold. The package C kit in glavnyi.js (MP.pc.reveal) shows the most it can with the
+   * smallest scroll: the room with the answer line and the whole rating, else the room, the answer and the pressed
+   * button, else the room and the answer, else the room alone; only the reader's own input stops the glide. Mouse
+   * desktops keep the old behaviour; calm mode jumps. Without the kit the room reacts in place. */
+  function reveal(api, sets, go) {
+    if (MP.pc && MP.pc.reveal) return MP.pc.reveal(api, sets, go);
+    go();
+    return null;
+  }
+
   function wireRating(sec, api, onRate) {
-    var buttons = MP.$$('.rate', sec), out = MP.$('.rating-out', sec);
+    var buttons = MP.$$('.rate', sec), row = MP.$('.rating-buttons', sec), out = MP.$('.rating-out', sec), scroller = null;
+    /* the reveal scroll is killed (never reverted — that would scroll the page back) when the scene is reverted */
+    if (api.gsap) api.gsap.context(function () { return function () { if (scroller) scroller.kill(); }; });
     buttons.forEach(function (b) {
       api.on(b, 'click', function () {
         var n = +b.getAttribute('data-score') || 3;
         buttons.forEach(function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); });
         if (out) out.textContent = n >= 4 ? GOOD : LESSON;
-        onRate(n);
+        if (scroller) scroller.kill();   // a newer rating wins
+        var st = api.stage;
+        scroller = reveal(api, [[st, row, out], [st, b, out], [st, out]], function () { onRate(n); });
       });
     });
   }

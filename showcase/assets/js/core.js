@@ -84,6 +84,59 @@
     return function () { io.disconnect(); };
   };
 
+  /* ---------- sticky steps: which step is active ----------
+   * Side by side (desktop, phones held sideways) a step is active while it crosses the line at 62% of the viewport.
+   * Below 1024px in portrait the stage sits in a full-width band above the text (prosto.css, «stage band»): there the
+   * active step is the one whose text is the most readable in the window below the band, so the stage always shows the
+   * step being read (a fixed line would lag behind a reader who reads each step as it enters the window). */
+  function stickyOf(section) { return section && section.querySelector('.stage-sticky'); }
+  /* true when the stage rides in the band above the step text */
+  MP.stepBand = function (section) {
+    var sticky = stickyOf(section);
+    if (!sticky || !sticky.offsetHeight) return false;
+    return sticky.getBoundingClientRect().width >= 0.8 * sticky.parentNode.getBoundingClientRect().width;
+  };
+  /* the bottom edge of the band once it is stuck under the header (px from the viewport top) */
+  MP.bandBottom = function (section) {
+    var header = doc.querySelector('.site-header'), sticky = stickyOf(section);
+    return (header ? header.offsetHeight : 0) + (sticky ? sticky.offsetHeight : 0);
+  };
+  /* the trigger line (px from the viewport top): 62% side by side, 40% down the reading window in the band layout */
+  MP.stepLine = function (section) {
+    var vh = window.innerHeight;
+    if (MP.stepBand(section)) {
+      var b = MP.bandBottom(section);
+      return Math.round(Math.min(b + Math.max(32, 0.4 * (vh - b)), vh * 0.86));
+    }
+    return Math.round(vh * 0.62);
+  };
+  /* a step's text box: from its first child's top to its last child's bottom (the step's own padding excluded) */
+  function textBox(step) {
+    var a = step.firstElementChild, b = step.lastElementChild;
+    if (!a) return step.getBoundingClientRect();
+    return { top: a.getBoundingClientRect().top, bottom: b.getBoundingClientRect().bottom };
+  }
+  /* Index of the step that should be active now (-1: none yet). Band: the most readable text below the band (a near
+   * tie keeps `cur`); when no text is readable, the last one already read (slid under the band). Side by side: the
+   * last step whose top passed the line. */
+  MP.stepAt = function (section, steps, cur) {
+    steps = steps || MP.$$('.step[data-step]', section);
+    var i, vh = window.innerHeight;
+    if (MP.stepBand(section)) {
+      var top = MP.bandBottom(section), best = -1, bestShare = 0.25, read = -1;
+      for (i = 0; i < steps.length; i++) {
+        var t = textBox(steps[i]);
+        if (t.top < top) read = i;
+        var share = (Math.min(t.bottom, vh) - Math.max(t.top, top)) / Math.max(1, t.bottom - t.top);
+        if (share > bestShare + 0.02 || (i === cur && share >= bestShare - 0.02)) { best = i; bestShare = share; }
+      }
+      return best >= 0 ? best : read;
+    }
+    var line = MP.stepLine(section), p = -1;
+    for (i = 0; i < steps.length; i++) if (steps[i].getBoundingClientRect().top < line) p = i;
+    return p;
+  };
+
   /* ---------- Russian typographer: nbsp after short words and before dashes ---------- */
   var SHORT = /(^|[\s(«"])(в|и|с|к|о|у|а|я|на|не|по|от|до|за|из|ко|со|во|же|ли|бы|но|да|то|об|ни)\s+/gi;
   MP.nbsp = function (rootEl) {

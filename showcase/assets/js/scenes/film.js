@@ -7,10 +7,12 @@
  *        first play. window.MP_VIDEO → h2 «Посмотрите фильм — N минуты» (ru plural, rounded to 0,5; set eagerly at
  *        DOMContentLoaded so the lazy build never changes the section's height); window.MP_TRANSCRIPT →
  *        #film-transcript: one paragraph per chapter with an m:ss button that seeks and plays the video; the chapter
- *        being played is highlighted.
+ *        being played is highlighted. Phones and tablets: play (or a transcript time) brings the whole frame into view
+ *        under the header, so the native controls bar is on screen; the video plays inline (never forced fullscreen).
  * final: a class photo of the whole cast on bleachers (26 characters + the blooming фиалка and the phone). Animated:
  *        everyone pops up from behind the steps (stagger by x) and a stadium wave of raised arms runs across
  *        (api.loop) + blinking; when everyone is up a camera flash goes off («Сы-ыр!»). Calm: the static line-up.
+ *        Layouts: 'wide' (16:10), 'tall' (4:5) on phones in portrait; phones held sideways keep 'wide'.
  */
 (function () {
   'use strict';
@@ -154,17 +156,36 @@
     video.addEventListener('loadedmetadata', function () { st.ok = true; });
   }
 
+  /* phones and tablets (not a desktop landscape screen): bring the whole frame into view below the sticky header,
+   * centred in the visible area when it fits — the native controls bar sits at its bottom edge */
+  var MQ_TOUCHY = '(max-width: 1023px), (orientation: portrait), (max-height: 520px)';
+  function touchy() { return !!(window.matchMedia && window.matchMedia(MQ_TOUCHY).matches); }
+  function showFrame(frame, calm) {
+    var r = frame.getBoundingClientRect(), vh = window.innerHeight, header = document.querySelector('.site-header');
+    var top = header ? header.getBoundingClientRect().bottom : 0;
+    if (r.top >= top - 1 && r.bottom <= vh + 1) return;
+    var y = window.pageYOffset + r.top - top - Math.max(0, Math.floor((vh - top - r.height) / 2));
+    try { window.scrollTo({ top: y, behavior: calm ? 'auto' : 'smooth' }); } catch (e) { window.scrollTo(0, y); }
+  }
+
   function wireFilm(section, api) {
     var st = section.__film;
     if (!st || !st.video) return;
     var frame = st.frame, video = st.video, btn = frame.querySelector('[data-action="film-play"]');
+    /* inline on iPhone (the markup has playsinline too): the page never asks for fullscreen, the reader can */
+    video.playsInline = true;
     function start() {
       frame.classList.add('is-playing', 'is-started');
       var p;
       try { p = video.play(); } catch (e) { st.fail(); return; }
       if (p && p.catch) p.catch(function (err) { if (err && err.name !== 'AbortError' && err.name !== 'NotAllowedError') st.fail(); });
     }
-    api.on(btn, 'click', function () { if (st.ok !== false) { start(); try { video.focus({ preventScroll: true }); } catch (e) {} } });
+    api.on(btn, 'click', function () {
+      if (st.ok === false) return;
+      start();
+      try { video.focus({ preventScroll: true }); } catch (e) {}
+      if (touchy()) showFrame(frame, api.calm);
+    });
     api.on(video, 'play', function () { frame.classList.add('is-playing', 'is-started'); });
     api.on(video, 'ended', function () { frame.classList.remove('is-playing'); });
     var chaps = MP.$$('.tr-chap', section);
@@ -174,7 +195,8 @@
       var t = parseFloat(b.getAttribute('data-t')) || 0;
       try { video.currentTime = t; } catch (err) {}
       start();
-      frame.scrollIntoView({ behavior: api.calm ? 'auto' : 'smooth', block: 'center' });
+      if (touchy()) showFrame(frame, api.calm);
+      else frame.scrollIntoView({ behavior: api.calm ? 'auto' : 'smooth', block: 'center' });
     });
     var lastNow = null;
     api.on(video, 'timeupdate', function () {
@@ -231,7 +253,20 @@
       [1170, 1.25, null, [['brigadir', 150], ['plant', 380], ['vy', 610], ['phone', 830]]]
     ] }
   };
-  function finalMode() { return window.matchMedia && window.matchMedia('(max-width: 759px)').matches ? 'tall' : 'wide'; }
+  /* phones: the tall photo; phones held sideways keep the wide one (it sits beside the copy, capped by the height) */
+  var FINAL_MQ = ['(max-width: 759px)', '(orientation: landscape) and (max-height: 520px) and (pointer: coarse) and (min-width: 560px)'];
+  function finalMode() {
+    if (!window.matchMedia) return 'wide';
+    return window.matchMedia(FINAL_MQ[0]).matches && !window.matchMedia(FINAL_MQ[1]).matches ? 'tall' : 'wide';
+  }
+  /* media-query listeners only (a height-only resize never fires them); fn runs when the layout actually changes */
+  function onFinalMode(api, stage, fn) {
+    if (!window.matchMedia) return;
+    FINAL_MQ.forEach(function (q) {
+      var mq = window.matchMedia(q);
+      if (mq.addEventListener) api.on(mq, 'change', function () { if (stage.getAttribute('data-mode') !== finalMode()) fn(); });
+    });
+  }
 
   function renderFinal(stage, mode) {
     var Lo = FINAL[mode] || FINAL.wide, W = Lo.W, H = Lo.H, px = Lo.px, py = Lo.py, pw = Lo.pw, ph = Lo.ph, prx = 44;
@@ -321,24 +356,19 @@
       var go = function () { if (cur.enter) cur.enter.play(); };
       if (window.ScrollTrigger) window.ScrollTrigger.create({ trigger: stage, start: 'top 82%', once: true, onEnter: go });
       else go();
-      /* phone ↔ tablet: re-render the photo for the other layout and restart its loops (no entrance replay) */
-      if (window.matchMedia) {
-        var mq = window.matchMedia('(max-width: 759px)');
-        if (mq.addEventListener) api.on(mq, 'change', function () {
-          cur.anims.forEach(function (a) { if (a) a.kill(); });
-          renderFinal(stage, finalMode());
-          cur = animateFinal(stage, api);
-          if (cur.enter) cur.enter.progress(1);
-        });
-      }
+      /* phone ↔ phone sideways / tablet: re-render the photo for the other layout and restart its loops (no entrance
+       * replay) */
+      onFinalMode(api, stage, function () {
+        cur.anims.forEach(function (a) { if (a) a.kill(); });
+        renderFinal(stage, finalMode());
+        cur = animateFinal(stage, api);
+        if (cur.enter) cur.enter.progress(1);
+      });
     },
     final: function (section, api) {
       var stage = api.stage;
       if (stage.getAttribute('data-mode') !== finalMode()) renderFinal(stage, finalMode());
-      if (window.matchMedia) {
-        var mq = window.matchMedia('(max-width: 759px)');
-        if (mq.addEventListener) api.on(mq, 'change', function () { renderFinal(stage, finalMode()); });
-      }
+      onFinalMode(api, stage, function () { renderFinal(stage, finalMode()); });
     }
   });
 })();

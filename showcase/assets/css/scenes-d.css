@@ -6,22 +6,33 @@
 #zapusk .sim { --zp-ar: 16 / 9; --zp-w: min(100%, calc((100svh - var(--header-h) - 150px) * 16 / 9)); }
 #zapusk .stage--sim, #zapusk .sim-controls { width: var(--zp-w); justify-self: center; }
 #zapusk .stage--sim { aspect-ratio: var(--zp-ar); isolation: isolate; box-shadow: 10px 10px 0 rgba(0, 0, 0, .35); }
-@media (min-width: 760px) and (max-width: 1023px) {
+/* tablets, and portrait tablets up to the 12.9" iPad (1024×1366): the 4:3 fold (zapusk.js MQ.mid) */
+@media (min-width: 760px) and (max-width: 1023px), (min-width: 760px) and (orientation: portrait) and (max-width: 1199px) {
   #zapusk .sim { --zp-ar: 4 / 3; --zp-w: min(100%, calc((100svh - var(--header-h) - 150px) * 4 / 3)); }
 }
+/* phones: a 4:5 window onto the 9:16 zigzag (.zp-cam, panned by zapusk.js), sized so the stage, the two-line caption
+ * and the buttons (≈140px) fit one screen, 16px under the header (its progress token hangs below it) */
 @media (max-width: 759px) {
-  #zapusk .sim { --zp-ar: 9 / 16; --zp-w: min(100%, max(300px, calc((100svh - var(--header-h) - 150px) * 9 / 16))); gap: 16px; }
+  #zapusk .sim { --zp-ar: 4 / 5; --zp-w: min(100%, calc((100svh - var(--header-h) - 160px) * 4 / 5)); gap: 16px; }
   #zapusk .stage--sim { border-radius: 22px; box-shadow: 6px 6px 0 rgba(0, 0, 0, .35); }
 }
 #zapusk .stage--sim > svg { display: block; }
+#zapusk .zp-cam { position: absolute; left: 0; top: 0; width: 100%; aspect-ratio: 9 / 16; will-change: transform; }
+#zapusk .zp-cam > svg { display: block; width: 100%; height: 100%; overflow: visible; }
+/* the kit's tiny props («Аа» on a советник's card, «1»/«2» on Ревизор's cards) would render at 2–7px on these stages
+ * (touch tablets in landscape too; mouse desktops keep them) */
+#zapusk .stage--sim:not([data-mode="wide"]) .zp-c-adv text, #zapusk .stage--sim:not([data-mode="wide"]) .zp-c-revizor text { visibility: hidden; }
+@media (hover: none) { #zapusk .zp-c-adv text, #zapusk .zp-c-revizor text { visibility: hidden; } }
 
 /* speech bubbles: HTML so they never render below 16px; positioned in % of the viewBox by zapusk.js */
 #zapusk .zp-hud { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
 /* --dx / --tail are set by fitBubbles() in zapusk.js: slide a bubble inside the stage, keep its tail on the speaker */
-#zapusk .zp-say { position: absolute; width: max-content; max-width: min(17em, 46%); transform: translate(calc(-50% + var(--dx, 0px)), -100%); }
+#zapusk .zp-say { position: absolute; width: max-content; max-width: min(17em, 46%); transform: translate(calc(-50% + var(--dx, 0px)), calc(-100% + var(--dy, 0px))); }
 #zapusk .stage--sim[data-mode="tall"] .zp-say { max-width: 74%; }   /* one line on phones: shorter bubbles fit under the stage top */
-#zapusk .zp-say.is-l { transform: translate(calc(-22px + var(--dx, 0px)), -100%); }
-#zapusk .zp-say.is-r { transform: translate(calc(-100% + 22px + var(--dx, 0px)), -100%); }
+#zapusk .stage--sim[data-mode^="short"] .zp-say { max-width: 80%; } /* phones held sideways: one line, so a bubble lowered
+                                                                       * under the stage top (fitBubbles) covers less */
+#zapusk .zp-say.is-l { transform: translate(calc(-22px + var(--dx, 0px)), calc(-100% + var(--dy, 0px))); }
+#zapusk .zp-say.is-r { transform: translate(calc(-100% + 22px + var(--dx, 0px)), calc(-100% + var(--dy, 0px))); }
 #zapusk .zp-say-in {
   position: relative; display: block; padding: .38em .8em .42em;
   font-family: var(--font-text); font-weight: 700; font-size: clamp(16px, 1.32vw, 20px); line-height: 1.2;
@@ -53,7 +64,7 @@
   font-family: var(--font-display); font-weight: 800; font-size: clamp(16px, 1.4vw, 20px); color: var(--ink);
   background: var(--lemon); border: 3px solid var(--ink); border-radius: 999px; padding: 4px 16px; box-shadow: 4px 4px 0 var(--ink);
 }
-#zapusk .zp-go:hover .zp-go-disc { transform: scale(1.06); }
+@media (hover: hover) { #zapusk .zp-go:hover .zp-go-disc { transform: scale(1.06); } }
 #zapusk .zp-hot { position: absolute; z-index: 3; cursor: pointer; border-radius: 18px; }
 
 /* controls */
@@ -70,14 +81,41 @@ html:not(.js) #zapusk .sim-status::before, html:not(.js) #zapusk .sim-status::af
 #zapusk .btn--stamp { order: -1; }
 #zapusk .btn--stamp:not([hidden]) { box-shadow: 0 0 0 6px rgba(255, 218, 79, .35), 6px 6px 0 rgba(0, 0, 0, .45); }
 @media (max-width: 759px) {
-  #zapusk .sim-controls { gap: 10px; }
-  #zapusk .sim-controls .btn { width: auto; flex: 1 1 auto; min-width: 0; padding: 10px 16px; }
-  #zapusk [data-action="sim-play"] { flex: 1 1 auto; }
+  /* the controls take the full column even where the stage is capped by a short screen */
+  #zapusk .sim-controls { gap: 10px; width: 100%; }
+  #zapusk .sim-controls .btn { width: auto; flex: 1 1 auto; min-width: 0; min-height: 56px; padding: 10px 16px; font-size: 17px; }
   #zapusk [data-action="sim-reset"] { flex: 0 0 auto; }
   #zapusk .btn--stamp { flex-basis: 100%; }
   /* phones: the caption sits right under the stage, so stage + caption + the main button fit one screen. It always
    * keeps room for two lines (+ the 14px progress bar), so the buttons do not hop while the captions change */
   #zapusk .sim-status { flex-basis: 100%; font-size: 18px; order: -2; min-height: calc(2.5em + 14px); }
+  /* «Сначала» becomes a square icon button (its label, wrapped in .zp-lbl by zapusk.js, is hidden visually and stays
+   * its name), so the main button keeps one line beside it */
+  #zapusk .sim-controls [data-action="sim-reset"] { flex: 0 0 56px; width: 56px; padding: 0; gap: 0; }
+  #zapusk [data-action="sim-reset"] .ico { width: 24px; height: 24px; }
+  #zapusk [data-action="sim-reset"] .zp-lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  #zapusk .sim-controls [data-action="sim-play"], #zapusk .sim-controls .btn--stamp { flex: 1 1 0; }
+}
+@media (max-width: 380px) {
+  #zapusk .sim-controls [data-action="sim-play"], #zapusk .sim-controls .btn--stamp { font-size: 16px; padding-inline: 12px; }
+}
+@media (max-width: 359px) { #zapusk .sim-status { font-size: 17px; } }
+/* phones held sideways: the 16:9 diorama as tall as the screen allows, the caption and buttons in a column beside it */
+@media (orientation: landscape) and (max-height: 520px) and (pointer: coarse) and (min-width: 560px) {
+  #zapusk .sim { --zp-ar: 16 / 9; --zp-w: min(100% - 12rem - 16px, calc((100svh - var(--header-h) - 16px) * 16 / 9));
+    grid-template-columns: var(--zp-w) minmax(0, 1fr); gap: 16px; align-items: center; }
+  #zapusk .stage--sim { width: 100%; border-radius: 22px; box-shadow: 6px 6px 0 rgba(0, 0, 0, .35); }
+  #zapusk .sim-controls { width: auto; flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 10px; }
+  #zapusk .sim-controls .btn { width: 100%; min-width: 0; flex: none; min-height: 50px; padding: 8px 14px; font-size: 16px; }
+  #zapusk .sim-status { order: -2; flex: none; font-size: 17px; min-height: calc(3.75em + 14px); }
+  #zapusk .sim-controls [data-action="sim-reset"] { gap: .55em; }       /* labelled again (the phone band hides it) */
+  #zapusk [data-action="sim-reset"] .ico { width: 1.1em; height: 1.1em; }
+  #zapusk [data-action="sim-reset"] .zp-lbl { position: static; width: auto; height: auto; overflow: visible; clip-path: none; }
+}
+/* small phones sideways (a 667×375 SE): the 4:3 fold (zapusk.js short-mid) — a 16:9 stage would be squeezed by the
+ * controls column to ≈400×228 */
+@media (orientation: landscape) and (max-height: 520px) and (pointer: coarse) and (min-width: 560px) and (max-width: 759px) {
+  #zapusk .sim { --zp-ar: 4 / 3; --zp-w: min(100% - 12rem - 16px, calc((100svh - var(--header-h) - 16px) * 4 / 3)); }
 }
 /* the kit's stamp says «ОДОБРЕНО» at 11px — unreadable at station size; the big seal says it legibly */
 #zapusk .zp-hand .c-stamp text { visibility: hidden; }
@@ -86,8 +124,9 @@ html:not(.js) #zapusk .sim-status::before, html:not(.js) #zapusk .sim-status::af
 #film .film-frame { isolation: isolate; }
 #film .fm-poster { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; display: block; }
 #film .film-frame.is-started .fm-poster { display: none; }
+#film .film-frame.is-offline .fm-poster { display: block; }   /* film.js fail(): the illustrated poster stays behind the note */
 #film .film-play { z-index: 2; transition: transform .15s ease-out; }
-#film .film-play:hover { transform: scale(1.06) rotate(-4deg); }
+@media (hover: hover) { #film .film-play:hover { transform: scale(1.06) rotate(-4deg); } }
 #film .film-fallback {
   z-index: 3; inset: 49% auto auto 50%; transform: translate(-50%, -50%); width: max-content; max-width: 88%;
   padding: .5em 1.3em; border: 3px solid var(--ink); border-radius: 999px; background: var(--cream); color: var(--ink);
@@ -113,7 +152,7 @@ html:not(.js) #zapusk .sim-status::before, html:not(.js) #zapusk .sim-status::af
   background: var(--violet); color: var(--cream); font-family: var(--font-display); font-weight: 700; font-size: 16px;
   font-variant-numeric: tabular-nums; box-shadow: 3px 3px 0 var(--ink); cursor: pointer;
 }
-#film .tr-time:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+@media (hover: hover) { #film .tr-time:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); } }
 #film .tr-time[disabled] { background: var(--cream); color: var(--ink); box-shadow: none; cursor: default; transform: none; opacity: .8; }
 #film .tr-chap.is-now .tr-time { background: var(--mint); color: var(--ink); }
 #film .tr-title { font-family: var(--font-display); font-weight: 700; font-size: clamp(18px, 1.5vw, 21px); line-height: 1.2; margin: 6px 0 4px; }
@@ -121,6 +160,21 @@ html:not(.js) #zapusk .sim-status::before, html:not(.js) #zapusk .sim-status::af
 @media (max-width: 560px) {
   #film .tr-chap { grid-template-columns: 1fr; gap: 6px; padding: 10px 6px 10px 10px; }
   #film .tr-time { justify-self: start; }
+}
+/* touch: the transcript's summary and time buttons are ≥44px tall */
+@media (pointer: coarse) {
+  #film .film-text summary { padding-block: 10px; }
+  #film .tr-time { min-height: 44px; }
+}
+/* phones: a smaller play disc, centred in the band between the poster's title (ends at ~31% of the height) and its cast
+ * row (starts at ~70%) — the 88px disc covered «приложений» */
+@media (max-width: 759px) {
+  #film .film-play { --fp: clamp(52px, 17vw, 88px); width: var(--fp); height: var(--fp); margin: calc(var(--fp) / -2) 0 0 calc(var(--fp) / -2); top: 51%; }
+}
+/* phones held sideways: the frame as large as the visible height allows, so its native controls bar stays on screen */
+@media (orientation: landscape) and (max-height: 520px) and (pointer: coarse) and (min-width: 560px) {
+  #film .film-frame { width: min(100%, calc((100svh - var(--header-h) - 28px) * 16 / 9)); margin-inline: auto; }
+  #film .film-text { margin-top: 18px; }
 }
 
 /* ============================== final ============================== */
@@ -130,8 +184,53 @@ html:not(.js) #zapusk .sim-status::before, html:not(.js) #zapusk .sim-status::af
 @media (min-width: 1024px) { #final .final-grid { grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr); } }
 /* small laptops: the three buttons need ~440px to keep one line each, so the copy gets an even half there */
 @media (min-width: 1024px) and (max-width: 1279px) { #final .final-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
-@media (max-width: 1023px) { #final .stage--final { margin-top: 12px; } #final .fn-svg { transform: rotate(-1deg); } }
-@media (max-width: 759px) { #final .stage--final { aspect-ratio: 4 / 5; max-width: 520px; } }
+/* portrait tablets up to the 12.9" iPad (1024×1366): one column like the smaller tablets — side by side the photo was
+ * a 451×282 postcard */
+@media (min-width: 1024px) and (orientation: portrait) and (max-width: 1199px) {
+  #final .final-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 1023px), (orientation: portrait) and (max-width: 1199px) {
+  #final .stage--final { margin-top: 12px; } #final .fn-svg { transform: rotate(-1deg); }
+}
+/* tablets in portrait: a little less padding lets «Схема для специалистов» and «Запустить ещё раз» share a row under
+ * the main button (the three stacked as a left-aligned column at 768px). A two-column grid keeps the main button on a
+ * row of its own at every width (plain wrapping paired it with «Схема» at 1024×1366); the photo takes the column's
+ * full width, so it lines up with the copy (at 1024 its 900px cap left it centred, off the copy's edge) */
+@media (min-width: 760px) and (max-width: 1023px), (min-width: 760px) and (orientation: portrait) and (max-width: 1199px) {
+  #final .ctas .btn { padding-inline: 20px; }
+  #final .ctas { display: grid; grid-template-columns: repeat(2, minmax(0, max-content)); }
+  #final .ctas .btn:first-child { grid-column: 1 / -1; justify-self: start; }
+  #final .stage--final { max-width: none; }
+}
+/* touch tablets in landscape (1024–1279, hover: none): the class photo gets the wider column (desktops keep theirs) */
+@media (min-width: 1024px) and (max-width: 1279px) and (orientation: landscape) and (min-height: 521px) and (hover: none) {
+  #final .final-grid { grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr); }
+  #final .final-grid h2 { font-size: clamp(40px, 4.6vw, 56px); }
+  #final .ctas .btn { padding-inline: 18px; font-size: 17px; }
+}
+/* Ревизор's «1»/«2» cards would print their digits at 3–9px on these photos (decorative: the cards stay) */
+@media (max-width: 1023px), (orientation: portrait), (max-height: 520px), (hover: none) { #final .c-revizor text { visibility: hidden; } }
+@media (max-width: 759px) {
+  #final .stage--final { aspect-ratio: 4 / 5; max-width: 520px; }
+  #final .ctas .btn { font-size: 17px; padding-inline: 18px; }      /* one line each on a 393px phone */
+}
+@media (max-width: 380px) { #final .ctas .btn { font-size: 16px; padding-inline: 14px; } }
+/* phones held sideways: copy and photo side by side (prosto.css), the photo in the wide 16:10 composition (film.js
+ * finalMode) capped by the visible height, a smaller headline, compact buttons */
+@media (orientation: landscape) and (max-height: 520px) and (pointer: coarse) and (min-width: 560px) {
+  /* the copy column is taller than the screen: the photo rides beside it (sticky) instead of sitting at its middle */
+  #final .stage--final { aspect-ratio: 16 / 10; width: min(100%, calc((100svh - var(--header-h) - 28px) * 1.6)); max-width: none; margin-top: 0;
+    align-self: start; position: sticky; top: calc(var(--header-h) + 14px); }
+  #final .final-grid h2 { font-size: clamp(28px, 4.4vw, 40px); }
+  #final .ctas { display: flex; margin-top: 24px; gap: 12px; }    /* ≥760 wide: not the portrait-tablet grid above */
+  #final .ctas .btn { min-height: 48px; padding: 8px 16px; font-size: 16px; }
+}
+/* small phones sideways (560–759, a 667×375 SE): the copy column gets a little more than half, so each button keeps one
+ * line (they wrapped to two in a 293px column) */
+@media (orientation: landscape) and (max-height: 520px) and (pointer: coarse) and (min-width: 560px) and (max-width: 759px) {
+  #final .final-grid { grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); }
+  #final .ctas .btn { padding-inline: 12px; font-size: clamp(14px, 2.25vw, 16px); }
+}
 @media (max-width: 560px) {
   #film .film-fallback { top: 54%; font-family: var(--font-text); font-weight: 700; font-size: 16px; padding: .35em 1em; max-width: calc(100% - 28px);
     width: max-content; border-radius: 18px; box-shadow: 3px 3px 0 var(--ink); }

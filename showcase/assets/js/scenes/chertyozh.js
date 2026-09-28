@@ -5,8 +5,12 @@
  *   MP.pb.bubble(o)                  speech bubble whose TAIL TIP sits at (o.x, o.y); tail 'dl'|'dr'|'d'|'l'|'r'.
  *                                    Width is estimated, then MP.pb.fit(root) measures the real text and re-shapes it.
  *   MP.pb.stamp(o)                   rubber-stamp badge (rounded rect, double border) centred at (o.x, o.y), rotated.
- *   MP.pb.mount(api, inner, cls)     inject <svg viewBox="0 0 720 540"> into api.stage (all three stages are 720×540).
- *   MP.pb.frame(svg, api, box)       desktop viewBox 720×540 (4:3) / mobile crop `box` (16:10) — the stage ratio changes <1024px.
+ *   MP.pb.mount(api, inner, cls, ph) inject <svg viewBox="0 0 720 540"> into api.stage (all three stages are 720×540;
+ *                                    ph = the phone composition in PB.PHONE_BOX).
+ *   MP.pb.scene(id, o)               registers a sticky-step scene whose phone / big compositions rebuild when the
+ *                                    phone query (default PB.PHONE, <760px) flips.
+ *   MP.pb.frame(svg, api, box, ph)   desktop viewBox 720×540 (4:3) / tablet crop `box` (16:10) <1024px / phones <760px: the
+ *                                    square PB.PHONE_BOX (480×480) of the scene's own phone composition (PB.scene).
  *   MP.pb.drive(api, tl, o)          sticky-step driver: one paused master timeline with a label per step; a step change
  *                                    tweens the playhead to its label (long jumps compressed, rewinds quick); calm mode seeks.
  *                                    Also plays the first step as an intro once the stage is in view, and keeps the step
@@ -138,7 +142,8 @@
   };
 
   /* ---------- DOM helpers ---------- */
-  /* phone = the portrait layout (<760px, stage 4:5): its own 432×540 composition, so labels render ≥16px at 390px */
+  /* phone = the portrait layout (<760px, square stage): its own 480×480 composition (PB.PHONE_BOX), so labels of ≥20 units
+   * render at ≥15px on a 390px phone (the stage is ~370px wide there, prosto.css) */
   PB.mount = function (api, inner, cls, phone) {
     var svg = MP.svg(inner, phone ? PB.PHONE_BOX : '0 0 720 540', 'pb-svg' + (cls ? ' ' + cls : ''));
     svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
@@ -155,16 +160,18 @@
 
   /* ---------- phones: portrait stages (<760px) get a separate layout ---------- */
   PB.PHONE = '(max-width: 759px)';
-  PB.PHONE_BOX = '0 0 432 540';
-  PB.isPhone = function () {
-    try { return !!(window.matchMedia && window.matchMedia(PB.PHONE).matches); } catch (e) { return false; }
+  PB.PHONE_BOX = '0 0 480 480';
+  PB.isPhone = function (query) {
+    try { return !!(window.matchMedia && window.matchMedia(query || PB.PHONE).matches); } catch (e) { return false; }
   };
   /* Registers a package-B sticky-step scene. o = {build(section, api, phone), master(section, api, phone) -> paused
-   * timeline, first (calm start label), wire(section, api) (once per init)}. The scene's work runs inside a nested
-   * gsap.matchMedia on the phone breakpoint: prosto only re-inits at 1024px, so crossing 760px (rotation, resize)
-   * reverts the timeline/triggers here, rebuilds the markup for the other layout and runs again. The stage box keeps
-   * its CSS aspect ratio, so none of this ever changes the section height. */
+   * timeline, first (calm start label), wire(section, api) (once per init), phone (optional media query for the phone
+   * composition, default PB.PHONE — its CSS must give the stage the square phone box too)}. The scene's work runs
+   * inside a nested gsap.matchMedia on the phone query: prosto only re-inits at 1024px, so crossing 760px (rotation,
+   * resize) reverts the timeline/triggers here, rebuilds the markup for the other layout and runs again. The stage box
+   * keeps its CSS aspect ratio, so none of this ever changes the section height. */
   PB.scene = function (id, o) {
+    var query = o.phone || PB.PHONE;
     function run(section, api) {
       var gsap = window.gsap;
       function go(phone) {
@@ -173,11 +180,20 @@
         section.__pb = PB.drive(api, tl, api.calm ? { first: o.first } : null);
         if (!api.calm) MP.blink(api.stage, api);
       }
-      if (!gsap || !gsap.matchMedia) { go(PB.isPhone()); return; }
-      gsap.matchMedia().add({ phone: PB.PHONE, big: '(min-width: 760px)' }, function (ctx) { go(!!ctx.conditions.phone); });
+      if (!gsap || !gsap.matchMedia) { go(PB.isPhone(query)); return; }
+      // 'any' (always true) keeps the callback alive on both sides; GSAP reverts and re-runs it whenever `phone` flips.
+      // Not the key 'all': GSAP never records that key and would re-run this on ANY media-query change of the page.
+      gsap.matchMedia().add({ phone: query, any: '(min-width: 0px)' }, function (ctx) {
+        go(!!ctx.conditions.phone);
+        // api.steps clears its step highlights only on prosto's revert: a flip kills the step triggers here, and the
+        // new ones only toggle their own step, so a stale .is-active would stay lit next to the new active step
+        return function () {
+          Array.prototype.forEach.call(section.querySelectorAll('.step.is-active'), function (el) { el.classList.remove('is-active'); });
+        };
+      });
     }
     MP.scene(id, {
-      build: function (section, api) { o.build(section, api, PB.isPhone()); },
+      build: function (section, api) { o.build(section, api, PB.isPhone(query)); },
       init: function (section, api) { run(section, api); if (o.wire) o.wire(section, api); },
       final: function (section, api) { run(section, api); if (o.wire) o.wire(section, api); }
     });
@@ -268,7 +284,7 @@
     PB._rfT = setTimeout(function () {
       PB._rfT = null;
       if (MP.prosto && MP.prosto.suspended) return;
-      window.ScrollTrigger.refresh();
+      window.ScrollTrigger.refresh(true);   // safe mode: waits for the end of a touch fling (see prosto.js)
     }, 120);
   };
   /* A trigger created in the same frame as a big programmatic jump (deep link, «jump to» buttons) can be measured
@@ -279,9 +295,10 @@
     function check() {
       if (!alive()) return;
       var st = null;
-      window.ScrollTrigger.getAll().forEach(function (t) { if (t.trigger === stepEls[0]) st = t; });
-      if (!st || !stepEls[0].offsetHeight) return;
-      var want = stepEls[0].getBoundingClientRect().top + window.pageYOffset - window.innerHeight * 0.62;
+      var list = stepEls[0].parentNode;   // api.steps' list trigger starts at 'top bottom'
+      window.ScrollTrigger.getAll().forEach(function (t) { if (t.trigger === list && t.vars.start === 'top bottom') st = t; });
+      if (!st || !list.offsetHeight) return;
+      var want = list.getBoundingClientRect().top + window.pageYOffset - window.innerHeight;
       if (Math.abs(st.start - want) > 4) PB.refreshSoon();
     }
     requestAnimationFrame(check);
@@ -330,11 +347,10 @@
       cur = tl.tweenTo(tb, Object.assign({ duration: tb - ta, ease: 'none', onComplete: function () { cur = null; } }, vars || {}));
       return cur;
     }
-    /* the last step whose top already passed the trigger line (62% of the viewport, as in api.steps) */
+    /* the step the reader is at (MP.stepAt, the same rule api.steps uses), or null above the list */
     function passed() {
-      var p = null;
-      stepEls.forEach(function (el) { if (el.getBoundingClientRect().top < window.innerHeight * 0.62) p = el.getAttribute('data-step'); });
-      return p;
+      var i = MP.stepAt(api.section, stepEls);
+      return i >= 0 ? stepEls[i].getAttribute('data-step') : null;
     }
     /* initial sync: a reload / deep link below some steps starts at the state of the last step already passed */
     var p0 = passed();
@@ -360,7 +376,8 @@
     /* a fast jump can skip every step's toggle (e.g. landing below the list): resync when leaving the list */
     var list = stepEls.length && stepEls[0].parentNode;
     if (list && window.ScrollTrigger) {
-      window.ScrollTrigger.create({ trigger: list, start: 'top 62%', endTrigger: stepEls[stepEls.length - 1], end: 'bottom 62%',
+      var lineAt = function (edge) { return function () { return edge + ' ' + MP.stepLine(api.section) + 'px'; }; };
+      window.ScrollTrigger.create({ trigger: list, start: lineAt('top'), endTrigger: stepEls[stepEls.length - 1], end: lineAt('bottom'),
         onLeave: function () { var p = passed(); if (p && p !== last) go(p); },
         onRefresh: function () { requestAnimationFrame(resync); } });
     }
@@ -369,6 +386,10 @@
 
   /* =====================================================================================================
    *  chertyozh — the blueprint room (sky blueprint stage, 720×540)
+   *  Phones (<760px, and phones held sideways — see the PB.scene call) get their own composition of the same six
+   *  layers in the square PB.PHONE_BOX (480×480): the *Ph markup functions below, and the geometry the master timeline
+   *  needs in PH (BIG = the 720×540 world). Phone labels are ≥ 22 units: ≥ 16px on a 393px phone (stage ~373px),
+   *  ≥ 12px on an iPhone SE (~276px).
    * ===================================================================================================== */
   var SPEC_SHEETS = (window.MP_FACTS && window.MP_FACTS.specSheets) || 18;
 
@@ -407,27 +428,33 @@
       C(c + 24, cy - 26, 11, RASP, ' stroke-width="3"') + L('M' + f(c + 24) + ' ' + f(cy - 32) + 'V' + f(cy - 20) + 'M' + f(c + 18) + ' ' + f(cy - 26) + 'H' + f(c + 30), INK, 3);
   }
 
+  var DOORS = [
+    { c: 150, fill: TANG, label: 'Снимки\nэкрана', icon: iconShots },
+    { c: 360, fill: VIOLET, label: 'Беседа', icon: iconTalk, open: true },
+    { c: 570, fill: MINT, label: 'Готовый\nпроект', icon: iconBox }
+  ];
+  /* one door of the 720×540 world at its centre d.c: threshold, frame and leaf; the open one also shows the glow,
+   * Бригадир and `inside` (drawn behind the swinging leaf) */
+  function doorBody(d, inside) {
+    var c = d.c, s = R(c - 98, 466, 196, 12, 6, STEEL, ' stroke-width="3.5"');
+    s += P(arch(c, 86, 318, 468), d.open ? CREAM : INK, ' class="ch-hole" stroke-width="4"');
+    if (d.open) {
+      s += G('ch-glow', L('M' + f(c - 60) + ' 300L' + f(c - 30) + ' 330M' + f(c + 60) + ' 300L' + f(c + 30) + ' 330M' + f(c) + ' 262V300', TANG, 5, ' stroke-linecap="round" stroke-opacity=".7"'));
+      s += '<g class="ch-brig1">' + place(MP.char('brigadir', { expr: 'happy' }), c - 60, 330, 1) + '</g>';
+      s += inside || '';
+    }
+    s += '<g class="ch-leaf">' + P(arch(c, 73, 318, 466), d.fill, ' stroke-width="4"') +
+      L('M' + f(c - 56) + ' 440V322Q' + f(c - 54) + ' 280 ' + f(c - 26) + ' 262', CREAM, 5, ' stroke-linecap="round" stroke-opacity=".55"') +
+      d.icon(c, 352) + C(c + 52, 408, 7, CREAM, ' stroke-width="3"') +
+      P(arch(c, 73, 318, 466), INK, ' class="ch-shade" opacity="0" stroke="none"') + '</g>';
+    return s;
+  }
   function markupDoors() {
-    var D = [
-      { c: 150, fill: TANG, label: 'Снимки\nэкрана', icon: iconShots },
-      { c: 360, fill: VIOLET, label: 'Беседа', icon: iconTalk, open: true },
-      { c: 570, fill: MINT, label: 'Готовый\nпроект', icon: iconBox }
-    ];
     var s = '';
-    D.forEach(function (d, i) {
+    DOORS.forEach(function (d, i) {
       var c = d.c;
       s += '<g class="ch-door ch-door--' + i + '" opacity="0">';
-      s += R(c - 98, 466, 196, 12, 6, STEEL, ' stroke-width="3.5"');
-      s += P(arch(c, 86, 318, 468), d.open ? CREAM : INK, ' class="ch-hole" stroke-width="4"');
-      if (d.open) {
-        s += G('ch-glow', L('M' + f(c - 60) + ' 300L' + f(c - 30) + ' 330M' + f(c + 60) + ' 300L' + f(c + 30) + ' 330M' + f(c) + ' 262V300', TANG, 5, ' stroke-linecap="round" stroke-opacity=".7"'));
-        s += '<g class="ch-brig1">' + place(MP.char('brigadir', { expr: 'happy' }), c - 60, 330, 1) + '</g>';
-        s += PB.bubble({ x: c, y: 344, text: 'Заходите!', tail: 'd', cls: 'ch-bub-in' });
-      }
-      s += '<g class="ch-leaf">' + P(arch(c, 73, 318, 466), d.fill, ' stroke-width="4"') +
-        L('M' + f(c - 56) + ' 440V322Q' + f(c - 54) + ' 280 ' + f(c - 26) + ' 262', CREAM, 5, ' stroke-linecap="round" stroke-opacity=".55"') +
-        d.icon(c, 352) + C(c + 52, 408, 7, CREAM, ' stroke-width="3"') +
-        P(arch(c, 73, 318, 466), INK, ' class="ch-shade" opacity="0" stroke="none"') + '</g>';
+      s += doorBody(d, d.open ? PB.bubble({ x: c, y: 344, text: 'Заходите!', tail: 'd', cls: 'ch-bub-in' }) : '');
       s += '<g class="ch-plate">' + R(c - 84, 138, 168, 76, 16, CREAM, ' stroke-width="4"') + PB.text(c, 176, d.label, 24, { mid: true, w: 800 }) + '</g>';
       if (d.open) s += PB.stamp({ x: c, y: 124, text: 'с нуля', fill: MINT, rot: -6, cls: 'ch-zero', size: 20 });
       s += '</g>';
@@ -446,16 +473,20 @@
     return 'M' + f(cx + r * Math.cos(t0)) + ' ' + f(cy + r * Math.sin(t0)) + 'A' + f(r) + ' ' + f(r) + ' 0 0 1 ' +
       f(cx + r * Math.cos(t1)) + ' ' + f(cy + r * Math.sin(t1));
   }
-  function markupQuestions() {
-    var s = '', i;
+  /* the 5-segment progress arc «5 заходов» around (A.cx, A.cy) */
+  function progressArc(A) {
     var arcs = '';
-    for (i = 0; i < 5; i++) {
+    for (var i = 0; i < 5; i++) {
       var a0 = 180 + i * 36 + 3, a1 = a0 + 30;
-      arcs += L(arcD(ARC.cx, ARC.cy, ARC.r, a0, a1), INK, 30, ' stroke-linecap="round"') +
-        L(arcD(ARC.cx, ARC.cy, ARC.r, a0, a1), CREAM, 20, ' stroke-linecap="round"') +
-        L(arcD(ARC.cx, ARC.cy, ARC.r, a0, a1), MINT, 20, ' class="ch-seg" stroke-linecap="round"');
+      arcs += L(arcD(A.cx, A.cy, A.r, a0, a1), INK, 30, ' stroke-linecap="round"') +
+        L(arcD(A.cx, A.cy, A.r, a0, a1), CREAM, 20, ' stroke-linecap="round"') +
+        L(arcD(A.cx, A.cy, A.r, a0, a1), MINT, 20, ' class="ch-seg" stroke-linecap="round"');
     }
-    s += '<g class="ch-arc" opacity="0">' + arcs + PB.text(ARC.cx, ARC.cy - 12, '5 заходов', 22, { w: 800 }) + '</g>';
+    return '<g class="ch-arc" opacity="0">' + arcs + PB.text(A.cx, A.cy - 12, '5 заходов', 22, { w: 800 }) + '</g>';
+  }
+  function markupQuestions() {
+    var s = '';
+    s += progressArc(ARC);
     s += '<g class="ch-brig2" opacity="0">' + place(MP.char('brigadir', { expr: 'happy' }), 40, 280, 1.4) + '</g>';
     var y = 132;
     CHAT.forEach(function (c, k) {
@@ -468,12 +499,19 @@
 
   var ADV = ['speed', 'glasses', 'lock', 'abacus', 'umbrella'];
   var ADV_X = [88, 224, 360, 496, 632];
-  function pileSlots() {  // 9 sheets: bottom → top
+  function pileSlots(pile) {  // 9 sheets: bottom → top
     var out = [], rnd = MP.seeded ? MP.seeded(77) : Math.random;
-    for (var i = 0; i < 9; i++) out.push({ x: PILE.x + (rnd() - 0.5) * 10, y: PILE.y + (8 - i) * 4, r: (rnd() - 0.5) * 8 });
+    for (var i = 0; i < 9; i++) out.push({ x: pile.x + (rnd() - 0.5) * 10, y: pile.y + (8 - i) * 4, r: (rnd() - 0.5) * 8 });
     return out;
   }
-  var PILE_SLOTS = pileSlots();
+  var PILE_SLOTS = pileSlots(PILE);
+  function pileMarkup(slots) {
+    var pile = '';
+    slots.forEach(function (p, i) {
+      pile += '<g transform="translate(' + f(p.x) + ' ' + f(p.y) + ') rotate(' + f(p.r) + ' 48 58)"><g class="ch-sheet ch-sheet' + i + '">' + sheetMarkup(SW, SH, 4) + '</g></g>';
+    });
+    return '<g class="ch-pile" opacity="0">' + pile + '</g>';
+  }
   function markupScribes() {
     var s = '';
     s += '<g class="ch-adv-label" opacity="0">' + L('M88 108V98H632V108M224 98V108M360 98V108M496 98V108', CREAM, 4, ' stroke-linecap="round" stroke-linejoin="round"') +
@@ -491,33 +529,39 @@
     });
     s += '<g class="ch-pis ch-pisL" opacity="0">' + place(MP.char('pisar', { expr: 'happy' }), 26, 302, 1.2) + '</g>';
     s += '<g class="ch-pis ch-pisR" opacity="0">' + place(MP.char('pisar', { expr: 'happy' }), 694, 302, 1.2, -1.2) + '</g>';
-    var pile = '';
-    PILE_SLOTS.forEach(function (p, i) {
-      pile += '<g transform="translate(' + f(p.x) + ' ' + f(p.y) + ') rotate(' + f(p.r) + ' 48 58)"><g class="ch-sheet ch-sheet' + i + '">' + sheetMarkup(SW, SH, 4) + '</g></g>';
-    });
-    s += '<g class="ch-pile" opacity="0">' + pile + '</g>';
+    s += pileMarkup(PILE_SLOTS);
     return G('ch-l3', s);
   }
 
+  /* Придира's lamp: bulb centre (x, y) */
+  function lampMarkup(x, y) {
+    return '<g class="ch-lamp" opacity="0">' + R(x - 4, y + 10, 9, 84, 3, STEEL_D, ' stroke-width="3"') + R(x - 18, y + 90, 37, 10, 5, INK, NS) +
+      C(x, y, 30, RASP, ' class="ch-lamp-halo" opacity="0" stroke="none"') +
+      C(x, y, 17, STEEL_D, ' class="ch-lamp-bulb" stroke-width="3.5"') + C(x - 5, y - 5, 4.5, '#FFFFFF', NS + ' opacity=".8"') + '</g>';
+  }
+  /* return counter: «не больше двух раз» — two slots, the first one fills. o = {w, fs (label size), tx, s1, s2 (offsets)} */
+  function counterMarkup(x, y, o) {
+    return '<g class="ch-count" opacity="0">' + R(x, y, o.w, 52, 16, CREAM, ' stroke-width="3.5"') + PB.text(x + o.tx, y + 34, 'возврат', o.fs, { anchor: 'start', w: 800 }) +
+      '<circle class="ch-slot ch-slot1" cx="' + (x + o.s1) + '" cy="' + (y + 26) + '" r="12" fill="' + RASP + '" stroke-width="3.5"/>' +
+      '<circle class="ch-slot" cx="' + (x + o.s2) + '" cy="' + (y + 26) + '" r="12" fill="none" stroke-width="3.5" stroke-dasharray="5 5"/>' + '</g>';
+  }
+  /* the returned sheet (final: back on top of the pile, fixed and stamped «Годится») + the stamp's splash (radii r0..r1) */
+  function returnedSheet(top, r0, r1) {
+    var s = '<g transform="translate(' + f(top.x) + ' ' + f(top.y - 6) + ')"><g class="ch-bsheet" opacity="0">' + sheetMarkup(SW, SH, 4) +
+      '<g class="ch-marks" opacity="0">' + L('M18 40q10-10 20 0t20 0t20 0M18 76q10-10 20 0t20 0', RASP, 5, ' stroke-linecap="round"') + '</g>' +
+      L('M30 66l14 14 26-30', MINT, 9, ' class="ch-fix" stroke-linecap="round" stroke-linejoin="round"') + '</g></g>';
+    s += PB.stamp({ x: top.x + 50, y: top.y + 70, text: 'Годится', fill: MINT, rot: -12, cls: 'ch-ok', off: true });
+    s += PB.splash(top.x + 50, top.y + 70, r0, r1, [-165, -140, -40, -15, 15, 40, 140, 165], INK, 'ch-sp1');
+    return s;
+  }
   function markupCritic() {
     var s = '';
     s += '<g class="ch-crit" opacity="0">' + R(292, 240, 136, 34, 10, TANG, ' stroke-width="4"') + L('M300 262H420', INK, 3, ' stroke-opacity=".25"') +
       place(MP.char('pridira'), 300, 108, 1) + '</g>';
-    s += '<g class="ch-lamp" opacity="0">' + R(596, 170, 9, 84, 3, STEEL_D, ' stroke-width="3"') + R(582, 250, 37, 10, 5, INK, NS) +
-      C(600, 160, 30, RASP, ' class="ch-lamp-halo" opacity="0" stroke="none"') +
-      C(600, 160, 17, STEEL_D, ' class="ch-lamp-bulb" stroke-width="3.5"') + C(595, 155, 4.5, '#FFFFFF', NS + ' opacity=".8"') + '</g>';
+    s += lampMarkup(600, 160);
     s += PB.bubble({ x: 396, y: 146, text: 'Переделать!', tail: 'dl', cls: 'ch-bub-crit', off: true });
-    /* return counter: «не больше двух раз» — two slots, the first one fills */
-    s += '<g class="ch-count" opacity="0">' + R(506, 268, 188, 52, 16, CREAM, ' stroke-width="3.5"') + PB.text(522, 302, 'возврат', 20, { anchor: 'start', w: 800 }) +
-      '<circle class="ch-slot ch-slot1" cx="636" cy="294" r="12" fill="' + RASP + '" stroke-width="3.5"/>' +
-      '<circle class="ch-slot" cx="670" cy="294" r="12" fill="none" stroke-width="3.5" stroke-dasharray="5 5"/>' + '</g>';
-    /* the returned sheet (final: back on the pile, fixed and stamped) */
-    var top = PILE_SLOTS[8];
-    s += '<g transform="translate(' + f(top.x) + ' ' + f(top.y - 6) + ')"><g class="ch-bsheet" opacity="0">' + sheetMarkup(SW, SH, 4) +
-      '<g class="ch-marks" opacity="0">' + L('M18 40q10-10 20 0t20 0t20 0M18 76q10-10 20 0t20 0', RASP, 5, ' stroke-linecap="round"') + '</g>' +
-      L('M30 66l14 14 26-30', MINT, 9, ' class="ch-fix" stroke-linecap="round" stroke-linejoin="round"') + '</g></g>';
-    s += PB.stamp({ x: top.x + 50, y: top.y + 70, text: 'Годится', fill: MINT, rot: -12, cls: 'ch-ok', off: true });
-    s += PB.splash(top.x + 50, top.y + 70, 100, 130, [-165, -140, -40, -15, 15, 40, 140, 165], INK, 'ch-sp1');
+    s += counterMarkup(506, 268, { w: 188, fs: 20, tx: 16, s1: 130, s2: 164 });
+    s += returnedSheet(PILE_SLOTS[8], 100, 130);
     return G('ch-l4', s);
   }
 
@@ -541,23 +585,27 @@
       C(px, 318, 13, STEEL_D, ' stroke-width="3.5"') + C(px, 318, 4, INK, NS) +
       '</g>';
   }
-  function markupYes() {
-    var s = '';
-    /* rolled blueprint */
-    var roll = '<g transform="translate(0 -20)">' + R(232, 152, 256, 86, 12, CREAM, ' stroke-width="4"');
+  /* rolled blueprint «18 листов», shifted by (tx, ty) from its 720×540 spot */
+  function rollMarkup(tx, ty) {
+    var roll = '<g transform="translate(' + f(tx) + ' ' + f(ty) + ')">' + R(232, 152, 256, 86, 12, CREAM, ' stroke-width="4"');
     for (var gx = 262; gx < 480; gx += 28) roll += L('M' + gx + ' 158V232', SKY, 2.5, ' stroke-opacity=".7"');
     roll += L('M240 182H482M240 208H482', SKY, 2.5, ' stroke-opacity=".7"') +
       E(488, 195, 20, 43, CREAM, ' stroke-width="4"') + L('M488 195m-9 0a9 12 0 1 0 18 0a14 20 0 1 0 -28 0', INK, 3) +
       R(346, 150, 28, 90, 4, VIOLET, ' stroke-width="4"') + L('M360 240V258', INK, 3) +
       L('M246 166Q300 160 330 162', '#FFFFFF', 5, ' stroke-linecap="round" stroke-opacity=".8"') +
       R(262, 254, 196, 44, 14, TANG, ' stroke-width="4"') + PB.text(360, 284, SPEC_SHEETS + ' листов', 22, { d: true }) + '</g>';
-    s += '<g class="ch-roll" opacity="0">' + roll + '</g>';
+    return '<g class="ch-roll" opacity="0">' + roll + '</g>';
+  }
+  /* «1 список экранов» / «2 весь чертёж»: a cream plate with an ink number badge, top-left (x, y) */
+  function plateMarkup(x, y, w, n, label, ns) {
+    return R(x, y, w, 46, 14, CREAM, ' stroke-width="3.5"') + C(x + 24, y + 23, 15, INK, NS) + PB.text(x + 24, y + 23 + (ns || 20) * 0.4, n, ns || 20, { d: true, fill: CREAM }) +
+      PB.text(x + 48, y + 31, label, 22, { anchor: 'start', w: 800 });
+  }
+  function markupYes() {
+    var s = '';
+    s += rollMarkup(0, -20);
     s += barrier('l') + barrier('r');
-    s += '<g class="ch-plates" opacity="0">' +
-      R(110, 418, 252, 46, 14, CREAM, ' stroke-width="3.5"') + C(134, 441, 15, INK, NS) + PB.text(134, 449, '1', 20, { d: true, fill: CREAM }) +
-      PB.text(158, 449, 'список экранов', 22, { anchor: 'start', w: 800 }) +
-      R(398, 418, 212, 46, 14, CREAM, ' stroke-width="3.5"') + C(422, 441, 15, INK, NS) + PB.text(422, 449, '2', 20, { d: true, fill: CREAM }) +
-      PB.text(446, 449, 'весь чертёж', 22, { anchor: 'start', w: 800 }) + '</g>';
+    s += '<g class="ch-plates" opacity="0">' + plateMarkup(110, 418, 252, '1', 'список экранов') + plateMarkup(398, 418, 212, '2', 'весь чертёж') + '</g>';
     s += PB.splash(211, 318, 68, 96, 8, INK, 'ch-sp2') + PB.splash(509, 318, 68, 96, 8, INK, 'ch-sp3');
     s += '<g class="ch-hand" opacity="0">' + place(MP.stampHand(), 133, 172, 1.3) + '</g>';
     return G('ch-l5', s);
@@ -576,6 +624,36 @@
   function cardPos(c) { return { x: COLS[c.c].x + 6, y: 120 + c.r * 88 }; }
   var STRIP = { x: 182, y: 392, seg: 100 };   // 5 segments; card scale in the strip = STRIP.seg / CW
   var PLAN_OK = { x: 432, y: 328 };            // centre of the «План одобрен» imprint
+  /* the five task cards in their board slots (pos(card) = top-left), w×h, label size fs, glow ring gap rp */
+  function cardsMarkup(pos, w, h, fs, rp) {
+    var cards = '';
+    CARDS.forEach(function (c, i) {
+      var p = pos(c);
+      cards += '<g transform="translate(' + p.x + ' ' + p.y + ')">' +
+        (c.hot ? R(-rp, -rp, w + 2 * rp, h + 2 * rp, 11 + rp, MINT, ' class="ch-glow-ring" stroke-width="4"') : '') +
+        '<g class="ch-card ch-card' + i + '">' + R(0, 0, w, h, 12, CREAM, ' stroke-width="3.5"') + C(w / 2, 2, 6, RASP, ' stroke-width="3"') +
+        PB.text(w / 2, h / 2 + 2, c.t, fs, { mid: true, w: 800, lh: 1.08 }) + '</g></g>';
+    });
+    return '<g class="ch-cards">' + cards + '</g>';
+  }
+  /* the cut lines and the scissors (blades pivot at (0,0)) over the strip */
+  function scissorsMarkup(st, h) {
+    var cuts = '';
+    for (var k = 1; k < 5; k++) {
+      var cx = st.x + k * st.seg;
+      cuts += '<g class="ch-cut ch-cut' + k + '" opacity="0">' + L('M' + cx + ' ' + (st.y - 8) + 'V' + (st.y + h), INK, 3, ' stroke-dasharray="7 7"') + '</g>';
+    }
+    return cuts + '<g transform="translate(' + (st.x + st.seg) + ' ' + (st.y - 2) + ')"><g class="ch-scis" opacity="0">' +
+      '<g class="ch-blade-a">' + L('M3 -4L9 -13', INK, 5) + C(11, -22, 11, RASP, ' stroke-width="3.5"') + P('M0 0L-9 46Q-5 51 -1 47L6 4Z', STEEL, ' stroke-width="3.5"') + '</g>' +
+      '<g class="ch-blade-b">' + L('M-3 -4L-9 -13', INK, 5) + C(-11, -22, 11, RASP, ' stroke-width="3.5"') + P('M0 0L9 46Q5 51 1 47L-6 4Z', STEEL, ' stroke-width="3.5"') + '</g>' +
+      C(0, 0, 3.5, INK, NS) + '</g></g>';
+  }
+  /* your third «да»: the lemon hand stamps the plan right onto the board's edge (imprint centre ok, splash r0..r1) */
+  function planOkMarkup(ok, r0, r1) {
+    return PB.stamp({ x: ok.x, y: ok.y, text: 'План одобрен', fill: LEMON, rot: -6, cls: 'ch-planok' }) +
+      PB.splash(ok.x, ok.y, r0, r1, [-170, -155, 155, 170, -25, -10, 10, 25], INK, 'ch-sp4') +
+      '<g class="ch-hand2" opacity="0">' + place(MP.stampHand(), ok.x - 78, ok.y - 156, 1.3) + '</g>';
+  }
   function markupBoard() {
     var s = '';
     s += '<g class="ch-board">' + R(BOARD.x + 7, BOARD.y + 7, BOARD.w, BOARD.h, 24, INK, NS) + R(BOARD.x, BOARD.y, BOARD.w, BOARD.h, 24, CREAM, ' stroke-width="4"');
@@ -584,59 +662,181 @@
         PB.text(c.x + 87, 93, c.name, 22, { w: 800 });
     });
     s += '</g>';
-    var cards = '';
-    CARDS.forEach(function (c, i) {
-      var p = cardPos(c);
-      cards += '<g transform="translate(' + p.x + ' ' + p.y + ')">' +
-        (c.hot ? R(-9, -9, CW + 18, CH + 18, 20, MINT, ' class="ch-glow-ring" stroke-width="4"') : '') +
-        '<g class="ch-card ch-card' + i + '">' + R(0, 0, CW, CH, 12, CREAM, ' stroke-width="3.5"') + C(CW / 2, 2, 6, RASP, ' stroke-width="3"') +
-        PB.text(CW / 2, CH / 2 + 2, c.t, 21, { mid: true, w: 800, lh: 1.08 }) + '</g></g>';
-    });
-    s += '<g class="ch-cards">' + cards + '</g>';
+    s += cardsMarkup(cardPos, CW, CH, 21, 9);
     s += '<g class="ch-plan">' + place(MP.char('planirovshchik', { expr: 'focus' }), 0, 296, 1.3) + '</g>';
     s += PB.bubble({ x: 112, y: 306, text: 'Режу на карточки', tail: 'dl', cls: 'ch-bub-plan', off: true });
-    var cuts = '';
-    for (var k = 1; k < 5; k++) {
-      var cx = STRIP.x + k * STRIP.seg;
-      cuts += '<g class="ch-cut ch-cut' + k + '" opacity="0">' + L('M' + cx + ' ' + (STRIP.y - 8) + 'V' + (STRIP.y + 56), INK, 3, ' stroke-dasharray="7 7"') + '</g>';
-    }
-    s += cuts;
-    /* scissors: blades pivot at (0,0) */
-    s += '<g transform="translate(' + (STRIP.x + STRIP.seg) + ' ' + (STRIP.y - 2) + ')"><g class="ch-scis" opacity="0">' +
-      '<g class="ch-blade-a">' + L('M3 -4L9 -13', INK, 5) + C(11, -22, 11, RASP, ' stroke-width="3.5"') + P('M0 0L-9 46Q-5 51 -1 47L6 4Z', STEEL, ' stroke-width="3.5"') + '</g>' +
-      '<g class="ch-blade-b">' + L('M-3 -4L-9 -13', INK, 5) + C(-11, -22, 11, RASP, ' stroke-width="3.5"') + P('M0 0L9 46Q5 51 1 47L-6 4Z', STEEL, ' stroke-width="3.5"') + '</g>' +
-      C(0, 0, 3.5, INK, NS) + '</g></g>';
-    /* your third «да»: the lemon hand stamps the plan right onto the board's edge */
-    s += PB.stamp({ x: PLAN_OK.x, y: PLAN_OK.y, text: 'План одобрен', fill: LEMON, rot: -6, cls: 'ch-planok' });
-    s += PB.splash(PLAN_OK.x, PLAN_OK.y, 140, 172, [-170, -155, 155, 170, -25, -10, 10, 25], INK, 'ch-sp4');
-    s += '<g class="ch-hand2" opacity="0">' + place(MP.stampHand(), PLAN_OK.x - 78, PLAN_OK.y - 156, 1.3) + '</g>';
+    s += scissorsMarkup(STRIP, 56);
+    s += planOkMarkup(PLAN_OK, 140, 172);
     return G('ch-l6', s);
   }
 
-  function build(section, api) {
-    var deco = '<g class="ch-deco" opacity=".75">' +
-      L('M22 36V22H36M684 22H698V36M22 504V518H36M684 518H698V504', CREAM, 3, ' stroke-linecap="round"') +
-      L('M30 478H690', CREAM, 3, ' stroke-dasharray="2 10" stroke-linecap="round"') + '</g>';
-    var inner = '<g' + PB.ROOT + '>' + deco + '<g class="ch-world">' + markupDoors() + markupQuestions() + markupScribes() +
-      markupCritic() + markupYes() + markupBoard() + '</g></g>';
-    PB.mount(api, inner, 'ch-svg');
+  /* ---------- the phone composition (480×480) ---------- */
+  /* doors: the chosen one («Беседа», it opens) in front at full size, the other two smaller, a step back (drawn
+   * first); a plate above each (px: the side plates sit a little outwards, clear of the open leaf) */
+  var DOORS_PH = [{ x: 78, s: 0.68, w: 120, px: 70 }, { x: 240, s: 1, w: 156, px: 240 }, { x: 402, s: 0.68, w: 120, px: 410 }],
+    FLOOR_PH = 462;
+  function markupDoorsPh() {
+    var s = '';
+    [0, 2, 1].forEach(function (i) {
+      var d = DOORS[i], p = DOORS_PH[i], k = p.s, py = FLOOR_PH - 246 * k - 94;   // the door is 246 tall; plate 80 tall, 14 above it
+      s += '<g class="ch-door ch-door--' + i + '" opacity="0">';
+      s += '<g transform="translate(' + f(p.x - d.c * k) + ' ' + f(FLOOR_PH - 478 * k) + ') scale(' + f(k) + ')">' + doorBody(d) + '</g>';
+      if (d.open) s += PB.bubble({ x: p.x, y: FLOOR_PH - 134 * k, text: 'Заходите!', tail: 'd', cls: 'ch-bub-in' });
+      s += '<g class="ch-plate">' + R(p.px - p.w / 2, py, p.w, 80, 16, CREAM, ' stroke-width="4"') + PB.text(p.px, py + 40, d.label, 24, { mid: true, w: 800 }) + '</g>';
+      if (d.open) s += PB.stamp({ x: p.px, y: py - 14, text: 'с нуля', fill: MINT, rot: -6, cls: 'ch-zero', size: 22 });
+      s += '</g>';
+    });
+    return G('ch-l1', s);
+  }
+  /* questions: a chat — Бригадир's questions on the left, your answers on the right; Бригадир and the arc below */
+  var ARC_PH = { cx: 346, cy: 446, r: 86 };
+  function markupQuestionsPh() {
+    var s = progressArc(ARC_PH);
+    s += '<g class="ch-brig2" opacity="0">' + place(MP.char('brigadir', { expr: 'happy' }), 4, 318, 1.1) + '</g>';
+    var y = 60;
+    CHAT.forEach(function (c, k) {
+      s += PB.bubble({ x: 14, y: y, text: c.q, tail: 'l', fill: VIOLET, color: CREAM, cls: 'ch-q ch-q' + k, off: true });
+      s += PB.bubble({ x: 466, y: y + 52, text: c.a, tail: 'r', cls: 'ch-a ch-a' + k, off: true });
+      y += 108;
+    });
+    return G('ch-l2', s);
+  }
+  /* scribes: five smaller advisors in one row; the two optional ones share one «если нужно» plate */
+  var ADV_X_PH = [50, 145, 240, 335, 430], ADV_Y_PH = 158, R_PH = 40;
+  var PILE_PH = { x: 192, y: 290 }, PILE_SLOTS_PH = pileSlots(PILE_PH);
+  function markupScribesPh() {
+    var s = '', y = ADV_Y_PH, r = R_PH;
+    s += '<g class="ch-adv-label" opacity="0">' + L('M50 110V100H430V110M145 100V110M240 100V110M335 100V110', CREAM, 4, ' stroke-linecap="round" stroke-linejoin="round"') +
+      R(104, 36, 272, 44, 22, VIOLET, ' stroke-width="4"') + PB.text(240, 66, 'одновременно', 22, { d: true, fill: CREAM }) + '</g>';
+    ADV.forEach(function (v, i) {
+      var cx = ADV_X_PH[i], optional = v === 'lock' || v === 'abacus';
+      s += '<g class="ch-adv ch-adv' + i + (optional ? ' ch-adv--opt' : '') + '" opacity="0">' +
+        C(cx, y, r, 'none', ' stroke="' + CREAM + '" stroke-opacity=".45" stroke-width="8"' + (optional ? ' stroke-dasharray="9 8"' : '')) +
+        '<path class="ch-ring" d="M' + cx + ' ' + (y - r) + 'A' + r + ' ' + r + ' 0 1 1 ' + (cx - 0.01) + ' ' + (y - r) + '" fill="none" stroke="' + MINT + '" stroke-width="8" stroke-linecap="round"/>' +
+        place(MP.char('sovetnik', { variant: v, expr: 'happy' }), cx - 46, y - 73, 0.77) + '</g>';
+    });
+    var a = ADV_X_PH[2], b = ADV_X_PH[3], m = (a + b) / 2, yb = y + r + 6;
+    s += '<g class="ch-adv ch-adv-opt" opacity="0">' + L('M' + a + ' ' + yb + 'V' + (yb + 8) + 'H' + b + 'V' + yb + 'M' + m + ' ' + (yb + 8) + 'V' + (yb + 14), CREAM, 4, ' stroke-linecap="round" stroke-linejoin="round"') +
+      R(m - 80, yb + 14, 160, 36, 18, CREAM, ' stroke="' + INK + '" stroke-width="3"') + PB.text(m, yb + 40, 'если нужно', 22, {}) + '</g>';
+    s += '<g class="ch-pis ch-pisL" opacity="0">' + place(MP.char('pisar', { expr: 'happy' }), 6, 292, 1.1) + '</g>';
+    s += '<g class="ch-pis ch-pisR" opacity="0">' + place(MP.char('pisar', { expr: 'happy' }), 474, 292, 1.1, -1.1) + '</g>';
+    s += pileMarkup(PILE_SLOTS_PH);
+    return G('ch-l3', s);
+  }
+  /* critic: Придира on his box at the top, the lamp left, the counter right above the pile */
+  function markupCriticPh() {
+    var s = '';
+    s += '<g class="ch-crit" opacity="0">' + R(162, 196, 136, 34, 10, TANG, ' stroke-width="4"') + L('M170 218H290', INK, 3, ' stroke-opacity=".25"') +
+      place(MP.char('pridira'), 170, 64, 1) + '</g>';
+    s += lampMarkup(70, 96);
+    s += PB.bubble({ x: 266, y: 102, text: 'Переделать!', tail: 'dl', cls: 'ch-bub-crit', off: true });
+    s += counterMarkup(296, 236, { w: 176, fs: 22, tx: 14, s1: 128, s2: 156 });
+    s += returnedSheet(PILE_SLOTS_PH[8], 88, 110);
+    return G('ch-l4', s);
+  }
+  /* yes: the roll on top, the barriers' arms meeting in the middle, the two plates stacked between the posts */
+  var BAR_PH = { l: { px: 46, dir: 1 }, r: { px: 434, dir: -1 }, py: 266, len: 188 };
+  function starD(cx, cy, r) {
+    var d = '';
+    for (var i = 0; i < 10; i++) {
+      var a = (i * 36 - 90) * Math.PI / 180, q = i % 2 ? r * 0.45 : r;
+      d += (i ? 'L' : 'M') + f(cx + q * Math.cos(a)) + ' ' + f(cy + q * Math.sin(a));
+    }
+    return d + 'Z';
+  }
+  /* the «ДА» seal drawn at phone size (MP.seal letters at 15 units, too small here): centre (cx, cy), tilted rot */
+  function daSeal(cx, cy, rot) {
+    return '<g transform="rotate(' + f(rot) + ' ' + f(cx) + ' ' + f(cy) + ')">' + C(cx, cy, 44, LEMON, ' stroke-width="4.5"') +
+      C(cx, cy, 36.5, 'none', ' stroke-width="2.2"') + P(starD(cx, cy - 25, 5.5), INK, NS) + P(starD(cx, cy + 25, 5.5), INK, NS) +
+      PB.text(cx, cy + 10.4, 'ДА', 29, { w: 900 }) + '</g>';
+  }
+  function barrierPh(side) {
+    var b = BAR_PH[side], px = b.px, py = BAR_PH.py, n = BAR_PH.len, x0 = b.dir > 0 ? px : px - n, sx = px + b.dir * n / 2;
+    return '<g class="ch-bar ch-bar-' + side + '" opacity="0">' +
+      R(px - 11, py, 22, 150, 6, STEEL, ' stroke-width="3.5"') +
+      R(px - 30, py + 86, 60, 66, 10, STEEL, ' stroke-width="3.5"') + R(px - 36, py + 144, 72, 12, 6, INK, NS) +
+      C(px, py + 113, 26, LEMON, ' class="ch-bar-halo" opacity=".35" stroke="none"') +
+      C(px, py + 113, 15, LEMON, ' class="ch-bar-lamp" stroke-width="3.5"') + C(px - 4.5, py + 108.5, 4, '#FFFFFF', NS + ' opacity=".8"') +
+      '<g class="ch-arm ch-arm-' + side + '">' + R(x0, py - 12, n, 24, 12, LEMON, ' stroke-width="4"') + stripes(x0 + (b.dir > 0 ? 22 : 8), py - 12, n - 30, 24) +
+      R(x0, py - 12, n, 24, 12, 'none', ' stroke-width="4"') +
+      '<g class="ch-da-wrap">' + daSeal(sx, py, b.dir > 0 ? -12 : 10) + '</g></g>' +
+      C(px, py, 13, STEEL_D, ' stroke-width="3.5"') + C(px, py, 4, INK, NS) +
+      '</g>';
+  }
+  function markupYesPh() {
+    var s = '', py = BAR_PH.py, sl = BAR_PH.l.px + BAR_PH.len / 2, sr = BAR_PH.r.px - BAR_PH.len / 2;
+    s += rollMarkup(-120, -110);
+    s += barrierPh('l') + barrierPh('r');
+    s += '<g class="ch-plates" opacity="0">' + plateMarkup(118, 330, 244, '1', 'список экранов', 22) + plateMarkup(118, 386, 244, '2', 'весь чертёж', 22) + '</g>';
+    s += PB.splash(sl, py, 56, 78, 8, INK, 'ch-sp2') + PB.splash(sr, py, 56, 78, 8, INK, 'ch-sp3');
+    s += '<g class="ch-hand" opacity="0">' + place(MP.stampHand(), sl - 78, py - 146, 1.3) + '</g>';
+    return G('ch-l5', s);
+  }
+  /* board: three lanes stacked (a coloured tab + a row of wide cards), so the card labels stay big */
+  var BOARD_PH = { x: 8, y: 8, w: 456, h: 336 }, LANE_Y = 18, LANE_H = 106, CW_PH = 204, CH_PH = 60;
+  function cardPosPh(c) { return { x: 28 + c.r * 212, y: LANE_Y + c.c * LANE_H + 40 }; }
+  var STRIP_PH = { x: 25, y: 196, seg: 86 }, PLAN_OK_PH = { x: 318, y: 370 };
+  function markupBoardPh() {
+    var s = '', B = BOARD_PH;
+    s += '<g class="ch-board">' + R(B.x + 7, B.y + 7, B.w, B.h, 24, INK, NS) + R(B.x, B.y, B.w, B.h, 24, CREAM, ' stroke-width="4"');
+    COLS.forEach(function (c, i) {
+      var y = LANE_Y + i * LANE_H;
+      s += R(20, y + 28, 432, 78, 14, INK, NS + ' fill-opacity=".06"') + R(20, y, 124, 32, 12, c.fill, ' stroke-width="3.5"') +
+        PB.text(82, y + 23, c.name, 22, { w: 800 });
+    });
+    s += '</g>';
+    s += cardsMarkup(cardPosPh, CW_PH, CH_PH, 22, 6);
+    s += '<g class="ch-plan">' + place(MP.char('planirovshchik', { expr: 'focus' }), 4, 334, 1.02) + '</g>';
+    s += PB.bubble({ x: 94, y: 340, text: 'Режу на карточки', tail: 'dl', cls: 'ch-bub-plan', off: true });
+    s += scissorsMarkup(STRIP_PH, 36);
+    s += planOkMarkup(PLAN_OK_PH, 124, 146);
+    return G('ch-l6', s);
+  }
+
+  var DECO = '<g class="ch-deco" opacity=".75">' +
+    L('M22 36V22H36M684 22H698V36M22 504V518H36M684 518H698V504', CREAM, 3, ' stroke-linecap="round"') +
+    L('M30 478H690', CREAM, 3, ' stroke-dasharray="2 10" stroke-linecap="round"') + '</g>';
+  var DECO_PH = '<g class="ch-deco" opacity=".75">' +
+    L('M16 30V16H30M450 16H464V30M16 450V464H30M450 464H464V450', CREAM, 3, ' stroke-linecap="round"') +
+    L('M30 462H450', CREAM, 3, ' stroke-dasharray="2 10" stroke-linecap="round"') + '</g>';
+
+  /* what the master timeline needs to know about each composition */
+  var BIG = {
+    l1O: '360 380', bubInO: '360 344', slots: PILE_SLOTS, pileC: { x: 360, y: 380 }, from: [{ x: 150, y: 400 }, { x: 570, y: 400 }],
+    advX: ADV_X, advY: 176, hop1: [124, -104], hop2: [-210, 34, 90], critO: '334 160', armL: '69 318', armR: '651 318',
+    hand: { y0: -430, mx: 150, my: -110, x2: 298 }, rollDrop: 230, rollC: { x: 360, y: 175 },
+    strip: STRIP, cw: CW, ch: CH, pos: cardPos, planO: '112 306', hand2Y: -520
+  };
+  var PH = {
+    l1O: '240 364', bubInO: '240 328', slots: PILE_SLOTS_PH, pileC: { x: 240, y: 352 }, from: [{ x: 119, y: 382 }, { x: 361, y: 382 }],
+    advX: ADV_X_PH, advY: ADV_Y_PH, hop1: [114, -176], hop2: [-162, 36, 24], critO: '204 116', armL: '46 266', armR: '434 266',
+    hand: { y0: -340, mx: 100, my: -110, x2: 200 }, rollDrop: 124, rollC: { x: 240, y: 85 },
+    strip: STRIP_PH, cw: CW_PH, ch: CH_PH, pos: cardPosPh, planO: '94 340', hand2Y: -400,
+    blankStrip: true   // the strip pieces are too small to read here: the card labels appear as the cards land
+  };
+
+  function build(section, api, phone) {
+    var inner = '<g' + PB.ROOT + '>' + (phone ? DECO_PH : DECO) + '<g class="ch-world">' + (phone ?
+      markupDoorsPh() + markupQuestionsPh() + markupScribesPh() + markupCriticPh() + markupYesPh() + markupBoardPh() :
+      markupDoors() + markupQuestions() + markupScribes() + markupCritic() + markupYes() + markupBoard()) + '</g></g>';
+    PB.mount(api, inner, 'ch-svg', phone);
   }
 
   /* the master timeline (shared by init and final) */
-  function master(section, api) {
-    var gsap = window.gsap, svg = api.stage.querySelector('svg');
+  function master(section, api, phone) {
+    var gsap = window.gsap, svg = api.stage.querySelector('svg'), K = phone ? PH : BIG;
     var $ = PB.q(svg), $$ = PB.qa(svg);
-    PB.frame(svg, api, '0 45 720 450');
+    PB.frame(svg, api, '0 45 720 450', phone);
     var tl = gsap.timeline({ paused: true });
     var world = $('.ch-world');
 
     /* ----- start states (everything hidden; the board is the built end state) ----- */
     var doors = $$('.ch-door'), leaf = $('.ch-door--1 .ch-leaf'), shade = $('.ch-door--1 .ch-shade');
     gsap.set(doors, { autoAlpha: 0, y: 40, transformOrigin: '50% 100%' });
-    gsap.set($('.ch-l1'), { svgOrigin: '360 380' });
+    gsap.set($('.ch-l1'), { svgOrigin: K.l1O });
     gsap.set(leaf, { transformOrigin: '0% 50%' });
     gsap.set($('.ch-brig1'), { autoAlpha: 0, y: 30 });
-    gsap.set($('.ch-bub-in'), { autoAlpha: 0, scale: 0, svgOrigin: '360 344' });
+    gsap.set($('.ch-bub-in'), { autoAlpha: 0, scale: 0, svgOrigin: K.bubInO });
     gsap.set($('.ch-zero'), { autoAlpha: 0, scale: 0, transformOrigin: '50% 50%' });
     gsap.set($('.ch-glow'), { autoAlpha: 0 });
 
@@ -658,7 +858,7 @@
     var bs = $('.ch-bsheet'), marks = $('.ch-marks'), fix = $('.ch-fix'), ok = $('.ch-ok');
     gsap.set(crit, { autoAlpha: 0, y: -40 });
     gsap.set(lamp, { autoAlpha: 0, scale: 0, transformOrigin: '50% 100%' });
-    gsap.set($('.ch-bub-crit'), { autoAlpha: 0, scale: 0, svgOrigin: '334 160' });
+    gsap.set($('.ch-bub-crit'), { autoAlpha: 0, scale: 0, svgOrigin: K.critO });
     gsap.set(bs, { autoAlpha: 0, transformOrigin: '50% 50%' });
     gsap.set(marks, { autoAlpha: 0 });
     gsap.set(fix, { drawSVG: '0%' });
@@ -670,32 +870,34 @@
     var das = $$('.ch-da-wrap'), plates = $('.ch-plates'), lampsY = $$('.ch-bar-lamp'), halosY = $$('.ch-bar-halo');
     gsap.set(roll, { autoAlpha: 0, scale: 0.2, transformOrigin: '50% 50%' });
     gsap.set(bars, { autoAlpha: 0, y: 40 });
-    gsap.set(armL, { svgOrigin: '69 318' });
-    gsap.set(armR, { svgOrigin: '651 318' });
+    gsap.set(armL, { svgOrigin: K.armL });
+    gsap.set(armR, { svgOrigin: K.armR });
     gsap.set(das, { autoAlpha: 0, transformOrigin: '50% 50%' });
     gsap.set(plates, { autoAlpha: 0, y: 30 });
-    gsap.set(hand, { autoAlpha: 0, y: -430 });
+    gsap.set(hand, { autoAlpha: 0, y: K.hand.y0 });
 
     var board = $('.ch-board'), cards = $$('.ch-card'), ring = $('.ch-glow-ring'), plan = $('.ch-plan');
     var cuts = $$('.ch-cut'), scis = $('.ch-scis'), bladeA = $('.ch-blade-a'), bladeB = $('.ch-blade-b'), planok = $('.ch-planok');
     gsap.set(board, { autoAlpha: 0, scale: 0.9, transformOrigin: '50% 50%' });
     gsap.set(ring, { autoAlpha: 0, transformOrigin: '50% 50%' });
     gsap.set(plan, { autoAlpha: 0, x: -80 });
-    gsap.set($('.ch-bub-plan'), { autoAlpha: 0, scale: 0, svgOrigin: '112 306' });
+    gsap.set($('.ch-bub-plan'), { autoAlpha: 0, scale: 0, svgOrigin: K.planO });
     gsap.set(cuts, { autoAlpha: 0 });
     gsap.set(scis, { autoAlpha: 0, scale: 0.4, transformOrigin: '50% 50%' });
     gsap.set([bladeA, bladeB], { svgOrigin: '0 0' });
     gsap.set(planok, { autoAlpha: 0, transformOrigin: '50% 50%' });
     var hand2 = $('.ch-hand2');
-    gsap.set(hand2, { autoAlpha: 0, y: -520, transformOrigin: '50% 100%' });
+    gsap.set(hand2, { autoAlpha: 0, y: K.hand2Y, transformOrigin: '50% 100%' });
     /* FLIP: cards are built in their board slots (last); invert them into the roll's strip (first) */
-    var S = STRIP.seg / CW;
+    var S = K.strip.seg / K.cw;
     cards.forEach(function (el, i) {
-      var c = CARDS[i], p = cardPos(c);
-      el.__strip = { x: STRIP.x + c.k * STRIP.seg - p.x, y: STRIP.y - p.y, s: S };
-      el.__roll = { x: 360 - CW * S / 2 - p.x, y: 175 - CH * S / 2 - p.y };
+      var c = CARDS[i], p = K.pos(c);
+      el.__strip = { x: K.strip.x + c.k * K.strip.seg - p.x, y: K.strip.y - p.y, s: S };
+      el.__roll = { x: K.rollC.x - K.cw * S / 2 - p.x, y: K.rollC.y - K.ch * S / 2 - p.y };
       gsap.set(el, { autoAlpha: 0, x: el.__roll.x, y: el.__roll.y, scale: 0.2, rotation: 0, transformOrigin: '0% 0%' });
     });
+    var labels = K.blankStrip ? cards.map(function (el) { return el.querySelector('text'); }) : null;
+    if (labels) gsap.set(labels, { autoAlpha: 0 });
     gsap.set($$('.pb-splash'), { autoAlpha: 0 });
 
     /* ----- intro → doors ----- */
@@ -726,13 +928,13 @@
 
     /* ----- scribes + advisors ----- */
     var bubbles = q.concat(a);
-    tl.to(bubbles, { autoAlpha: 0, scale: 0.3, x: function (i, el) { return 360 - +el.getAttribute('data-tx'); },
-      y: function (i, el) { return 380 - +el.getAttribute('data-ty'); }, duration: 0.45, ease: 'power2.in', stagger: 0.03 }, 'questions')
+    tl.to(bubbles, { autoAlpha: 0, scale: 0.3, x: function (i, el) { return K.pileC.x - +el.getAttribute('data-tx'); },
+      y: function (i, el) { return K.pileC.y - +el.getAttribute('data-ty'); }, duration: 0.45, ease: 'power2.in', stagger: 0.03 }, 'questions')
       .to([$('.ch-arc'), $('.ch-brig2')], { autoAlpha: 0, x: -80, duration: 0.4, ease: 'power2.in' }, 'questions')
       .to(pis, { autoAlpha: 1, y: 0, duration: 0.5, ease: 'back.out(1.8)', stagger: 0.1 }, 'questions+=0.45');
-    var from = [{ x: 150, y: 400 }, { x: 570, y: 400 }];
+    var from = K.from;
     for (var i = 0; i < 4; i++) {
-      var sp = PILE_SLOTS[i], src = from[i % 2], el = sheets[i];
+      var sp = K.slots[i], src = from[i % 2], el = sheets[i];
       gsap.set(el, { x: src.x - sp.x - SW / 2, y: src.y - sp.y - SH / 2, scale: 0.4, rotation: i % 2 ? 40 : -40, transformOrigin: '50% 50%' });
       tl.set(el, { autoAlpha: 1 }, 'questions+=' + (0.95 + i * 0.28))
         .add(PB.arc(el, 0, 0, 120, 0.6, { scale: 1, rotation: 0 }), '<');
@@ -741,9 +943,9 @@
       .to($('.ch-adv-label'), { autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(2)' }, '<0.15')
       .to(rings, { drawSVG: '100%', duration: 1.0, ease: 'power1.inOut' }, 'questions+=2.75');
     for (i = 4; i < 9; i++) {
-      sp = PILE_SLOTS[i]; el = sheets[i];
-      var ax = ADV_X[i - 4];
-      gsap.set(el, { x: ax - sp.x - SW / 2, y: 176 - sp.y - SH / 2, scale: 0.3, rotation: (i - 6) * 12, transformOrigin: '50% 50%' });
+      sp = K.slots[i]; el = sheets[i];
+      var ax = K.advX[i - 4];
+      gsap.set(el, { x: ax - sp.x - SW / 2, y: K.advY - sp.y - SH / 2, scale: 0.3, rotation: (i - 6) * 12, transformOrigin: '50% 50%' });
       tl.set(el, { autoAlpha: 1 }, 'questions+=3.8')
         .add(PB.arc(el, 0, 0, 40, 0.6, { scale: 1, rotation: 0 }), '<');
     }
@@ -755,13 +957,13 @@
       .to(crit, { autoAlpha: 1, y: 0, duration: 0.5, ease: 'back.out(1.8)' }, 'scribes+=0.35')
       .to(lamp, { autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(2)' }, '<0.1')
       .set(bs, { autoAlpha: 1 }, 'scribes+=0.8')
-      .add(PB.hop(bs, 124, -104, 40, 0.5, { rotation: 8 }), 'scribes+=0.8')
+      .add(PB.hop(bs, K.hop1[0], K.hop1[1], 40, 0.5, { rotation: 8 }), 'scribes+=0.8')
       .to($('.ch-crit .c-arm-r'), { rotation: 18, duration: 0.1, yoyo: true, repeat: 3, ease: 'sine.inOut' }, 'scribes+=1.3')
       .to(marks, { autoAlpha: 1, duration: 0.2 }, 'scribes+=1.35')
       .to(halo, { opacity: 0.4, duration: 0.2 }, '<');
     PB.lamp(tl, bulb, RASP, 'scribes+=1.35');
     tl.to($('.ch-bub-crit'), { autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(2)' }, '<0.05')
-      .add(PB.hop(bs, -210, 34, 90, 0.8, { rotation: -352 }), 'scribes+=2.0')
+      .add(PB.hop(bs, K.hop2[0], K.hop2[1], K.hop2[2], 0.8, { rotation: -352 }), 'scribes+=2.0')
       .to($('.ch-count'), { autoAlpha: 1, y: 0, duration: 0.4, ease: 'back.out(2)' }, 'scribes+=1.9')
       .to($('.ch-slot1'), { scale: 1, duration: 0.45, ease: 'elastic.out(1,.5)' }, 'scribes+=2.2')
       .to($('.ch-bub-crit'), { autoAlpha: 0, scale: 0, duration: 0.2 }, '<0.3');
@@ -792,18 +994,18 @@
       .to(hand, { scaleY: 1, duration: 0.2 }, '>');
     PB.slam(tl, das[0], 'critic+=2.1', world);
     PB.burst(tl, $('.ch-sp2'), 'critic+=2.28');
-    tl.to(hand, { y: -110, x: 150, duration: 0.3, ease: 'power2.inOut' }, 'critic+=2.55')
+    tl.to(hand, { y: K.hand.my, x: K.hand.mx, duration: 0.3, ease: 'power2.inOut' }, 'critic+=2.55')
       .set(halosY[0], { fill: MINT }, 'critic+=2.6')
       .to(armL, { rotation: -80, duration: 0.6, ease: 'back.out(1.4)' }, 'critic+=2.6')
       .to(das[0], { rotation: 80, duration: 0.6, ease: 'back.out(1.4)' }, '<');
     /* stamp #2 */
     PB.lamp(tl, lampsY[0], MINT, 'critic+=2.6');
-    tl.to(hand, { x: 298, y: -10, duration: 0.35, ease: 'power2.inOut' }, 'critic+=2.95')
+    tl.to(hand, { x: K.hand.x2, y: -10, duration: 0.35, ease: 'power2.inOut' }, 'critic+=2.95')
       .to(hand, { y: 0, scaleY: 0.94, duration: 0.14, ease: 'power4.in' }, 'critic+=3.3')
       .to(hand, { scaleY: 1, duration: 0.2 }, '>');
     PB.slam(tl, das[1], 'critic+=3.3', world);
     PB.burst(tl, $('.ch-sp3'), 'critic+=3.48');
-    tl.to(hand, { y: -430, autoAlpha: 0, duration: 0.5, ease: 'power2.in' }, 'critic+=3.8')
+    tl.to(hand, { y: K.hand.y0, autoAlpha: 0, duration: 0.5, ease: 'power2.in' }, 'critic+=3.8')
       .set(halosY[1], { fill: MINT }, 'critic+=3.8')
       .to(armR, { rotation: 80, duration: 0.6, ease: 'back.out(1.4)' }, 'critic+=3.8')
       .to(das[1], { rotation: -80, duration: 0.6, ease: 'back.out(1.4)' }, '<')
@@ -815,10 +1017,10 @@
     tl.to(bars.concat([plates]), { autoAlpha: 0, y: 50, duration: 0.4, ease: 'power2.in', stagger: 0.05 }, 'yes')
       .to(plan, { autoAlpha: 1, x: 0, duration: 0.5, ease: 'back.out(1.6)' }, 'yes+=0.3')
       .to($('.ch-bub-plan'), { autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(2)' }, 'yes+=0.7')
-      .to(roll, { y: 230, scale: 0.8, duration: 0.5, ease: 'power2.inOut' }, 'yes+=0.4')
+      .to(roll, { y: K.rollDrop, scale: 0.8, duration: 0.5, ease: 'power2.inOut' }, 'yes+=0.4')
       .to(roll, { autoAlpha: 0, scaleX: 1.6, scaleY: 0.3, duration: 0.3, ease: 'power2.in' }, 'yes+=0.9');
     cards.forEach(function (el, i) {
-      var st = el.__strip, p = cardPos(CARDS[i]);
+      var st = el.__strip, p = K.pos(CARDS[i]);
       tl.to(el, { autoAlpha: 1, x: st.x, y: st.y, scale: st.s, duration: 0.45, ease: 'back.out(1.4)' }, 'yes+=' + (0.95 + Math.abs(CARDS[i].k - 2) * 0.07));
       el.__p = p;
     });
@@ -828,7 +1030,7 @@
     cards.forEach(function (el, i) { byK[CARDS[i].k] = el; });
     for (var k = 1; k < 5; k++) {
       var tk = 1.6 + (k - 1) * 0.32;
-      if (k > 1) tl.to(scis, { x: (k - 1) * STRIP.seg, duration: 0.14, ease: 'power2.inOut' }, 'yes+=' + (tk - 0.14));
+      if (k > 1) tl.to(scis, { x: (k - 1) * K.strip.seg, duration: 0.14, ease: 'power2.inOut' }, 'yes+=' + (tk - 0.14));
       tl.to(bladeA, { rotation: 22, duration: 0.08, yoyo: true, repeat: 1 }, 'yes+=' + tk)
         .to(bladeB, { rotation: -22, duration: 0.08, yoyo: true, repeat: 1 }, '<')
         .to(cuts[k - 1], { autoAlpha: 0, duration: 0.1 }, 'yes+=' + (tk + 0.12))
@@ -840,29 +1042,24 @@
     cards.forEach(function (el, i) {
       tl.to(el, { x: 0, y: 0, scale: 1, rotation: 0, duration: 0.75, ease: 'power2.inOut' }, 'yes+=' + (3.2 + i * 0.07))
         .to(el, { rotation: i % 2 ? 4 : -4, duration: 0.3, ease: 'sine.inOut', yoyo: true, repeat: 1 }, '<0.1');
+      if (labels) tl.to(labels[i], { autoAlpha: 1, duration: 0.3 }, 'yes+=' + (3.55 + i * 0.07));
     });
     tl.to(ring, { autoAlpha: 1, duration: 0.2 }, 'yes+=4.1')
       .to(ring, { scale: 1.08, duration: 0.3, yoyo: true, repeat: 3, ease: 'sine.inOut' }, '<');
     tl.to(hand2, { autoAlpha: 1, y: -12, duration: 0.45, ease: 'power2.out' }, 'yes+=3.95')
       .to(hand2, { y: 0, scaleY: 0.94, duration: 0.14, ease: 'power4.in' }, 'yes+=4.5')
       .to(hand2, { scaleY: 1, duration: 0.2 }, '>')
-      .to(hand2, { y: -520, autoAlpha: 0, duration: 0.45, ease: 'power2.in' }, 'yes+=4.9');
+      .to(hand2, { y: K.hand2Y, autoAlpha: 0, duration: 0.45, ease: 'power2.in' }, 'yes+=4.9');
     PB.slam(tl, planok, 'yes+=4.5', world);
     PB.burst(tl, $('.ch-sp4'), 'yes+=4.68');
     tl.addLabel('board', 'yes+=5.45');
     return tl;
   }
 
-  MP.scene('chertyozh', {
-    build: build,
-    init: function (section, api) {
-      var tl = master(section, api);
-      section.__pb = PB.drive(api, tl);
-      MP.blink(api.stage, api);
-    },
-    final: function (section, api) {
-      var tl = master(section, api);
-      section.__pb = PB.drive(api, tl, { first: 'doors' });
-    }
-  });
+  /* PB.scene: the phone / big compositions rebuild when a rotation or resize crosses the phone query. Phones held
+   * sideways (≤ 520px tall) keep the phone composition up to 1023px wide as well: the stage there is capped by the
+   * height (~310px), where the 16:10 crop's smallest labels («ДА», «если нужно») would shrink to ~10px; scenes-b.css
+   * gives #chertyozh the matching square stage. */
+  PB.scene('chertyozh', { build: build, master: master, first: 'doors',
+    phone: PB.PHONE + ', (orientation: landscape) and (max-height: 520px) and (pointer: coarse) and (max-width: 1023px)' });
 })();

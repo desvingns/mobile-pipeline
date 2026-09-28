@@ -73,7 +73,7 @@ function serve() {
   const port = srv.address().port;
   const puppeteer = findPuppeteer();
   const browser = await puppeteer.launch({ executablePath: findChrome(), headless: true,
-    args: ['--no-sandbox', '--hide-scrollbars', '--autoplay-policy=no-user-gesture-required'] });
+    args: ['--no-sandbox', '--hide-scrollbars', '--autoplay-policy=no-user-gesture-required', '--mute-audio'] });
   const errors = [];
   try {
     const page = await browser.newPage();

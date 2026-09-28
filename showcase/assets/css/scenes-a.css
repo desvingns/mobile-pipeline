@@ -1,15 +1,20 @@
 /* scenes-a.css — package A: start (hero), konveyer, ideya, komanda. Everything is scoped by section id.
- * Do not put transitions/keyframes on elements GSAP animates; kit classes (.c-*) keep their chars.css origins. */
+ * Do not put transitions/keyframes on elements GSAP animates; kit classes (.c-*) keep their chars.css origins.
+ * Bands (the two first are exact complements; konveyer.js / ideya.js pick their layout with the same queries):
+ *   desk  (min-width: 1024px) and (orientation: landscape), (min-width: 1200px)
+ *   tab   (max-width: 1023px), (orientation: portrait) and (max-width: 1199px) — phones + tablets, iPad Pro 12.9 portrait
+ *   short (orientation: landscape) and (max-height: 520px) and (pointer: coarse) and (min-width: 560px) — phones held sideways (after tab) */
 
 /* =====================================================================================================
    1. start — hero with the idea machine
    ===================================================================================================== */
-/* Type: a small «Сказано —» set-up line and a giant lemon «сделано.» punch line (fits its column at every width) */
-#start .h1 { font-size: clamp(54px, 14.6vw, 104px); }
+/* Type: a small «Сказано —» set-up line and a giant lemon «сделано.» punch line (fits its column at every width:
+   «сделано.» is ~5.9em wide, so the floor stays 40px for a 288px column at 320) */
+#start .h1 { font-size: clamp(40px, 14.6vw, 104px); }
 #start .h1 .w { display: block; width: fit-content; }
 #start .h1 .w:first-child { font-size: .6em; letter-spacing: -.02em; margin-bottom: .04em; }
 #start .h1 .hl { position: relative; isolation: isolate; text-shadow: .05em .05em 0 var(--ink); }
-@media (min-width: 1024px) { #start .h1 { font-size: min(7.9vw, 116px); } }
+@media (min-width: 1024px) and (orientation: landscape), (min-width: 1200px) { #start .h1 { font-size: min(7.9vw, 116px); } }
 
 /* slam FX around «сделано.» (all invisible in the resting state). The burst sits BEHIND the letters, centred on the
    full stop (≈ .15em from the right edge, .69em from the top of the line box), so the splat reads as the stop splashing. */
@@ -26,8 +31,10 @@
 #start .st-svg { overflow: visible; }
 #start .st-ov { position: absolute; inset: 0; pointer-events: none; }
 #start .st-drop { position: absolute; inset: 0; }
+/* the bubble never gets narrower than 196px: a small machine (short phones, phones held sideways) must not squeeze the
+   idea into one word per line */
 #start .st-bubble {
-  position: absolute; left: 30.4%; bottom: 82.6%; translate: -50% 0; width: max-content; max-width: 62%;
+  position: absolute; left: 30.4%; bottom: 82.6%; translate: -50% 0; width: max-content; max-width: max(62%, 196px);
   padding: 10px 16px 11px; background: var(--cream); color: var(--ink); border: 3px solid var(--ink); border-radius: 20px;
   box-shadow: 5px 5px 0 var(--ink); font-size: 18px; font-weight: 650; line-height: 1.25; text-align: center; text-wrap: balance;
 }
@@ -50,24 +57,120 @@
 }
 @keyframes st-reveal { to { opacity: 1; } }
 
-@media (max-width: 1023px) {
-  #start .hero-grid { gap: 12px; }
+/* tab: one column, the machine above the copy (also iPad Pro 12.9 portrait — side by side it floats in a 1300px field).
+   min-width: 0 lets the copy column shrink below the headline's min-content (no clipped «сделано.» at 320) */
+@media (max-width: 1023px), (orientation: portrait) and (max-width: 1199px) {
+  #start .hero-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  #start .copy { min-width: 0; }
   #start .stage--hero { order: -1; width: min(100%, 42svh, 520px); }
+}
+/* phones with a short visible area (iPhone Safari 659px, SE 548px): a smaller machine and tighter copy, so the
+   headline, the lead and (from ~650px) the first CTA share the first screen */
+@media (max-width: 759px) and (max-height: 760px) and (orientation: portrait) {
+  #start .stage--hero { width: min(100%, 520px, max(30svh, 100svh - 470px)); }
+  #start .kicker { font-size: 16px; margin-bottom: 10px; }
+  #start .lead { font-size: 19px; }
+  #start .ctas { margin-top: 22px; }
+  #start .st-tag { gap: 6px; padding: 4px 12px 4px 5px; font-size: 14px; }
+  #start .st-tag .ico { width: 20px; height: 20px; padding: 2px; }
+}
+/* the iPhone SE visible area (375×548) and 320×568: the first CTA on the first screen too — a smaller machine and
+   headline, a 17px lead; the product tag steps out beside the machine instead of covering its base, and the machine
+   moves a little left so machine + tag stay centred. (The 40px top padding stays: the bubble stands ~37px above.) */
+@media (max-width: 759px) and (max-height: 600px) and (orientation: portrait) {
+  #start .stage--hero { width: min(100%, 520px, max(22svh, 116px)); left: -8%; }
+  #start .kicker { font-size: 14px; margin-bottom: 6px; }
+  #start .h1 { font-size: clamp(36px, 11vw, 44px); }
+  #start .lead { font-size: 17px; line-height: 1.35; }
+  #start .ctas { margin-top: 16px; }
+  #start .st-tag { right: auto; left: 74%; bottom: 3%; font-size: 13px; padding-right: 10px; }
+  #start .st-tag .ico { width: 18px; height: 18px; }
 }
 @media (max-width: 560px) {
   #start .st-bubble { font-size: 16px; padding: 8px 12px 9px; border-radius: 16px; box-shadow: 4px 4px 0 var(--ink); }
 }
+/* 320: «Запустить конвейер» keeps one line */
+@media (max-width: 359px) {
+  #start .ctas .btn { padding-inline: 14px; font-size: 17px; }
+}
+/* portrait tablets at their real Safari height (768×954, 820×1106, 768×1024): a smaller machine and a shorter top, so
+   the CTA row and the scroll cue are on the first screen */
+@media (min-width: 760px) and (orientation: portrait) and (max-width: 1199px) and (max-height: 1120px) {
+  #start.scene--hero { padding-top: 24px; }
+  #start .stage--hero { width: min(100%, 34svh, 520px); }
+}
+/* touch tablets in landscape at their real Safari height (≈1024×690, 1133×684, 1180×746): the hero is one screen,
+   the scroll cue included. Mouse desktops keep their layout (hover: hover). */
+@media (min-width: 1024px) and (orientation: landscape) and (min-height: 521px) and (max-height: 820px) and (hover: none) {
+  #start.scene--hero { padding-block: 28px 32px; }
+  #start .h1 { font-size: min(7.9vw, 12svh, 116px); }
+  #start .kicker { margin-bottom: 10px; }
+  #start .ctas { margin-top: 24px; gap: 12px; }
+  #start .scroll-cue { margin-top: 18px; }
+}
+/* short: copy left, machine right, the headline, the lead and both CTAs within one screen height. The machine sits at
+   the bottom of its column so its idea bubble clears the header. */
+@media (orientation: landscape) and (max-height: 520px) and (pointer: coarse) and (min-width: 560px) {
+  #start.scene--hero { padding-block: 16px 20px; }
+  #start .hero-grid { grid-template-columns: minmax(0, 1.4fr) minmax(0, .6fr); gap: 24px; }
+  #start .stage--hero { order: 0; align-self: end; width: min(100%, calc(100svh - var(--header-h) - 84px)); }
+  #start .h1 { font-size: clamp(40px, min(15svh, 7.2vw), 72px); }
+  #start .kicker { font-size: 15px; margin-bottom: 8px; }
+  #start .lead { font-size: clamp(16px, 2.2vw, 20px); margin-top: .5em; }
+  #start .ctas { margin-top: 16px; gap: 12px; }
+  #start .ctas .btn { min-height: 48px; padding: 8px 14px; gap: .45em; font-size: 15px; }
+  #start .scroll-cue { display: none; }
+  #start .st-bubble { font-size: 16px; padding: 8px 12px 9px; border-radius: 16px; box-shadow: 4px 4px 0 var(--ink); }
+  #start .st-tag { gap: 6px; padding: 4px 12px 4px 5px; font-size: 14px; }
+  #start .st-tag .ico { width: 20px; height: 20px; padding: 2px; }
+}
+/* short and low (sideways with the browser bars shown: 852×345, 740×360, 667×330): tighter type, a lead of three
+   lines, 44px CTAs */
+@media (orientation: landscape) and (max-height: 400px) and (pointer: coarse) and (min-width: 560px) {
+  #start.scene--hero { padding-block: 10px 12px; }
+  #start .kicker { font-size: 14px; margin-bottom: 6px; }
+  #start .h1 { font-size: clamp(36px, min(13svh, 6.4vw), 60px); }
+  #start .lead { font-size: 16px; line-height: 1.35; max-width: 44ch; }
+  #start .ctas { margin-top: 12px; gap: 10px; }
+  #start .ctas .btn { min-height: 44px; padding: 6px 12px; font-size: 14px; }
+}
+/* short and narrow (small phones sideways): both CTAs on one row under the lead — a wider copy column, no CTA icons;
+   a label wraps inside its button rather than the second button dropping below the fold */
+@media (orientation: landscape) and (max-height: 520px) and (pointer: coarse) and (min-width: 560px) and (max-width: 759px) {
+  #start .hero-grid { grid-template-columns: minmax(0, 1.5fr) minmax(0, .5fr); }
+  #start .ctas { flex-wrap: nowrap; }
+  #start .ctas .btn { flex: 0 1 auto; min-width: 0; }
+  #start .ctas .btn .ico { display: none; }
+  /* the tag stays within the (narrower) machine column */
+  #start .st-tag { gap: 5px; padding: 3px 10px 3px 4px; font-size: 13px; }
+  #start .st-tag .ico { width: 18px; height: 18px; }
+}
 
 /* =====================================================================================================
-   2. konveyer — pipe → belt (two layouts: wide ≥1024, tall serpentine below)
+   2. konveyer — pipe → belt (three layouts: wide = desk, short = the wide belt with bigger signs, tall serpentine = tab)
    ===================================================================================================== */
 #konveyer .kv-svg { overflow: visible; }
-#konveyer .kv-svg--tall { display: none; }
+#konveyer .kv-svg--tall, #konveyer .kv-svg--short { display: none; }
+@media (max-width: 1023px), (orientation: portrait) and (max-width: 1199px) {
+  #konveyer .stage--wide { aspect-ratio: 620 / 650; max-width: 600px; margin: 0 auto; }
+  #konveyer .kv-svg--wide { display: none; }
+  #konveyer .kv-svg--tall { display: block; }
+}
+/* iPad Pro 12.9 portrait: the serpentine grows with the screen */
+@media (min-width: 1024px) and (orientation: portrait) and (max-width: 1199px) {
+  #konveyer .stage--wide { max-width: 720px; }
+}
+/* short: the tall serpentine would be two screens high — the wide belt instead, as large as the visible height allows */
+@media (orientation: landscape) and (max-height: 520px) and (pointer: coarse) and (min-width: 560px) {
+  #konveyer .stage--wide { aspect-ratio: 16 / 7; width: min(100%, calc((100svh - var(--header-h) - 24px) * 16 / 7)); max-width: none; margin: 0 auto; }
+  #konveyer .kv-svg--wide, #konveyer .kv-svg--tall { display: none; }
+  #konveyer .kv-svg--short { display: block; }
+}
 /* =====================================================================================================
    3. ideya — windowsill, the phrase, the goal
    ===================================================================================================== */
 #ideya .i-svg { overflow: visible; }
-#ideya .i-svg--tall { display: none; }
+#ideya .i-svg--tall, #ideya .i-svg--short { display: none; }
 #ideya .i-ov { position: absolute; inset: 0; pointer-events: none; }
 #ideya .i-bubble {
   position: absolute; left: 6.5%; top: 7%; width: 60%; margin: 0; padding: 12px 16px 13px;
@@ -87,8 +190,14 @@
 }
 /* the wide display face only once the stage is large enough for «получиться» on one line */
 @media (min-width: 1200px) { #ideya .i-caption { font-family: var(--font-display); font-weight: 700; font-size: 16px; } }
-@media (max-width: 1023px) {
-  #ideya .split { gap: 8px; }
+@media (max-width: 1023px), (orientation: portrait) and (max-width: 1199px) {
+  #ideya .split { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+}
+/* tablets (tab, ≥760px): a larger square. Its bottom tenth is empty (under the sill), so the box is 600:540 and the art
+   hangs into the section padding instead of leaving a strip of empty field under the sill. */
+@media (min-width: 760px) and (max-width: 1023px), (min-width: 760px) and (orientation: portrait) and (max-width: 1199px) {
+  #ideya .stage--square { aspect-ratio: 600 / 540; max-width: 640px; }
+  #ideya .stage--square > .i-svg { height: auto; aspect-ratio: 1 / 1; }
 }
 /* phones: the stage is 4:5 (prosto.css) — the tall layout (viewBox 480×600) keeps the phone list ≥16px */
 @media (max-width: 759px) {
@@ -101,11 +210,29 @@
   #ideya .i-bubble { font-size: 16px; padding: 9px 12px 10px; }
   #ideya .i-caption { padding: 6px 8px 7px; font-size: 16px; }
 }
+@media (max-width: 359px) {
+  #ideya .i-caption { width: 40%; padding-inline: 6px; }
+}
+/* short: the 3:2 SHORT composition, as large as the visible height allows; beside the heading from 760px, under it below */
+@media (orientation: landscape) and (max-height: 520px) and (pointer: coarse) and (min-width: 560px) {
+  #ideya .split { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  #ideya .stage--square { aspect-ratio: 3 / 2; width: min(100%, calc((100svh - var(--header-h) - 28px) * 1.5)); max-width: none; }
+  #ideya .stage--square > .i-svg { height: 100%; aspect-ratio: auto; }
+  #ideya .i-svg--sq, #ideya .i-svg--tall { display: none; }
+  #ideya .i-svg--short { display: block; }
+  #ideya .i-bubble { left: 3%; top: 4%; width: 50%; font-size: 16px; padding: 9px 12px 10px; }
+  #ideya .i-caption { top: 1.5%; width: 34%; padding: 6px 8px 7px; font-family: var(--font-text); font-weight: 800; font-size: 14px; }
+}
+@media (orientation: landscape) and (max-height: 520px) and (pointer: coarse) and (min-width: 760px) {
+  #ideya .split { grid-template-columns: minmax(0, 1fr) min(62%, calc((100svh - var(--header-h) - 28px) * 1.5)); gap: 24px; }
+  #ideya .stage--square { width: 100%; }
+  #ideya .scene-head h2 { font-size: clamp(26px, 3.4vw, 36px); }
+}
 
 /* =====================================================================================================
    4. komanda — cast list → «доска почёта» character select (roster = tablist, spotlight = tabpanel)
-   ≥1024: the pick column (hint + roster board) sits LEFT of the spotlight, so a click changes what you see right next
-   to it. <1024: the roster is a full-bleed swipe strip above the spotlight.
+   desk: the pick column (hint + roster board) sits LEFT of the spotlight, so a click changes what you see right next
+   to it. tab: the roster is a full-bleed swipe strip above the spotlight (art beside the copy from 760px).
    ===================================================================================================== */
 #komanda .cast-art .c-svg { width: 100%; height: 100%; }
 #komanda .cast { --tab: 64px; --tgap: 10px; }
@@ -132,7 +259,7 @@
 }
 #komanda .cast-tab--you { background: var(--lemon); }
 #komanda .cast-tab-art { width: 100%; height: 100%; pointer-events: none; transition: transform .18s var(--ease-pop); }
-#komanda .cast-tab:hover .cast-tab-art { transform: translateY(-4px) rotate(-3deg); }
+@media (hover: hover) { #komanda .cast-tab:hover .cast-tab-art { transform: translateY(-4px) rotate(-3deg); } }
 #komanda .cast-tab[aria-selected="true"] { background: #FFFFFF; box-shadow: 4px 4px 0 var(--ink), 0 0 0 6px var(--tangerine); }
 #komanda .cast-tab--you[aria-selected="true"] { background: var(--lemon); }
 #komanda .cast-tab[aria-selected="true"] .cast-tab-art { transform: translateY(-3px) scale(1.06); }
@@ -142,7 +269,8 @@
   padding: 5px 11px; border-radius: 10px; background: var(--ink); color: var(--cream); font-size: 16px; font-weight: 700;
   white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity .15s, translate .15s;
 }
-#komanda .cast-tab:hover::after, #komanda .cast-tab:focus-visible::after { opacity: 1; translate: -50% 0; }
+#komanda .cast-tab:focus-visible::after { opacity: 1; translate: -50% 0; }
+@media (hover: hover) { #komanda .cast-tab:hover::after { opacity: 1; translate: -50% 0; } }
 /* focus on the violet board: cream outline + lemon ring (brand §2) */
 #komanda .cast-tab:focus-visible { outline: 3px solid var(--cream); outline-offset: 3px; box-shadow: 4px 4px 0 var(--ink), 0 0 0 7px var(--lemon); }
 
@@ -164,8 +292,9 @@
 #komanda .spot-figure > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 #komanda .spot-figure--duo > svg { width: 80%; height: 80%; inset: auto; bottom: 0; left: 26%; }
 #komanda .spot-figure--duo > .spot-chief { left: -6%; bottom: 10%; width: 72%; height: 72%; }
+/* the bubble is never narrower than its longest word («одновременно!»): small spotlight stages (tablets, phones, 1024–1279) */
 #komanda .spot-bubble {
-  position: absolute; left: -3%; top: -4%; max-width: 60%; width: max-content; margin: 0; padding: 9px 14px 10px; z-index: 2;
+  position: absolute; left: -3%; top: -4%; max-width: max(60%, 160px); width: max-content; margin: 0; padding: 9px 14px 10px; z-index: 2;
   background: #FFFFFF; color: var(--ink); border: 3px solid var(--ink); border-radius: 18px 18px 6px 18px;
   box-shadow: 4px 4px 0 var(--ink); font-size: 18px; font-weight: 700; line-height: 1.25; pointer-events: none;
 }
@@ -188,13 +317,13 @@
   font-family: var(--font-display); font-weight: 700; font-size: 16px; line-height: 1.1; cursor: pointer;
   transition: transform .15s ease-out, box-shadow .15s ease-out;
 }
-#komanda .spot-step:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); }
+@media (hover: hover) { #komanda .spot-step:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); } }
 #komanda .spot-step:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--ink); }
 #komanda .spot-step--prev .ico { transform: scaleX(-1); }
 #komanda .spot-count { font-weight: 700; font-size: 17px; font-variant-numeric: tabular-nums; min-width: 4.5em; text-align: center; }
 
-/* ≥1024: pick column left (Мастера 6 per row, then Автоматы 3 per row + Вы), spotlight right, same height */
-@media (min-width: 1024px) {
+/* desk: pick column left (Мастера 6 per row, then Автоматы 3 per row + Вы), spotlight right, same height */
+@media (min-width: 1024px) and (orientation: landscape), (min-width: 1200px) {
   #komanda .cast { --tab: clamp(56px, 4.6vw, 66px); }
   #komanda .cast.is-upgraded .cast-ui { grid-template-columns: max-content minmax(0, 1fr); gap: 28px; align-items: stretch; }
   #komanda .cast-hint { font-size: 20px; }
@@ -205,6 +334,16 @@
   #komanda .spot-stage { width: min(64%, 240px); }
   #komanda .cast.is-upgraded .cast-name { font-size: clamp(28px, 2.7vw, 40px); }
 }
+/* touch tablets in landscape at their real Safari height (1024×690, 1133×684, 1180×746): a portrait sized by the height,
+   so the longest card — art to «Дальше» — fits under the header; the bubble never squeezes «одновременно!». Mouse
+   desktops keep their layout (hover: hover). */
+@media (min-width: 1024px) and (max-width: 1279px) and (orientation: landscape) and (max-height: 820px) and (hover: none) {
+  #komanda .cast-spot { gap: 12px; }
+  #komanda .spot-stage { width: clamp(160px, calc(100svh - var(--header-h) - 440px), 240px); }
+  #komanda .spot-bubble { max-width: max(60%, 180px); }
+  #komanda .spot-copy { gap: 14px; }
+  #komanda .cast.is-upgraded .cast-card { gap: 10px; }
+}
 @media (min-width: 1280px) {
   #komanda .cast-spot {
     grid-template-columns: minmax(0, clamp(230px, 21vw, 300px)) minmax(0, 1fr); gap: clamp(24px, 2.6vw, 40px);
@@ -212,8 +351,8 @@
   }
   #komanda .spot-stage { width: 100%; justify-self: stretch; }
 }
-/* <1024: the roster becomes ONE full-bleed swipe strip (groups in a row, the next tile peeks at the edge) */
-@media (max-width: 1023px) {
+/* tab: the roster becomes ONE full-bleed swipe strip (groups in a row, the next tile peeks at the edge) */
+@media (max-width: 1023px), (orientation: portrait) and (max-width: 1199px) {
   #komanda .cast-roster {
     flex-wrap: nowrap; justify-content: flex-start; gap: 24px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none;
     scroll-padding: 0 var(--gutter);
@@ -225,19 +364,88 @@
   #komanda .cast-tabs { flex-wrap: nowrap; }
   #komanda .cast-tab::after { display: none; }
 }
+/* tablets (tab, ≥760px): the art beside the copy, as on wide desktops — the picture and its words side by side, the
+   card about one screen tall with the strip above it; «Назад» and «Дальше» share one row under the counter */
+@media (min-width: 760px) and (max-width: 1023px), (min-width: 760px) and (orientation: portrait) and (max-width: 1199px) {
+  #komanda .cast-spot { grid-template-columns: minmax(0, 40%) minmax(0, 1fr); gap: 28px; padding: 26px 28px; }
+  #komanda .spot-stage { width: 100%; justify-self: stretch; }
+  #komanda .cast.is-upgraded .cast-line { max-width: 34ch; }
+  #komanda .spot-count { order: -1; flex: 1 1 100%; text-align: left; }
+  #komanda .spot-step { flex: 1 1 0; justify-content: center; }
+}
 @media (max-width: 560px) {
   #komanda .cast { --tab: 60px; }
   #komanda .cast-hint { font-size: 17px; }
   #komanda .spot-stage { width: min(76%, 280px); }
-  #komanda .spot-bubble { font-size: 16px; max-width: 70%; left: -10%; }
-  #komanda .cast.is-upgraded .cast-name { font-size: 30px; }
-  /* phones: the counter on its own line, the two step buttons share one row */
-  #komanda .spot-count { order: -1; flex: 1 1 100%; text-align: left; font-size: 16px; }
-  #komanda .spot-step { flex: 1 1 0; justify-content: center; padding: 8px 10px; }
+  #komanda .spot-bubble { font-size: 16px; max-width: max(70%, 142px); left: -10%; }
+  /* the longest name («Рационализатор», ≈11.4em) fits the card at every phone width; the copy track never grows
+     past the card */
+  #komanda .spot-copy { grid-template-columns: minmax(0, 1fr); }
+  #komanda .cast.is-upgraded .cast-name { font-size: min(30px, calc((100vw - 76px) / 11.6)); overflow-wrap: break-word; hyphens: auto; }
+  #komanda .cast-meta .chip { font-size: 14px; padding: 4px 10px; }
+  /* phones: «← Назад», the counter and «Дальше →» share one row */
+  #komanda .spot-nav { flex-wrap: nowrap; gap: 8px; }
+  #komanda .spot-count { flex: none; min-width: 0; font-size: 15px; }
+  #komanda .spot-step { flex: 1 1 0; min-width: 0; justify-content: center; padding: 8px 10px; }
+}
+/* phones and short: the chip and «Найти на схеме» share a row */
+@media (max-width: 560px), (orientation: landscape) and (max-height: 520px) and (pointer: coarse) and (min-width: 560px) {
+  #komanda .cast.is-upgraded .cast-card { flex-flow: row wrap; align-items: center; column-gap: 16px; }
+  #komanda .cast.is-upgraded .cast-name, #komanda .cast.is-upgraded .cast-line { flex: 1 1 100%; }
+  #komanda .cast.is-upgraded .cast-link { margin-top: 0; }
+}
+/* narrow phones: a tighter card; «← Назад», the counter and «Дальше →» still share one row, the chip and the link one more */
+@media (max-width: 400px) {
+  #komanda .cast-spot { gap: 10px; padding: 14px; }
+  #komanda .spot-step { font-size: 15px; padding: 8px 6px; gap: .35em; }
+  #komanda .cast.is-upgraded .cast-card { column-gap: 12px; }
+  #komanda .cast.is-upgraded .cast-line { font-size: 17px; }
+  #komanda .cast.is-upgraded .cast-link { font-size: 16px; }
+}
+/* 320: the words carry the direction, the arrows make room for the counter */
+@media (max-width: 359px) {
+  #komanda .spot-nav { gap: 6px; }
+  #komanda .spot-step { font-size: 14px; }
+  #komanda .spot-step .ico { display: none; }
+  #komanda .spot-count { font-size: 14px; }
+}
+/* short visible areas (iPhone Safari 659px, SE 548px, 320×568): a smaller portrait keeps the whole card — art to
+   «Дальше» — on one screen, the longest cards included (the buttons also stay put on a tap: komanda.js) */
+@media (max-width: 559px) and (max-height: 700px) {
+  #komanda .spot-stage { width: min(60%, 190px); }
+  #komanda .cast.is-upgraded .cast-name { font-size: min(26px, calc((100vw - 76px) / 11.6)); }
+  #komanda .cast.is-upgraded .cast-card { row-gap: 10px; }
+  #komanda .spot-copy { gap: 14px; }
+}
+/* …and on the shortest ones the bubble speaks from beside the (smaller) portrait instead of covering its face */
+@media (max-width: 559px) and (max-height: 600px) {
+  #komanda .cast-spot { padding: 12px 14px; }
+  #komanda .spot-stage { width: min(48%, 150px, calc(100svh - 424px)); }
+  #komanda .spot-bubble { left: auto; right: 64%; top: -2%; max-width: 132px; padding: 7px 10px 8px; font-size: 14px; }
+  #komanda .cast.is-upgraded .cast-card { row-gap: 8px; }
+  #komanda .spot-copy { gap: 10px; }
+}
+@media (max-width: 359px) and (max-height: 600px) {
+  #komanda .spot-bubble { max-width: 120px; font-size: 13px; }
+}
+/* short: a smaller strip and a two-column card (art left, copy right, chip and link on one row), so a tap on the strip
+   changes a name and a line that are on screen together with it */
+@media (orientation: landscape) and (max-height: 520px) and (pointer: coarse) and (min-width: 560px) {
+  #komanda .cast { --tab: 56px; }
+  #komanda .cast.is-upgraded .cast-ui { gap: 14px; }
+  #komanda .cast-hint { font-size: 16px; }
+  #komanda .cast-hint .ico { width: 24px; height: 24px; padding: 4px; }
+  #komanda .cast-roster { padding-block: 8px 12px; }
+  #komanda .cast-group-label { font-size: 16px; margin-bottom: 6px; }
+  #komanda .cast-spot { grid-template-columns: minmax(0, clamp(150px, 26vw, 230px)) minmax(0, 1fr); gap: 20px; padding: 14px 20px; }
+  #komanda .spot-stage { width: min(100%, calc(100svh - var(--header-h) - 150px)); justify-self: center; }
+  #komanda .spot-bubble { font-size: 16px; max-width: max(60%, 142px); }
+  #komanda .spot-copy { gap: 10px; }
+  #komanda .cast.is-upgraded .cast-card { row-gap: 8px; }
+  #komanda .cast.is-upgraded .cast-name { font-size: 26px; }
+  #komanda .cast.is-upgraded .cast-line { font-size: 17px; max-width: 44ch; }
+  #komanda .spot-nav { gap: 10px 12px; }
+  #komanda .spot-count { order: 0; flex: none; min-width: 0; }
+  #komanda .spot-step { flex: none; padding: 8px 14px; }
 }
 
-@media (max-width: 1023px) {
-  #konveyer .stage--wide { aspect-ratio: 620 / 650; max-width: 600px; margin: 0 auto; }
-  #konveyer .kv-svg--wide { display: none; }
-  #konveyer .kv-svg--tall { display: block; }
-}

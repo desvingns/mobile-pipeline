@@ -1,8 +1,8 @@
 /* facts.js — every number shown on the site. Verified against the repo (see docs/brand.md §6);
  * tools/check.cjs re-checks version against ../VERSION. */
 window.MP_FACTS = {
-  version: '1.17.2',
-  releases: 25,             // CHANGELOG entries since 1.0.0
+  version: '1.18.1',
+  releases: 27,             // CHANGELOG entries since 1.0.0
   since: '18 мая 2026',
   agents: 49,               // agent templates: 22 spec + 27 dev (incl. 5 iOS stubs)
   agentsSpec: 22,

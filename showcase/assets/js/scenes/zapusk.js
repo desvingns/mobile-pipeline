@@ -9,12 +9,16 @@
  *   reset   [data-action=sim-reset] rewinds to 0 at any moment (hidden once the run is done: «Ещё раз» does that)
  *   stamp   [data-action=sim-stamp] unhidden + focused at the addPause «Фабрика ждёт вашей печати»; its pulse
  *           (waitLoop) runs only while the section is seen, the tab visible and the panel not suspended
- * Layouts (re-rendered on every init/final and on the 760px switch, so no stale inline styles survive):
- *   wide ≥1024: viewBox 1600×900 (16:9), 3 rows · mid 760–1023: 1600×1200 (stage 4:3, scenes-d.css), 4 rows
- *   · tall <760: vertical zigzag, viewBox 720×1280 (stage 9:16), 6 rows. SVG text is sized per layout so it never
- *   renders below 16px (see L.minPx); the phone and the big seal are scaled the same way. Bubbles are HTML and are
- *   kept inside the stage by fitBubbles(). A work lamp (.zp-spot) follows the order; a mint bar under the status
- *   line (--zp-p on .sim-status) shows how far it has travelled.
+ * Layouts (re-rendered on every init/final and whenever modeNow() changes, so no stale inline styles survive; a run in
+ * progress carries over — snapshot()/restore() on a layout switch, `handover` across a scene re-init):
+ *   wide ≥1024: viewBox 1600×900 (16:9), 3 rows · mid 760–1023 and portrait tablets up to 1199: 1600×1200 (stage 4:3,
+ *   scenes-d.css), 4 rows · tall <760: vertical zigzag, viewBox 720×1280, 6 rows, seen through a 4:5 window (.zp-cam,
+ *   720×900 units) that pans down with the order, so stage + caption + buttons fit a phone screen · short / short-mid
+ *   (phones held sideways, ≥760 / <760 wide): the wide belt / the 4:3 fold on a stage capped by the height, the
+ *   controls beside it. SVG text is sized per layout so it never renders below 16px at the layout's narrowest stage
+ *   (see L.minPx); the phone and the big seal are scaled the same way. Bubbles are HTML and are kept inside the stage
+ *   by fitBubbles(). A work lamp (.zp-spot) follows the order; a mint bar under the status line (--zp-p on
+ *   .sim-status) shows how far it has travelled.
  * Calm mode: the SAME timeline is seeked (no travel) by a 1.1 s stepper; stamp gate kept; the reveal shows a static
  *   burst instead of confetti. Without gsap the stepper only updates the status line.
  * Public: MP.sim = { pause() } (prosto.suspend). Tools only: MP.sim.seek(labelOrSeconds), MP.sim.state().
@@ -86,13 +90,33 @@
     /* tablet 4:3: the same belt folded into four rows, so the characters get ~20% bigger than a letterboxed wide view */
     mid: { vb: [0, 0, 1600, 1200], s: 1.05, r: 137.5, xL: 64, xR: 1536, xStart: 200, xEnd: 40, rows: [300, 575, 850, 1125],
       split: [5, 4, 4, 4], beltW: 32, minPx: 0.4375, reveal: [800, 590] },
+    /* phones: cam = the height of the 4:5 window in viewBox units (the stage shows 720×900 of the 720×1280 zigzag);
+     * minPx is set by the narrowest window (≈266px, a 375×548 phone). pk: the phone of the reveal, framed in the last
+     * window (its notification text then renders ≥12px at 266px, ≥16px at 354px) */
     tall: { vb: [0, 0, 720, 1280], s: 0.72, r: 90, xL: 30, xR: 690, xStart: 140, xEnd: 36, rows: [300, 480, 660, 840, 1020, 1200],
-      split: [3, 3, 3, 3, 3, 2], beltW: 26, minPx: 0.44, reveal: [360, 522] }
+      split: [3, 3, 3, 3, 3, 2], beltW: 26, minPx: 0.36, cam: 900, pk: 3.1, reveal: [360, 522] }
+  };
+  /* phones held sideways: the stage is capped by the viewport height (scenes-d.css), so texts are sized for that stage
+   * and the phone of the reveal by the viewBox height. short (≥760px): the wide belt, 550–620px wide · short-mid
+   * (560–759px, a 667×375 phone): the 4:3 fold, ≈390px wide — there it gives bigger characters and a bigger phone than a
+   * 16:9 stage squeezed by the controls column */
+  function variant(base, o) {
+    var k; for (k in LAYOUTS[base]) if (!(k in o)) o[k] = LAYOUTS[base][k];
+    o.geo = base; return o;
+  }
+  LAYOUTS.short = variant('wide', { minPx: 0.3, pk: 3.3 });
+  LAYOUTS['short-mid'] = variant('mid', { minPx: 0.24, pk: 4.5, phRight: true });
+  /* the layout queries (scenes-d.css mirrors them) */
+  var MQ = {
+    short: '(orientation: landscape) and (max-height: 520px) and (pointer: coarse) and (min-width: 560px)',
+    tall: '(max-width: 759px)',
+    mid: '(max-width: 1023px), (orientation: portrait) and (max-width: 1199px)'
   };
   function modeNow() {
     if (!window.matchMedia) return 'wide';
-    if (window.matchMedia('(max-width: 759px)').matches) return 'tall';
-    if (window.matchMedia('(max-width: 1023px)').matches) return 'mid';
+    if (window.matchMedia(MQ.short).matches) return window.matchMedia(MQ.tall).matches ? 'short-mid' : 'short';
+    if (window.matchMedia(MQ.tall).matches) return 'tall';
+    if (window.matchMedia(MQ.mid).matches) return 'mid';
     return 'wide';
   }
 
@@ -170,7 +194,7 @@
 
   /* ================================================================== render ================================== */
   function render(stage, mode) {
-    var Lo = LAYOUTS[mode], Ge = geometry(Lo), S = place(Lo, Ge), s = Lo.s;
+    var Lo = LAYOUTS[mode], Ge = geometry(Lo), S = place(Lo, Ge), s = Lo.s, geo = Lo.geo || mode;
     var vb = Lo.vb, bh = Lo.beltW / 2 + 4;
     var fz = function (base) { return Math.max(base, 16.5 / Lo.minPx); };
     var back = '', front = '', top = '', leds = '', bg = '';
@@ -452,8 +476,21 @@
     /* --- reveal: scrim, burst, big seal, phone, blooming фиалка, capsule, lesson card --- */
     var rv0 = Lo.reveal, pk = Math.max(2.3, 16.4 / (11 * Lo.minPx)), phW = 140 * pk, phH = 260 * pk;
     if (mode === 'wide') pk = Math.max(pk, 2.5);
+    if (Lo.pk) pk = Lo.pk;
     phW = 140 * pk; phH = 260 * pk;
     var phX = rv0[0] - phW / 2, phY = rv0[1] - phH / 2;
+    if (Lo.cam) {
+      /* phones: the reveal is framed in the camera's last window (the belt's end, where gate 2 is) — the phone at the top
+       * right, so its notification stays clear of Библиотекарь's bubble at the end of the belt (bottom left); the seal,
+       * burst and capsule aim at its centre */
+      phX = vb[2] - 24 - phW; phY = vb[3] - Lo.cam + 8;
+      rv0 = [phX + phW / 2, phY + phH / 2];
+    }
+    if (Lo.phRight) {
+      /* short-mid: Библиотекарь stands at the left end of the belt and his bubble spans a third of this small stage —
+       * the phone goes to the right edge (the фиалка to its left), clear of the bubble */
+      phX = vb[2] - 40 - phW; rv0 = [phX + phW / 2, rv0[1]];
+    }
     var burst = '', nR = 16, bR = Math.max(phH * 0.8, 420);
     for (i = 0; i < nR; i++) {
       var a0 = (i / nR) * Math.PI * 2, a1 = ((i + 0.5) / nR) * Math.PI * 2;
@@ -461,15 +498,18 @@
         f(rv0[0] + Math.cos(a1) * bR) + ' ' + f(rv0[1] + Math.sin(a1) * bR) + 'Z', i % 2 ? VIOLET : '#3B2A9E');
     }
     var sealK = Math.max(1.9, 16.4 / (10.5 * Lo.minPx)), sealW = 100 * sealK;
-    var plK = mode === 'tall' ? 1.5 : 1.75 * (pk / 2.5), plW = 120 * plK;
-    /* tall: the phone fills the width, so the blooming фиалка stands under its right half (clear of the librarian's bubble) */
+    var plK = mode === 'tall' ? 1.35 : 1.75 * (pk / 2.5), plW = 120 * plK;
+    /* tall: the blooming фиалка stands in front of the phone's lower right corner (below the notification, clear of the
+     * librarian's bubble on the left) */
     /* the фиалка stands on the side away from the librarian at the belt's end (right end on wide, left end on mid) */
-    var plantX = mode === 'tall' ? Math.min(vb[2] - plW - 16, phX + phW * 0.62) : (mode === 'mid' ? phX + phW + 18 : phX - plW - 18),
-      plantY = mode === 'tall' ? Math.min(vb[1] + vb[3] - 140 * plK - 8, phY + phH + 6) : phY + phH - 140 * plK;
+    var plantX = mode === 'tall' ? vb[2] - plW - 10 : (geo === 'mid' && !Lo.phRight ? phX + phW + 18 : phX - plW - 18),
+      plantY = mode === 'tall' ? phY + phH - 140 * plK + 10 : phY + phH - 140 * plK;
+    /* tall: the фиалка stands in front of the phone */
+    var bloomG = G('zp-bloom', MP.plant('bloom', { x: plantX, y: plantY, scale: plK }), HIDE),
+      phoneG = G('zp-phone', MP.phone('notify', { x: phX, y: phY, scale: pk }), HIDE);
     var reveal = '<rect class="zp-scrim" x="' + vb[0] + '" y="' + vb[1] + '" width="' + vb[2] + '" height="' + vb[3] + '" fill="' + INK + '" fill-opacity=".78"' + HIDE + '/>' +
       G('zp-burst', G('zp-burst-in', burst, ' opacity=".9"'), HIDE) +
-      G('zp-bloom', MP.plant('bloom', { x: plantX, y: plantY, scale: plK }), HIDE) +
-      G('zp-phone', MP.phone('notify', { x: phX, y: phY, scale: pk }), HIDE) +
+      (mode === 'tall' ? phoneG + bloomG : bloomG + phoneG) +
       G('zp-seal', MP.seal({ x: rv0[0] - sealW / 2, y: rv0[1] - sealW / 2, scale: sealK }), HIDE) +
       G('zp-fly zp-cap', G('', R(-30, -15, 60, 30, 15, MINT, SW) + R(-30, -15, 30, 30, 15, SKY, SW) +
         L('M-20 -7H14', WHITE, 4, ' stroke-linecap="round" stroke-opacity=".8"') + P(sparkleD(36, -22, 9), CREAM, ' stroke="' + INK + '" stroke-width="2.4"'), ' transform="scale(' + f(s * 1.2) + ')"'), HIDE) +
@@ -496,12 +536,15 @@
         '<span class="zp-say-in zp-tone-' + (TONE[k] || 'cream') + '" style="visibility:hidden;opacity:0">' + SAY[k] + '</span></div>';
     });
     var hot = H.hot;
-    hud += '</div><div class="zp-go" aria-hidden="true"><span class="zp-go-in"><span class="zp-go-disc"><svg class="ico"><use href="#i-play"/></svg></span>' +
-      '<span class="zp-go-label">Запустить</span></span></div>' +
-      '<div class="zp-hot" aria-hidden="true" hidden style="left:' + f((hot[0] - vb[0]) / vb[2] * 100) + '%;top:' + f((hot[1] - vb[1]) / vb[3] * 100) +
+    hud += '</div>';
+    var go = '<div class="zp-go" aria-hidden="true"><span class="zp-go-in"><span class="zp-go-disc"><svg class="ico"><use href="#i-play"/></svg></span>' +
+      '<span class="zp-go-label">Запустить</span></span></div>';
+    var hotEl = '<div class="zp-hot" aria-hidden="true" hidden style="left:' + f((hot[0] - vb[0]) / vb[2] * 100) + '%;top:' + f((hot[1] - vb[1]) / vb[3] * 100) +
       '%;width:' + f(hot[2] / vb[2] * 100) + '%;height:' + f(hot[3] / vb[3] * 100) + '%"></div>';
 
-    stage.innerHTML = svg + hud;
+    /* phones: the diorama, its bubbles and the stamp hotspot ride in .zp-cam (the whole 9:16 zigzag), which the timeline
+     * moves up (yPercent) inside the 4:5 stage; the start button stays centred in the window */
+    stage.innerHTML = Lo.cam ? '<div class="zp-cam">' + svg + hud + hotEl + '</div>' + go : svg + hud + go + hotEl;
     stage.setAttribute('data-mode', mode);
     if (MP.nbsp) MP.nbsp(stage.querySelector('.zp-hud'));
 
@@ -522,7 +565,9 @@
   }
 
   /* keep every bubble inside the stage: slide it sideways (--dx) and move its tail (--tail) so it still points at the
-   * speaker. Pixel maths, so it is redone whenever the stage changes size (ResizeObserver in start()). */
+   * speaker; on the small stages of phones held sideways a first-row bubble would also rise above the top edge — it is
+   * lowered (--dy) over the speaker's head instead. Pixel maths, so it is redone whenever the stage changes size
+   * (ResizeObserver in start()). */
   function fitBubbles(stage) {
     var hud = stage.querySelector('.zp-hud'), W = hud ? hud.clientWidth : 0;
     if (!W) return;
@@ -532,6 +577,8 @@
       var left = Math.max(6, Math.min(W - 6 - w, natural));
       el.style.setProperty('--dx', f(left - natural) + 'px');
       el.style.setProperty('--tail', f(Math.max(20, Math.min(w - 20, ax - left))) + 'px');
+      var dy = Math.max(0, 6 - (el.offsetTop - el.offsetHeight));
+      if (dy) el.style.setProperty('--dy', f(dy) + 'px'); else el.style.removeProperty('--dy');
     });
   }
 
@@ -583,7 +630,21 @@
       tl.to(token, { motionPath: { path: Ge.d, start: p0, end: p1 }, duration: d, ease: 'power1.inOut' }, t);
       if (flow) tl.to(flow, { strokeDashoffset: '-=' + f(dist), duration: d, ease: 'power1.inOut' }, t);
       lampTo(to, t, d);
+      camTo(to.row, t, d);
       t += d; cur = to;
+    }
+    /* phones: the camera pans with the order so its row sits at ~62% of the 4:5 window (rows 1–2 at the top, the last two
+     * rows — the test loop back to Мастер, gate 2 and the reveal — in the bottom window). fromTo with explicit values, so
+     * seeking (calm mode, reset) always lands on the right frame. The return loop does not move it. */
+    var cam = q(stage, '.zp-cam'), camY = 0, camMax = D.Lo.cam ? D.Lo.vb[3] - D.Lo.cam : 0;
+    if (cam) gsap.set(cam, { yPercent: 0 });
+    function camTo(row, at, d) {
+      if (!cam) return;
+      var y = Math.max(0, Math.min(camMax, D.Lo.rows[row] - 0.62 * D.Lo.cam));
+      if (Math.abs(y - camY) < 1) return;
+      tl.fromTo(cam, { yPercent: -camY / D.Lo.vb[3] * 100 }, { yPercent: -y / D.Lo.vb[3] * 100, duration: Math.max(0.5, d * 1.4),
+        ease: 'power2.inOut', immediateRender: false }, at);
+      camY = y;
     }
     /* the work lamp slides along a row; to another row it dims and comes back on above the next station */
     function lampTo(to, at, d) {
@@ -959,6 +1020,10 @@
 
   /* ================================================================== controller ============================== */
   var current = null;
+  /* a run handed over a scene re-init: prosto re-inits every scene when the 1024px switch flips (a tablet rotating). It is
+   * picked up by the next start() in the same mode (a calm toggle starts over), paused: the page is re-laid out and
+   * scrolled back to the reading place meanwhile, so whether the stage is on screen is not known yet */
+  var handover = null;
   MP.sim = {
     pause: function () { if (current) current.pause(true); },
     seek: function (at) { if (current) current.seek(at); },
@@ -1044,7 +1109,11 @@
     }
 
     /* ---- (re)render the stage for the current layout ---- */
-    function build() {
+    /* keep: a layout switch (a phone rotating) — the run carries over to the new diorama (snapshot → restore) */
+    function build(keep) {
+      var was = keep ? snapshot() : null;
+      /* the stamp / play button hides for a moment below (setState('idle')): give the focus back afterwards */
+      var foc = keep && section.contains(document.activeElement) ? document.activeElement : null;
       teardownAnims();
       D = render(stage, modeNow());
       fitBubbles(stage);
@@ -1081,6 +1150,40 @@
       setState('idle');
       if (statusEl) statusEl.textContent = IDLE_TEXT;
       setProg(0);
+      if (was) restore(was);
+      if (foc && document.activeElement !== foc && !foc.hidden) { try { foc.focus({ preventScroll: true }); } catch (e) {} }
+    }
+    /* Where the run is, in layout-free terms. Every layout makes the same labels in the same order, but the rides are as
+     * long as its belt, so label TIMES differ: the playhead is kept as «the last label passed + the fraction of the way
+     * to the next one» (inside a station the offsets are fixed, so that is the same moment; on a ride, the same point of
+     * the ride). The status line is kept as it reads (seeking below suppresses the timeline's status calls). */
+    function snapshot() {
+      var o = { state: state, step: stepIdx, text: statusEl ? statusEl.textContent : '', at: null, next: null, frac: 0 };
+      if (!T || state === 'idle') return o;
+      var t = T.tl.time(), names = Object.keys(T.labels).sort(function (a, b) { return T.labels[a] - T.labels[b]; }), k = -1;
+      names.forEach(function (n, i) { if (T.labels[n] <= t) k = i; });
+      if (k < 0) return o;
+      var t0 = T.labels[names[k]], t1 = k + 1 < names.length ? T.labels[names[k + 1]] : T.tl.duration();
+      o.at = names[k]; o.next = names[k + 1] || null; o.frac = t1 > t0 ? Math.min(1, (t - t0) / (t1 - t0)) : 0;
+      return o;
+    }
+    function restore(o) {
+      if (o.state === 'idle') return;
+      stepIdx = o.step;
+      if (calm) {
+        /* the stepper's frame is the label of its step; a running stepper goes on with the next step */
+        if (stepIdx >= 0) calmApply(stepIdx, true);
+        if (o.state === 'running') timer = setTimeout(calmNext, 2200);
+      } else if (T && o.at != null && T.labels[o.at] != null) {
+        var t0 = T.labels[o.at], t1 = o.next != null && T.labels[o.next] != null ? T.labels[o.next] : T.tl.duration();
+        /* a seek skips the addPause at «wait». A waiting run lands a hair past it: exactly on it, the pause's callback
+         * (onWaiting) would still fire when the stamp resumes the timeline and hold the run at «waiting» */
+        T.tl.seek(o.state === 'waiting' && T.labels.wait != null ? T.labels.wait + 0.001 : t0 + o.frac * (t1 - t0), true);
+        syncProg();
+        if (o.state === 'running') T.tl.play();
+      }
+      if (statusEl) statusEl.textContent = o.text;
+      setState(o.state);
     }
     function teardownAnims() {
       clearTimeout(timer); timer = 0;
@@ -1099,6 +1202,7 @@
       }
     }
     function play() {
+      if (state !== 'running' && state !== 'waiting') intoView();
       if (calm) { calmPlay(); return; }
       if (!T) return;
       if (state === 'waiting') { nudgeStamp(); return; }
@@ -1106,6 +1210,20 @@
       if (state === 'idle' || state === 'done' || T.tl.progress() >= 1) { T.tl.play(0); }
       else T.tl.play();
       setState('running');
+    }
+    /* phones (tall, short*): the stage and its controls fit one screen (scenes-d.css). A run started with the sim partly
+     * scrolled away (the button is below the stage) first brings the whole sim into view, so its start is not missed.
+     * A reader's own scroll stops the glide (autoKill). */
+    function intoView() {
+      if (!D || !/^(tall|short)/.test(D.mode)) return;
+      var sim = stage.parentNode, r = sim.getBoundingClientRect(), vh = window.innerHeight;
+      var header = document.querySelector('.site-header'), hb = header ? header.getBoundingClientRect().bottom : 0;
+      /* 16px under the header clears the progress token that hangs below it (when there is room for that) */
+      var top = hb + Math.max(0, Math.min(16, vh - hb - r.height));
+      if ((r.top >= top - 1 && r.bottom <= vh + 1) || r.height > vh - hb) return;
+      var y = window.pageYOffset + r.top - top - Math.floor((vh - top - r.height) / 2);
+      if (!calm && gsap && window.ScrollToPlugin) gsap.to(window, { scrollTo: { y: y, autoKill: true }, duration: 0.5, ease: 'power2.inOut' });
+      else window.scrollTo(0, y);
     }
     function pause(auto) {
       /* suspend (MP.sim.pause), a hidden tab or a scrolled-away stage also stop the stamp pulse; syncWait() restarts it */
@@ -1141,12 +1259,12 @@
     }
 
     /* ---- calm mode: a stepper that seeks the same timeline (no travel) ---- */
-    function calmApply(i) {
+    function calmApply(i, quiet) {
       stepIdx = i;
       var label = CALM_AT[STEPS[i][0]];
       if (T && T.labels[label] != null) T.tl.seek(T.labels[label], true);
       if (T) syncProg(); else setProg((i + 1) / STEPS.length);
-      setStatus(i);
+      if (!quiet) setStatus(i);     /* quiet: a layout rebuild re-shows the step, it is not announced again */
     }
     function calmNext() {
       var i = stepIdx + 1;
@@ -1171,6 +1289,17 @@
 
     /* ---- wiring ---- */
     build();
+    if (handover) {
+      var ho = handover; handover = null;
+      if (ho.calm === calm) {
+        if (ho.run.state === 'running') ho.run.state = 'paused';
+        restore(ho.run);
+        /* the revert hid the stamp button under the reader's focus */
+        if (ho.focus && !ho.focus.hidden && (!document.activeElement || document.activeElement === document.body)) {
+          try { ho.focus.focus({ preventScroll: true }); } catch (e) {}
+        }
+      }
+    }
     var me = current = {
       pause: function (auto) { pause(auto); },
       seek: function (at) {
@@ -1198,10 +1327,13 @@
       kill: function () { seen = false; if (waitLoop) waitLoop.pause(); }
     });
     if (window.matchMedia) {
-      /* phone ↔ tablet: a different diorama (the ≥1024 switch re-inits the whole scene through prosto's matchMedia) */
-      var mq = window.matchMedia('(max-width: 759px)');
-      var onMq = function () { build(); };
-      if (mq.addEventListener) api.on(mq, 'change', onMq);
+      /* phone ↔ phone sideways ↔ tablet: a different diorama (the ≥1024 landscape switch also re-inits the whole scene
+       * through prosto's matchMedia). Listeners on media queries only: a height-only resize (iOS toolbar) never fires. */
+      var onMq = function () { if (!D || modeNow() !== D.mode) build(true); };
+      Object.keys(MQ).forEach(function (k) {
+        var mq = window.matchMedia(MQ[k]);
+        if (mq.addEventListener) api.on(mq, 'change', onMq);
+      });
     }
     var ro = null;
     if (window.ResizeObserver) {
@@ -1214,16 +1346,23 @@
     }
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { if (current === me) fitBubbles(stage); });
     if (window.ScrollTrigger && gsap) {
-      window.ScrollTrigger.create({
-        trigger: stage, start: 'top 88%', end: 'bottom 12%',
-        /* leaving the viewport pauses a running conveyor; the «waiting for your stamp» pulse only runs while seen */
-        onLeave: function () { stageOn = false; pause(true); },
-        onLeaveBack: function () { stageOn = false; pause(true); },
-        onEnter: function () { stageOn = true; syncWait(); },
-        onEnterBack: function () { stageOn = true; syncWait(); }
-      });
+      /* leaving the viewport pauses a running conveyor once the stage has stayed away for a moment: a relayout (a phone
+       * rotating) first measures the new page at the old scroll position — the stage «leaves» — and only then does
+       * prosto put the reading place back. The «waiting for your stamp» pulse only runs while seen. */
+      var awayTimer = 0;
+      var away = function () {
+        stageOn = false; syncWait();
+        clearTimeout(awayTimer);
+        awayTimer = setTimeout(function () { if (!stageOn) pause(true); }, 700);
+      };
+      var back = function () { stageOn = true; clearTimeout(awayTimer); syncWait(); };
+      window.ScrollTrigger.create({ trigger: stage, start: 'top 88%', end: 'bottom 12%', onLeave: away, onLeaveBack: away, onEnter: back, onEnterBack: back });
+      onRevert(api, function () { clearTimeout(awayTimer); });
     }
     onRevert(api, function () {
+      if (current === me && state !== 'idle') {
+        handover = { calm: calm, run: snapshot(), focus: section.contains(document.activeElement) ? document.activeElement : null };
+      }
       if (ro) ro.disconnect();
       teardownAnims();
       if (T && T.tl) T.tl.kill();
@@ -1234,6 +1373,19 @@
       if (btnReset) btnReset.hidden = false;
     });
   }
+
+  /* on phones «Сначала» shows only its icon: its label goes into a span that scenes-d.css hides visually (it stays the
+   * button's name). Done at load, before the lazy scene init, so the square button never shows a spilling label. */
+  MP.ready(function () {
+    var b = document.querySelector('#zapusk [data-action="sim-reset"]');
+    if (!b || b.querySelector('.zp-lbl')) return;
+    Array.prototype.slice.call(b.childNodes).forEach(function (n) {
+      if (n.nodeType !== 3 || !n.nodeValue.trim()) return;
+      var sp = document.createElement('span');
+      sp.className = 'zp-lbl'; sp.textContent = n.nodeValue.trim();
+      b.replaceChild(sp, n);
+    });
+  });
 
   MP.scene('zapusk', {
     build: function (section, api) { render(api.stage, modeNow()); },

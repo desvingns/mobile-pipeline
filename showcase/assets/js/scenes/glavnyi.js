@@ -7,11 +7,14 @@
  * perks up and blooms → the [data-after-stamp] notes appear; the button becomes «Ещё раз» (fast rewind + replay).
  * The stop-chips light up one by one when they scroll in; each carries a mint check, the 4th («Выпуск») gets its
  * check only from the stamp.
- * Two stage layouts live side by side (wide 800×560 and tall 400×500 = the shared 4:5 phone stage below 760px,
- * switched in scenes-c.css); every animation drives both, so crossing the breakpoint never needs a rebuild.
+ * Three stage layouts live side by side (wide 800×560; tall 400×500 = the shared 4:5 phone stage below 760px;
+ * land 540×370 for phones held sideways, where the stage is bound by the height — switched in scenes-c.css); every
+ * animation drives all three, so crossing a breakpoint or rotating the phone never needs a rebuild.
  * The phone's own tiny notification lines are drawn as bars: the readable text is the big notification bubble.
  * build() renders the FINAL (stamped) state. init() and final() both set the pre-stamp state and build ONE paused
  * master timeline; init plays it on click, final (calm) toggles its progress 0/1 instantly on click.
+ * On touch screens and one-column layouts a press first brings the whole stage (and the button) into view — the payoff
+ * plays there — and the notes follow with a second glide when they fade in below the fold (MP.pc.reveal, below).
  */
 (function () {
   'use strict';
@@ -24,6 +27,11 @@
   var FT = "'Golos Text', 'Segoe UI', system-ui, sans-serif";
   var FD = "Unbounded, 'Arial Black', system-ui, sans-serif";
   var TALL_MQ = '(max-width: 759px)';
+  var LAND_MQ = '(orientation: landscape) and (max-height: 520px) and (pointer: coarse) and (min-width: 560px)';   // phones held sideways
+  var TAB_MQ = '(max-width: 1023px), (orientation: portrait) and (max-width: 1199px)';   // one column (docs/design-prosto.md §0)
+  var REVEAL_MQ = '(max-width: 1023px), (hover: none)';   // where a press may leave the stage off-screen
+  var USER_INPUT = ['touchstart', 'wheel', 'pointerdown', 'keydown'];   // the reader taking over the scroll
+  var AFTER_PENDING = 0.3;   // in one column the «after» notes wait as faint cards instead of an empty gap
   var STAMPED = 'Печать поставлена — новинка вышла в свет. Теперь фиалку не забудут полить.';
   var UNSTAMPED = 'Печать убрана: фабрика снова ждёт вашего «да».';
   var SVGNS = 'http://www.w3.org/2000/svg';
@@ -107,6 +115,25 @@
       arc: [[146, 390], [150, 290], [300, 262], [344, 140]],
       rays: [76, 98],
       clouds: [[362, 34, 0.55]]
+    },
+    land: {
+      /* phones held sideways (the stage is bound by the ~330px visible height, so the parts are drawn larger): the
+       * release sheet top left with the hand reaching in from above, belt + barrier under it; the phone stands on the
+       * grass on the right, the notification pops out above it, can + фиалка beside the phone */
+      W: 540, H: 370, floor: 336, zoneX: 262,
+      paper: { x: 12, y: 48, rot: -3, w: 256, h: 160, pad: 16, ty: 38, ts: 24, sy: 62, ss: 17, cx: 190, cy: 100, cr: 56, lines: 3, l0: 20, lg: 16 },
+      seal: { s: 1.4 },
+      hand: { s: 1.2, lift: 26 },
+      belt: { x: 12, y: 296, w: 172, h: 22, legs: 12, pitch: 22 },
+      piece: { x: 52, y: 296, s: 0.66, ride: 84 },
+      barrier: { x: 188, y: 272, len: 64, up: 82 },
+      can: { x: 314, y: 242, s: 0.6, tilt: 32, px: 298 },
+      plant: { x: 336, y: 227, s: 0.78 },
+      phone: { x: 438, y: 178, s: 0.6 },
+      toast: { x: 476, y: 180, rx: -202, ry: -124, w: 246, h: 90, dir: 'down', icon: 36, ts: 18, xs: 17, row: [30, 56, 79] },
+      arc: [[136, 271], [148, 190], [360, 150], [480, 256]],
+      rays: [72, 92],
+      clouds: [[300, 196, 0.5], [318, 32, 0.45], [508, 34, 0.4]]
     }
   };
   var DROPS = [[72, 26], [65, 50], [76, 74]];   // drop tops relative to the can centre (final, tilted pose)
@@ -281,7 +308,7 @@
   /* ---------- DOM ---------- */
   function trees(sec) { return MP.$$('.gl-svg', sec).map(refs); }
   function refs(svg) {
-    var key = svg.classList.contains('gl-svg--tall') ? 'tall' : 'wide';
+    var key = svg.classList.contains('gl-svg--tall') ? 'tall' : svg.classList.contains('gl-svg--land') ? 'land' : 'wide';
     var q = function (s) { return svg.querySelector(s); }, qa = function (s) { return MP.$$(s, svg); };
     return {
       key: key, L: LAYOUTS[key], svg: svg, shake: q('.gl-shake'), bob: q('.gl-bob'), hand: q('.gl-hand'), seal: q('.gl-seal'),
@@ -298,7 +325,8 @@
     var chips = MP.$$('.stop-chip', sec);
     return {
       chips: chips, checks: MP.$$('.gl-chk', sec), glows: MP.$$('.gl-glow', sec),
-      btn: MP.$('[data-action="stamp"]', sec), memo: MP.$('.memo', sec), after: MP.$$('[data-after-stamp] > *', sec)
+      btn: MP.$('[data-action="stamp"]', sec), memo: MP.$('.memo', sec), notes: MP.$('[data-after-stamp]', sec),
+      after: MP.$$('[data-after-stamp] > *', sec)
     };
   }
   function setLabel(S, stamped) {
@@ -308,11 +336,109 @@
     if (use) use.setAttribute('href', stamped ? '#i-replay' : '#i-stamp');
     S.btn.classList.toggle('is-stamped', !!stamped);
   }
+  function mq(q) { return !!(window.matchMedia && window.matchMedia(q).matches); }
+  function onScreen(el) {
+    if (!el) return false;
+    var r = el.getBoundingClientRect();
+    return r.bottom > headerH() + 8 && r.top < (window.innerHeight || 0) - 8;
+  }
+  /* the «after» notes' opacity before the stamp: faint cards in one column (right under the button there), where an
+   * invisible block reads as a layout gap; hidden beside the desk. Follows the CSS one-column band, not api.wide
+   * (a 1024–1199px portrait iPad is one column too). */
+  function pending() { return mq(TAB_MQ) ? AFTER_PENDING : 0; }
+  /* keeps the pending notes in step with the layout when it flips without a scene re-init (e.g. 1366×1024 ↔ 1024×1366
+   * keeps api.wide); only while the page is unstamped */
+  function followPending(api, g, ctx, tl, S) {
+    var m = window.matchMedia && window.matchMedia(TAB_MQ);
+    if (!m || !m.addEventListener) return;
+    api.on(m, 'change', function () { if (tl.progress() === 0) ctx.add(function () { g.set(S.after, { opacity: pending() }); }); });
+  }
+  /* the layout scenes-c.css shows right now (the same order of precedence as the stylesheet) */
   function visibleTree(T) {
-    var tall = window.matchMedia && window.matchMedia(TALL_MQ).matches;
-    for (var i = 0; i < T.length; i++) if ((T[i].key === 'tall') === !!tall) return T[i];
+    var key = mq(LAND_MQ) ? 'land' : mq(TALL_MQ) ? 'tall' : 'wide';
+    for (var i = 0; i < T.length; i++) if (T[i].key === key) return T[i];
     return T[0];
   }
+  /* ---------- package C kit: reveal before a reaction (also used by pamyat.js as MP.pc.reveal) ----------
+   * In one column (and on touch screens) a button can be pressed while the stage that reacts to it is below the fold
+   * or already under the header. reveal(api, sets, go, only) scrolls first: `sets` lists groups of elements, most
+   * wanted first; the first group that fits between the header and the bottom edge is shown with the smallest scroll,
+   * else the stage alone (its top under the header when it is taller than the window; `only` = no stage fallback).
+   * A sticky element in a group is not scrolled to: it must just stay in view at its stuck place. go() runs once — at
+   * once when nothing has to move, else when the scroll ends or the reader takes over. Only the reader's own input
+   * (touch, wheel, pointer, key) stops the scroll: scroll anchoring and ScrollTrigger refreshes move the page too, so
+   * the target is re-measured on every frame (a section above that changes height mid-way cannot throw it off).
+   * Mouse desktops keep the old behaviour (nothing moves); calm mode jumps. Returns a handle with kill() (or null). */
+  function headerH() { return (MP.$('.site-header') || { offsetHeight: 0 }).offsetHeight; }
+  function isSticky(el) { return window.getComputedStyle(el).position === 'sticky'; }
+  /* top of a sticky box after the page scrolls by d: it starts at its container's top (both short-band grids) and
+   * sticks at its `top` until the container's end pushes it up */
+  function stuckTop(el, d) {
+    var box = el.parentNode.getBoundingClientRect(), s = parseFloat(window.getComputedStyle(el).top) || 0;
+    return Math.min(Math.max(box.top - d, s), box.bottom - d - el.offsetHeight);
+  }
+  /* the smallest scroll that shows every element of `els` between top and bot: { d, el, edge, at } (keep el's edge
+   * at `at` px), or null when they do not fit */
+  function plan(els, top, bot) {
+    var lo = null, hi = null, stuck = [], p, i, r;
+    for (i = 0; i < els.length; i++) {
+      if (!els[i] || !els[i].offsetHeight) continue;
+      if (isSticky(els[i])) { stuck.push(els[i]); continue; }
+      r = els[i].getBoundingClientRect();
+      if (!lo || r.top < lo.r.top) lo = { el: els[i], r: r };
+      if (!hi || r.bottom > hi.r.bottom) hi = { el: els[i], r: r };
+    }
+    if (!lo || hi.r.bottom - lo.r.top > bot - top) return null;
+    if (lo.r.top < top) p = { d: lo.r.top - top, el: lo.el, edge: 'top', at: top };
+    else if (hi.r.bottom > bot) p = { d: hi.r.bottom - bot, el: hi.el, edge: 'bottom', at: bot };
+    else p = { d: 0 };
+    for (i = 0; i < stuck.length; i++) {
+      var t = stuckTop(stuck[i], p.d);
+      if (t < top - 12 || t + stuck[i].offsetHeight > bot + 2) return null;
+    }
+    return p;
+  }
+  function planStage(el, top, bot) {
+    var r = el.getBoundingClientRect(), d = 0;
+    if (r.top < top || r.height > bot - top) d = r.top - top;
+    else if (r.bottom > bot) d = r.bottom - bot;
+    if (isSticky(el)) return { d: d, y: (window.pageYOffset || 0) + d };
+    return d <= 0 || r.height > bot - top ? { d: d, el: el, edge: 'top', at: top } : { d: d, el: el, edge: 'bottom', at: bot };
+  }
+  function reveal(api, sets, go, only) {
+    var vh = window.innerHeight || 0, done = false, p = null, i;
+    function fin() { if (!done) { done = true; go(); } }
+    if (!vh || !api.stage || !mq(REVEAL_MQ)) { fin(); return null; }
+    var top = headerH() + 10, bot = vh - 10;
+    for (i = 0; i < sets.length && !p; i++) p = plan(sets[i], top, bot);
+    if (!p && !only) p = planStage(api.stage, top, bot);
+    if (!p || Math.abs(p.d) < 6) { fin(); return null; }
+    function goal() {
+      if (!p.el) return Math.max(0, p.y);
+      var r = p.el.getBoundingClientRect();
+      return Math.max(0, (window.pageYOffset || 0) + (p.edge === 'top' ? r.top : r.bottom) - p.at);
+    }
+    var g = api.gsap, from = window.pageYOffset || 0, st = { k: 0 }, tw = null, timer = 0, tries = 3;
+    function off() { clearTimeout(timer); USER_INPUT.forEach(function (t) { window.removeEventListener(t, stop, true); }); }
+    function stop() { if (tw) tw.kill(); off(); fin(); }
+    /* a late relayout right after the scroll (e.g. a web-font weight used here for the first time) still moves the
+     * target: follow it for a few frames more */
+    function settle() {
+      timer = setTimeout(function () {
+        var y = goal();
+        if (Math.abs(y - (window.pageYOffset || 0)) > 3) window.scrollTo(0, y);
+        if (--tries > 0) settle(); else off();
+      }, 120);
+    }
+    USER_INPUT.forEach(function (t) { window.addEventListener(t, stop, { capture: true, passive: true }); });
+    if (api.calm || !g) { window.scrollTo(0, goal()); fin(); settle(); return { kill: off }; }
+    tw = g.to(st, { k: 1, duration: Math.min(0.7, 0.3 + Math.abs(p.d) / 1200), ease: 'power2.inOut',
+      onUpdate: function () { window.scrollTo(0, from + (goal() - from) * st.k); },
+      onComplete: function () { fin(); settle(); } });
+    return { kill: function () { tw.kill(); off(); } };
+  }
+  MP.pc = MP.pc || {};
+  MP.pc.reveal = reveal;
 
   var NOTE_ICONS = [
     /* paper plane */
@@ -344,7 +470,7 @@
   function build(sec, api) {
     var stage = api.stage;
     if (!stage) return;
-    stage.innerHTML = markup('wide') + markup('tall');
+    stage.innerHTML = markup('wide') + markup('tall') + markup('land');
     MP.$$('.gl-svg', stage).forEach(barPhoneText);
     /* chips and notes get their icons here; scenes-c.css reserves the room for them up front (html.js), so this
      * lazy build never changes the height of the section */
@@ -378,7 +504,7 @@
    * The timeline itself only uses to() and set(): a fromTo(..., {immediateRender:false}) would be reverted to its
    * FROM values by gsap.context().revert() (calm switch), and an origin given mid-way (after a scale) is shifted
    * by GSAP's smoothOrigin. */
-  function setPre(g, T, S) {
+  function setPre(g, T, S, pending) {
     T.forEach(function (R) {
       var L = R.L;
       g.set([R.dots, R.trail, R.lampG, R.buzz], { transformOrigin: '50% 50%' });
@@ -411,8 +537,8 @@
       g.set(R.cap, { scale: 0.4 });
     });
     if (S.checks[3]) g.set(S.checks[3], { scale: 0, rotation: -40 });
-    /* opacity, not autoAlpha: the notes stay in the accessibility tree before the stamp */
-    g.set(S.after, { opacity: 0, y: 14 });
+    /* opacity, not autoAlpha: the notes stay in the accessibility tree before the stamp (see pending()) */
+    g.set(S.after, { opacity: pending || 0, y: 14 });
   }
 
   function treeTimeline(g, R, pitch) {
@@ -484,8 +610,9 @@
     return tl;
   }
 
-  /* master timeline shared by init (played) and final (parked at the end) */
-  function master(g, T, S, calm) {
+  /* master timeline shared by init (played) and final (parked at the end); init passes hooks called (forward only)
+   * when the 4th chip gets its check (0.24) and when the notes fade in (5.7) */
+  function master(g, T, S, calm, hooks) {
     var tl = g.timeline({ paused: true });
     var pitch = 0;
     T.forEach(function (R) {
@@ -498,6 +625,10 @@
       tl.to(S.glows[3], { autoAlpha: 0, scale: 1.2, duration: 0.7, ease: 'power2.out' }, 0.24);
     }
     tl.to(S.after, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out', stagger: 0.16 }, 5.7);
+    if (hooks) {
+      tl.call(function () { if (!tl.reversed()) hooks.check(); }, null, 0.24);
+      tl.call(function () { if (!tl.reversed()) hooks.notes(); }, null, 5.75);
+    }
     if (!calm) {
       tl.call(function () {
         if (tl.reversed()) return;
@@ -533,10 +664,45 @@
     var g = api.gsap, T = trees(sec), S = shared(sec);
     if (!T.length) return;
     var ctx = g.context(function () {});   // nested in the scene's matchMedia context: handler-made tweens go here
-    setPre(g, T, S);
+    setPre(g, T, S, pending());
     setLabel(S, false);
-    var tl = master(g, T, S, false);
-    var busy = false;
+    var busy = false, scroller = null, nudger = null, unwatch = null, pressAt = 0, inputAt = 0;
+    USER_INPUT.forEach(function (t) { api.on(window, t, function () { inputAt = Date.now(); }, { capture: true, passive: true }); });
+    var tl = master(g, T, S, false, {
+      /* the 4th chip's check pops while the chips may be far above (one column, touch): then it pops again when they
+       * are scrolled back into view (mouse desktops keep the old behaviour) */
+      check: function () {
+        var chip = S.chips[3];
+        if (!chip || unwatch || onScreen(chip) || !mq(REVEAL_MQ)) return;
+        unwatch = MP.watch(chip, function (v) {
+          if (!v || !unwatch) return;
+          unwatch(); unwatch = null;
+          if (tl.reversed() || tl.time() < 0.8) return;   // un-stamped meanwhile: the next stamp arms it again
+          ctx.add(function () {
+            if (S.glows[3]) g.fromTo(S.glows[3], { autoAlpha: 0.95, scale: 0.92 }, { autoAlpha: 0, scale: 1.2, duration: 0.7, ease: 'power2.out' });
+            if (S.checks[3]) g.fromTo(S.checks[3], { scale: 0, rotation: -40 }, { scale: 1, rotation: 0, duration: 0.5, ease: 'back.out(3)' });
+          });
+        });
+      },
+      /* the notes fade in: when they are below the fold, the stage is still on screen and the reader has not touched
+       * the page since the press, a second short glide brings them in (the payoff has played by then) — but never
+       * at the cost of the notification bubble, which must stay readable under the header (a sticky stage stays put) */
+      notes: function () {
+        if (inputAt > pressAt || !S.notes || !onScreen(api.stage)) return;
+        var d = S.notes.getBoundingClientRect().bottom - ((window.innerHeight || 0) - 10), stuck = isSticky(api.stage);
+        if (d <= 0) return;
+        if (!stuck) {
+          var t = visibleTree(T).toast.getBoundingClientRect();
+          if (t.top + t.height * 0.25 - d < headerH()) return;
+        }
+        nudger = reveal(api, [stuck ? [S.notes, api.stage] : [S.notes]], function () {}, true);
+      }
+    });
+    followPending(api, g, ctx, tl, S);
+    /* the reveal scrolls are killed (never reverted — that would scroll the page back) when the scene is reverted */
+    g.context(function () {
+      return function () { if (scroller) scroller.kill(); if (nudger) nudger.kill(); if (unwatch) { unwatch(); unwatch = null; } };
+    });
 
     /* Idle loops, both owned by api.loop (they play only while the section is on screen and the tab is visible;
      * this scene never calls play() on them itself):
@@ -574,8 +740,15 @@
     tl.eventCallback('onReverseComplete', function () { play(); });
     function stamp() {
       if (busy) return;
-      if (tl.progress() === 0) play();
-      else { busy = true; tl.timeScale(4.5).reverse(); }
+      busy = true;
+      pressAt = Date.now();
+      if (nudger) { nudger.kill(); nudger = null; }
+      /* the stage and the button (it turns into «Ещё раз») together when they fit, else the stage alone */
+      if (scroller) scroller.kill();
+      scroller = reveal(api, [[api.stage, S.btn]], function () {
+        if (tl.progress() === 0) play();
+        else tl.timeScale(4.5).reverse();
+      });
     }
     api.on(S.btn, 'click', stamp);
     chipsIntro(g, S);
@@ -591,12 +764,18 @@
       api.on(S.btn, 'click', function () { api.live(STAMPED); });
       return;
     }
-    setPre(g, T, S);
+    setPre(g, T, S, pending());
     var tl = master(g, T, S, true);
     tl.progress(0, true);
     setLabel(S, false);
+    followPending(api, g, g.context(function () {}), tl, S);
+    var scroller = null;
+    g.context(function () { return function () { if (scroller) scroller.kill(); }; });
     api.on(S.btn, 'click', function () {
       var stamped = tl.progress() > 0.5;
+      if (scroller) scroller.kill();
+      /* calm: an instant jump, never a smooth scroll; the whole payoff (stage, button, notes) when it fits */
+      scroller = reveal(api, stamped ? [[api.stage, S.btn]] : [[api.stage, S.btn, S.notes], [api.stage, S.btn]], function () {});
       tl.progress(stamped ? 0 : 1, true);
       setLabel(S, !stamped);
       api.live(stamped ? UNSTAMPED : STAMPED);

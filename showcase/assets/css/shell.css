@@ -8,7 +8,7 @@
   border-bottom: var(--outline-thin) solid var(--ink);
 }
 .brand {
-  display: flex; align-items: center; gap: 12px; text-decoration: none; min-width: 0;
+  display: flex; align-items: center; gap: 12px; text-decoration: none; min-width: 44px; min-height: 44px; flex: none;   /* never squeeze the mark; a full-size tap target */
 }
 .brand-mark { width: 40px; height: 40px; flex: none; }
 .brand-text { display: flex; flex-direction: column; line-height: 1.05; min-width: 0; }
@@ -26,7 +26,7 @@
   font-family: var(--font-display); font-weight: 700; font-size: 17px;
 }
 .tab[aria-selected="true"] { background: var(--cream); color: var(--ink); box-shadow: 3px 3px 0 var(--violet); }
-.tab:not([aria-selected="true"]):hover { background: rgba(255, 246, 230, .14); }
+@media (hover: hover) { .tab:not([aria-selected="true"]):hover { background: rgba(255, 246, 230, .14); } }
 
 .calm-toggle {
   display: inline-flex; align-items: center; gap: 10px;
@@ -34,6 +34,8 @@
   background: transparent; color: var(--cream); border: 2px solid rgba(255, 246, 230, .35);
   font-size: 16px; font-weight: 600; white-space: nowrap;
 }
+/* phones hide the text label: a pause glyph says what the switch does (it is not a theme switch) */
+.calm-toggle .calm-ico { display: none; width: 18px; height: 18px; }
 .calm-toggle .knob {
   position: relative; width: 38px; height: 22px; border-radius: 999px; background: rgba(255,246,230,.25); flex: none;
 }
@@ -62,6 +64,8 @@
   border-radius: 50%; background: var(--cream); border: 3px solid var(--ink);
 }
 body.tab-skhema .progress-belt { display: none; }
+/* the Схема is a fixed-height app: no rubber-banding of the header and toolbar when its inner lists hit their ends (iOS) */
+body.tab-skhema { overscroll-behavior-y: none; }
 
 /* Header focus: cream outline + lemon ring on the ink header (the selected tab keeps its violet shadow too) */
 .site-header :focus-visible { outline: 3px solid var(--cream); outline-offset: 2px; box-shadow: 0 0 0 6px var(--lemon); }
@@ -74,6 +78,7 @@ html.boot-skhema .progress-belt { display: none; }
 
 .panel { position: relative; }
 #panel-skhema {
+  height: calc(100vh - var(--header-h));    /* fallback: iOS < 15.4 has no dvh */
   height: calc(100dvh - var(--header-h));
   background: #17191c; color: #e6e9ed;
 }
@@ -88,7 +93,20 @@ html.boot-skhema .progress-belt { display: none; }
 @media (max-width: 600px) {
   .brand-text { display: none; }
   .tab { padding: 6px 14px; font-size: 15px; }
-  .calm-toggle { padding: 6px 8px; }
+  .calm-toggle { padding: 6px 8px; gap: 6px; }
+  .calm-toggle .calm-ico { display: block; }
   .calm-toggle .label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .site-header { gap: 8px; }
+}
+/* the 56px header (phones, phones held sideways): a slimmer tab pill so it does not fill the whole header */
+@media (max-width: 760px), (orientation: landscape) and (max-height: 520px) and (pointer: coarse) {
+  .tabs { padding: 2px; gap: 2px; }
+}
+/* the narrowest phones (320–359px): everything a notch smaller so the mark, the tabs and the switch fit one row */
+@media (max-width: 359px) {
+  .site-header { gap: 6px; }
+  .brand-mark { width: 32px; height: 32px; }
+  .tab { padding: 6px 10px; font-size: 14px; }
+  .calm-toggle { padding: 6px; gap: 4px; }
+  .calm-toggle .calm-ico { width: 16px; height: 16px; }
 }

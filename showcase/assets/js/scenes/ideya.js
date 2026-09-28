@@ -34,10 +34,12 @@
   var NS = ' stroke="none"';
   function tr(x, y, s, r) { return ' transform="translate(' + f(x) + ' ' + f(y) + ')' + (r ? ' rotate(' + f(r) + ')' : '') + (s && s !== 1 ? ' scale(' + f(s) + ')' : '') + '"'; }
 
-  /* ---------- geometry: two layouts, built once, CSS shows one ----------
-   * SQ   (≥760px, viewBox 600×600): window left, phone standing on the sill at the right.
-   * TALL (<760px, viewBox 480×600 — the stage turns 4:5 on phones): a narrower, taller window and a bigger phone,
-   *      so the phone list renders ≥16px on a 390px screen. Phone-screen text is 17–18 units in both. */
+  /* ---------- geometry: three layouts, built once, CSS shows one ----------
+   * SQ    (≥760px, viewBox 600×600): window left, phone standing on the sill at the right.
+   * TALL  (<760px, viewBox 480×600 — the stage turns 4:5 on phones): a narrower, taller window and a bigger phone,
+   *       so the phone list renders ≥16px on a 390px screen. Phone-screen text is 17–18 units in all three.
+   * SHORT (phones held sideways, viewBox 720×480 — a 3:2 stage sized by the screen height): a wide, low window and a
+   *       big phone under the caption, so the phone list stays ≥13px in a ~300px tall stage. */
   var SQ = {
     key: 'sq', w: 600, h: 600,
     win: { x: 24, y: 18, w: 382, h: 454, fr: 16, bar: 214 }, sill: 472,
@@ -55,6 +57,15 @@
     ph: { x: 296, scale: 1.24, rot: -3 },
     plants: [['ficus', 2, 0.92], ['cactus', 104, 0.84], ['violet', 184, 1.02]],
     arrow: ['M426 124C452 130 458 148 446 164', 'M436 156L445 168L457 158']
+  };
+  var SHORT = {
+    key: 'short', w: 720, h: 480,
+    win: { x: 14, y: 14, w: 400, h: 406, fr: 16, bar: 186 }, sill: 420,
+    clouds: [[0, -8], [0, -36]],
+    bulb: { x: 112, y: 106 }, icon: { x: 268, y: 42, s: 84 },
+    ph: { x: 526, scale: 1.22, rot: -3 },
+    plants: [['ficus', 20, 1.02], ['cactus', 138, 0.94], ['violet', 240, 1.26]],
+    arrow: ['M470 58C440 76 446 118 508 134', 'M494 123L509 134L495 146']
   };
   function phBox(L0) { return { cx: L0.ph.x + 70 * L0.ph.scale, top: L0.sill - 260 * L0.ph.scale }; }
 
@@ -195,8 +206,9 @@
     addPlants(svg, L0);
     return svg;
   }
-  /* the layout CSS shows right now (the square stage turns 4:5 below 760px) */
-  function isTall() { return !!(window.matchMedia && window.matchMedia('(max-width: 759px)').matches); }
+  /* the layout CSS shows (scenes-a.css): the square stage turns 4:5 below 760px and 3:2 on phones held sideways.
+   * prosto re-inits the scenes only when crossing 1024px, so init follows these in a nested gsap.matchMedia. */
+  var MQ = { tall: '(max-width: 759px)', short: '(orientation: landscape) and (max-height: 520px) and (pointer: coarse) and (min-width: 560px)', big: '(min-width: 760px)' };
 
   /* built-state snapshot: final() and init() hard-restore what build() produced (GSAP reverts can leave SVG
    * transforms and inline styles behind) and drop GSAP's transform cache. */
@@ -224,6 +236,7 @@
       var st = api.stage;
       st.appendChild(buildSVG(SQ));
       st.appendChild(buildSVG(TALL));
+      st.appendChild(buildSVG(SHORT));
       /* HTML overlays (the stage is aria-hidden) */
       var chars = PHRASE.split('').map(function (ch) { return '<span class="i-ch">' + (ch === ' ' ? ' ' : ch) + '</span>'; }).join('');
       st.appendChild(MP.html('<div class="i-ov" aria-hidden="true">' +
@@ -236,65 +249,77 @@
 
     init: function (section, api) {
       restore(api.stage);
-      var gsap = api.gsap, st = api.stage, L0 = isTall() ? TALL : SQ, svg = MP.$('.i-svg--' + L0.key, st);
-      /* the SVG parts come from the layout on screen (the other one keeps its built poster state) */
-      var q = function (s) { return MP.$(s, svg); }, qa = function (s) { return MP.$$(s, svg); };
       headIn(section, api);
-      var violet = q('.i-violet'), vLeaves = MP.$$('.c-leaf', violet), vBud = MP.$('.c-bud', violet), vDrop = MP.$('.c-drop', violet);
-      var bubble = MP.$('.i-bubble', st), chs = MP.$$('.i-ch', st), bulbG = q('.i-bulb'), rays = q('.i-rays'), glow = q('.i-glow');
-      var icon = q('.i-icon'), label = q('.i-icon-label'), phoneG = q('.i-phone > g'), rows = qa('.i-row'), bars = qa('.i-bar'),
-        add = q('.i-add'), caption = MP.$('.i-caption', st), arrow = q('.i-arrow'), head = q('.i-arrow-head');
-      phoneG = q('.i-phone');
-
-      /* start states: the фиалка a little less wilted, nothing of the idea yet */
-      gsap.set(vLeaves, { rotation: function (i) { return i < 2 ? (i ? -12 : 12) : (i === 2 ? 14 : -14); } });
-      if (vBud) gsap.set(vBud, { rotation: -40 });
-      if (vDrop) gsap.set(vDrop, { autoAlpha: 0 });
-      gsap.set(bubble, { autoAlpha: 0, scale: 0, transformOrigin: '24% 60%' });
-      gsap.set(chs, { autoAlpha: 0 });
-      gsap.set(bulbG, { autoAlpha: 0, scale: 0.2, y: 60, svgOrigin: L0.bulb.x + ' ' + (L0.bulb.y + 40) });
-      gsap.set(rays, { drawSVG: '50% 50%' });
-      gsap.set([icon, label], { autoAlpha: 0, scale: 0, transformOrigin: '50% 50%' });
-      gsap.set(phoneG, { autoAlpha: 0, scaleY: 0.1, scaleX: 0.6, svgOrigin: f(phBox(L0).cx) + ' ' + L0.sill });
-      gsap.set(rows, { autoAlpha: 0, x: -14 });
-      gsap.set(bars, { scaleX: 0, transformOrigin: '0% 50%' });
-      gsap.set(add, { autoAlpha: 0 });
-      gsap.set(caption, { autoAlpha: 0, scale: 0.4, rotation: -10 });
-      gsap.set([arrow, head], { drawSVG: '0%' });
-
-      var tl = gsap.timeline({ paused: true, defaults: { ease: 'power2.out' } });
-      /* the фиалка wilts */
-      tl.to(vLeaves, { rotation: 0, duration: 0.9, ease: 'power2.in', stagger: 0.05 }, 0);
-      if (vBud) tl.to(vBud, { rotation: 0, duration: 0.8, ease: 'bounce.out' }, 0.2);
-      tl.fromTo(violet, { scaleY: 1, transformOrigin: '50% 100%' }, { transformOrigin: '50% 100%', keyframes: { scaleY: [0.93, 1.02, 1] }, duration: 0.7, ease: 'none', immediateRender: false }, 0.5);
-      if (vDrop) tl.fromTo(vDrop, { autoAlpha: 0, y: -8, transformOrigin: '50% 50%' }, { autoAlpha: 1, y: 0, transformOrigin: '50% 50%', duration: 0.4, immediateRender: false }, 0.9);
-      /* the phrase */
-      tl.to(bubble, { autoAlpha: 1, scale: 1, duration: 0.5, ease: 'mp.pop' }, 1.1)
-        .to(chs, { autoAlpha: 1, duration: 0.01, stagger: 0.032, ease: 'none' }, 1.4);
-      var typed = 1.4 + chs.length * 0.032;
-      /* bubble → bulb that glows and rises */
-      tl.to(bubble, { scale: 0.08, autoAlpha: 0, duration: 0.42, ease: 'power2.in' }, typed + 0.7)
-        .to(bulbG, { autoAlpha: 1, scale: 1, duration: 0.55, ease: 'back.out(2.2)' }, typed + 0.95)
-        .to(bulbG, { y: 0, duration: 1.1, ease: 'power3.out' }, typed + 1.05)
-        .to(rays, { drawSVG: '0% 100%', duration: 0.5, ease: 'power2.out' }, typed + 1.25)
-        .fromTo(glow, { scale: 0.4, transformOrigin: '50% 50%' }, { scale: 1, duration: 0.8, ease: 'elastic.out(1,.5)', immediateRender: false }, typed + 1.25);
-      /* the goal */
-      var g0 = typed + 1.9;
-      tl.to(icon, { autoAlpha: 1, scale: 1, duration: 0.55, ease: 'back.out(2.2)' }, g0)
-        .to(label, { autoAlpha: 1, scale: 1, duration: 0.45, ease: 'back.out(2.2)' }, g0 + 0.2)
-        .to(phoneG, { autoAlpha: 1, scaleY: 1, scaleX: 1, duration: 0.6, ease: 'back.out(1.8)' }, g0 + 0.35)
-        .to(rows, { autoAlpha: 1, x: 0, duration: 0.35, stagger: 0.1 }, g0 + 0.7)
-        .to(bars, { scaleX: 1, duration: 0.6, ease: 'power2.out', stagger: 0.1 }, g0 + 0.85)
-        .to(add, { autoAlpha: 1, duration: 0.3 }, g0 + 1.05)
-        .to(caption, { autoAlpha: 1, scale: 1, rotation: 3, duration: 0.5, ease: 'back.out(2)' }, g0 + 1.0)
-        .to(arrow, { drawSVG: '100%', duration: 0.4, ease: 'power1.inOut' }, g0 + 1.3)
-        .to(head, { drawSVG: '100%', duration: 0.2 }, g0 + 1.65)
-        .set(caption, { clearProps: 'transform' }, g0 + 1.6);
-
-      window.ScrollTrigger.create({ trigger: st, start: 'top 65%', once: true, onEnter: function () { tl.play(0); } });
-      MP.blink(st, api);
+      var runs = 0;
+      api.gsap.matchMedia().add(MQ, function (ctx) {
+        var c = ctx.conditions;
+        play(api, c.short ? SHORT : c.tall ? TALL : SQ, runs++ > 0);
+      });
     }
   });
+
+  /* one run of the animated mode for layout L0; again = a re-run after a rotation / resize across a layout change */
+  function play(api, L0, again) {
+    restore(api.stage);
+    var gsap = api.gsap, st = api.stage, svg = MP.$('.i-svg--' + L0.key, st);
+    /* the SVG parts come from the layout on screen (the others keep their built poster state) */
+    var q = function (s) { return MP.$(s, svg); }, qa = function (s) { return MP.$$(s, svg); };
+    var violet = q('.i-violet'), vLeaves = MP.$$('.c-leaf', violet), vBud = MP.$('.c-bud', violet), vDrop = MP.$('.c-drop', violet);
+    var bubble = MP.$('.i-bubble', st), chs = MP.$$('.i-ch', st), bulbG = q('.i-bulb'), rays = q('.i-rays'), glow = q('.i-glow');
+    var icon = q('.i-icon'), label = q('.i-icon-label'), phoneG = q('.i-phone > g'), rows = qa('.i-row'), bars = qa('.i-bar'),
+      add = q('.i-add'), caption = MP.$('.i-caption', st), arrow = q('.i-arrow'), head = q('.i-arrow-head');
+    phoneG = q('.i-phone');
+
+    /* start states: the фиалка a little less wilted, nothing of the idea yet */
+    gsap.set(vLeaves, { rotation: function (i) { return i < 2 ? (i ? -12 : 12) : (i === 2 ? 14 : -14); } });
+    if (vBud) gsap.set(vBud, { rotation: -40 });
+    if (vDrop) gsap.set(vDrop, { autoAlpha: 0 });
+    gsap.set(bubble, { autoAlpha: 0, scale: 0, transformOrigin: '24% 60%' });
+    gsap.set(chs, { autoAlpha: 0 });
+    gsap.set(bulbG, { autoAlpha: 0, scale: 0.2, y: 60, svgOrigin: L0.bulb.x + ' ' + (L0.bulb.y + 40) });
+    gsap.set(rays, { drawSVG: '50% 50%' });
+    gsap.set([icon, label], { autoAlpha: 0, scale: 0, transformOrigin: '50% 50%' });
+    gsap.set(phoneG, { autoAlpha: 0, scaleY: 0.1, scaleX: 0.6, svgOrigin: f(phBox(L0).cx) + ' ' + L0.sill });
+    gsap.set(rows, { autoAlpha: 0, x: -14 });
+    gsap.set(bars, { scaleX: 0, transformOrigin: '0% 50%' });
+    gsap.set(add, { autoAlpha: 0 });
+    gsap.set(caption, { autoAlpha: 0, scale: 0.4, rotation: -10 });
+    gsap.set([arrow, head], { drawSVG: '0%' });
+
+    var tl = gsap.timeline({ paused: true, defaults: { ease: 'power2.out' } });
+    /* the фиалка wilts */
+    tl.to(vLeaves, { rotation: 0, duration: 0.9, ease: 'power2.in', stagger: 0.05 }, 0);
+    if (vBud) tl.to(vBud, { rotation: 0, duration: 0.8, ease: 'bounce.out' }, 0.2);
+    tl.fromTo(violet, { scaleY: 1, transformOrigin: '50% 100%' }, { transformOrigin: '50% 100%', keyframes: { scaleY: [0.93, 1.02, 1] }, duration: 0.7, ease: 'none', immediateRender: false }, 0.5);
+    if (vDrop) tl.fromTo(vDrop, { autoAlpha: 0, y: -8, transformOrigin: '50% 50%' }, { autoAlpha: 1, y: 0, transformOrigin: '50% 50%', duration: 0.4, immediateRender: false }, 0.9);
+    /* the phrase */
+    tl.to(bubble, { autoAlpha: 1, scale: 1, duration: 0.5, ease: 'mp.pop' }, 1.1)
+      .to(chs, { autoAlpha: 1, duration: 0.01, stagger: 0.032, ease: 'none' }, 1.4);
+    var typed = 1.4 + chs.length * 0.032;
+    /* bubble → bulb that glows and rises */
+    tl.to(bubble, { scale: 0.08, autoAlpha: 0, duration: 0.42, ease: 'power2.in' }, typed + 0.7)
+      .to(bulbG, { autoAlpha: 1, scale: 1, duration: 0.55, ease: 'back.out(2.2)' }, typed + 0.95)
+      .to(bulbG, { y: 0, duration: 1.1, ease: 'power3.out' }, typed + 1.05)
+      .to(rays, { drawSVG: '0% 100%', duration: 0.5, ease: 'power2.out' }, typed + 1.25)
+      .fromTo(glow, { scale: 0.4, transformOrigin: '50% 50%' }, { scale: 1, duration: 0.8, ease: 'elastic.out(1,.5)', immediateRender: false }, typed + 1.25);
+    /* the goal */
+    var g0 = typed + 1.9;
+    tl.to(icon, { autoAlpha: 1, scale: 1, duration: 0.55, ease: 'back.out(2.2)' }, g0)
+      .to(label, { autoAlpha: 1, scale: 1, duration: 0.45, ease: 'back.out(2.2)' }, g0 + 0.2)
+      .to(phoneG, { autoAlpha: 1, scaleY: 1, scaleX: 1, duration: 0.6, ease: 'back.out(1.8)' }, g0 + 0.35)
+      .to(rows, { autoAlpha: 1, x: 0, duration: 0.35, stagger: 0.1 }, g0 + 0.7)
+      .to(bars, { scaleX: 1, duration: 0.6, ease: 'power2.out', stagger: 0.1 }, g0 + 0.85)
+      .to(add, { autoAlpha: 1, duration: 0.3 }, g0 + 1.05)
+      .to(caption, { autoAlpha: 1, scale: 1, rotation: 3, duration: 0.5, ease: 'back.out(2)' }, g0 + 1.0)
+      .to(arrow, { drawSVG: '100%', duration: 0.4, ease: 'power1.inOut' }, g0 + 1.3)
+      .to(head, { drawSVG: '100%', duration: 0.2 }, g0 + 1.65)
+      .set(caption, { clearProps: 'transform' }, g0 + 1.6);
+
+    MP.blink(svg, api);
+    /* a re-run with the stage already scrolled into view: show the finished poster, no replay */
+    if (again && st.getBoundingClientRect().top < window.innerHeight * 0.65) { tl.progress(1); return; }
+    window.ScrollTrigger.create({ trigger: st, start: 'top 65%', once: true, onEnter: function () { tl.play(0); } });
+  }
 
   function headIn(section, api) {
     var gsap = api.gsap, h2 = MP.$('.scene-head h2', section), lead = MP.$('.scene-head .lead', section);

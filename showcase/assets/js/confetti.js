@@ -26,7 +26,9 @@
     var cv = document.createElement('canvas');
     cv.className = 'mp-confetti';
     cv.setAttribute('aria-hidden', 'true');
-    cv.style.cssText = 'position:fixed;left:0;top:0;width:100vw;height:100vh;pointer-events:none;z-index:2147483000';
+    // CSS size in px from the same source as the bitmap: on iOS 100vh is the LARGE viewport (toolbar hidden), so with the
+    // toolbar shown a vh-sized canvas would stretch the paper vertically and drop the bursts below their origin
+    cv.style.cssText = 'position:fixed;left:0;top:0;width:' + window.innerWidth + 'px;height:' + window.innerHeight + 'px;pointer-events:none;z-index:2147483000';
     var dpr = Math.min(2, window.devicePixelRatio || 1);
     cv.width = Math.round(window.innerWidth * dpr);
     cv.height = Math.round(window.innerHeight * dpr);
