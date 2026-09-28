@@ -5,7 +5,7 @@ remain in this directory for auditability and are loaded on demand, never as a b
 
 ## ACTIVE
 
-- `codex-007-pages-showcase.md` — publish the showcase through GitHub Pages.
+None.
 
 ## VALIDATION / FOLLOW-UP
 
@@ -16,6 +16,7 @@ remain in this directory for auditability and are loaded on demand, never as a b
 
 ## COMPLETE / HISTORICAL
 
+- `codex-007-pages-showcase.md` — showcase published at `/showcase/` on GitHub Pages.
 - `codex-006-security-publication.md` — scoped publication and GitHub credential hardening (1.18.1).
 - `codex-005-graph-visual.md` — larger type, dimensional visuals and persistent dark/light/paper themes.
 - `codex-004-graph-demo.md` — four audience levels, narrated HyperFrames film and graph regression checks.

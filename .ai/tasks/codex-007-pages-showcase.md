@@ -2,7 +2,7 @@
 
 ## STATUS
 
-IN PROGRESS — Pages workflow updated; commit, remote deployment, and URL verification remain.
+COMPLETE — publicly deployed and verified on 2026-09-28.
 
 ## OBJECTIVE
 
@@ -13,10 +13,20 @@ GitHub Pages site.
 
 - Keep the existing graph site at the root URL.
 - Publish the showcase at `/showcase/` with its local assets and media.
-- Let the Pages workflow enable the repository's Pages site when it runs.
+- Enable Pages once through the authenticated GitHub API; the workflow handles deployments.
 - Preserve all pre-existing working-tree changes outside the deployment files.
 
-## NEXT
+## DELIVERY
 
-- Commit only the Pages workflow and this task's coordination files.
-- Push to `main`, wait for the Pages workflow, and verify the public showcase URL.
+- URL: <https://desvingns.github.io/mobile-pipeline/showcase/>
+- The existing graph remains at the root URL.
+- Workflow run `36391013550` succeeded on commit `4c4af6b`.
+
+## VERIFICATION
+
+- Showcase HTML, stylesheet, and MP4 each returned HTTP 200 over HTTPS.
+- MP4 response content type: `video/mp4`.
+
+## NOTES
+
+- Pre-existing unrelated local edits were preserved and remain uncommitted.
