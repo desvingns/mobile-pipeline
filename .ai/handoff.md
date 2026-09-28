@@ -1,79 +1,27 @@
 # Handoff
 
-Last session: Codex · 2026-09-27 · publication security hardening.
-Previous uncommitted handoff preserved at `archive/handoff-2026-09-04-graph.md`.
+Last session: Codex · 2026-09-28 · GitHub Pages showcase publication.
 
 ## DONE
 
-- Released 1.18.1 security hardening: explicit proposal staging, template-only patch boundaries,
-  secret file exclusions, host-bound GitHub credential helper and checked push URL/redirects.
-- Regenerated both plugin adapters and hotfixed only the installed Codex 1.17.2 proposal helpers.
-  Original installed files and marketplace trees are preserved in D:/Pet/archive.
-- Canonical/installed/generated regression tests, queue lifecycle, bootstrap, GitHub contract,
-  ShellCheck, runtime, graph and exact canonical-to-adapter comparison PASS.
-- Existing user edits in AGENTS.md, README.md, ARCHITECTURE and two showcase scenes were preserved
-  and are excluded from the security commit.
-
-- Visual follow-up: replaced the small-text styling with 17–19 px story copy,
-  larger role cards, a dimensional team illustration, a larger phone and explicit
-  dark/light/paper themes. Dark is the default; selection persists in localStorage.
-- Shared theme.js/themes.css apply to both the story and expert map. The parent
-  sends the selected theme after iframe loads; blocked storage does not prevent
-  changing themes. Current routes/stages and the previously delivered film stay intact.
-- Replaced graph/index.html with four audience modes. The simple route has
-  three plain-language groups and eight readable scenes, role cards, coordinator,
-  directed connections, a parallel join demonstration and interactive phone.
-- Retained the full original technical viewer as graph/expert.html. Legacy node
-  URLs route into it; stage and node selection survive mode changes.
-- Added graph/story/scenario.js with grounded source refs and Russian explanations.
-  Research uses three grounding-scout instances; implementation and tests stay
-  sequential. Conditional agents, one repair retry and human acceptance are explicit.
-- Delivered graph/media/mobile-pipeline.mp4: 233.033 seconds, 1920x1080, 30fps,
-  H.264/AAC, 22.4 MB. Russian narration, 59 burned-in sentence captions, no music.
-  Site includes chapter seeking, transcript, poster and the standalone file.
-- HyperFrames source and frozen local audio/fonts live in videos/mobile-pipeline.
-  Rebuild commands and provenance are documented. Playback has no CDN dependency.
-- Extended graph guard and added jsdom behavior tests to CI. Updated graph docs,
-  task index and change log. No pipeline templates or behavior were changed.
-
-## VERIFIED
-
-- Visual follow-up: existing DOM regression tests plus theme persistence,
-  invalid preference fallback, blocked storage, frame synchronization and rejection
-  of foreign frame messages: PASS. CSS parses and JS syntax is valid. Semantic
-  text/background contrast pairs meet 4.5:1 in all three themes.
-- bash tests/test-graph.sh, bash -n, ShellCheck 0.11.0: PASS.
-- Node 24 / jsdom tests: four modes, old URLs, source refs, join barrier, sequential
-  execution, cancellation, keyboard, reduced motion, file URL routing, focus,
-  expert search/zoom, chapter navigation and phone state: PASS.
-- HyperFrames check: lint/runtime/layout/contrast zero errors and warnings.
-- Measured caption bounds, ffprobe parameters and full FFmpeg decode: PASS.
-- Inspected all scene snapshots and selected frames from the actual delivered MP4.
-- graphify update . rebuilt the local AST graph. See graph/VALIDATION.md for scope.
+- Updated the Pages workflow to retain the graph at the site root and publish the presentation
+  at `/showcase/` with its assets and media.
+- Enabled workflow-managed Pages setup in the deployment action.
 
 ## DECISIONS
 
-- Story is a teaching example of /mp-spec --feature then /mp --feature --next,
-  not real execution telemetry. Animation speed does not imply pipeline latency.
-- Plain script data preserves opening from disk and existing GitHub Pages hosting.
-- Existing technical data retains its schema. Explanation is a separate story layer.
-- Narration uses locally frozen ru-RU-DmitryNeural speech; regeneration needs
-  edge-tts/network, but rebuilding with the committed audio and playback do not.
+- Keep the current graph as the root site and serve the requested presentation at `/showcase/`.
+- Preserve unrelated user edits already present in the working tree.
 
 ## NEXT
 
-- User can open graph/index.html and watch the film in Presentation mode.
-- Optional follow-up: inspect the website in a permitted browser at desktop and
-  narrow widths. The browser tool blocked the local URL; DOM tests do not prove layout.
-- GitHub Pages still needs repository Settings > Pages > GitHub Actions if not
-  enabled previously. No remote deployment or push was requested in this session.
-- Unrelated preexisting README.md, AGENTS.md and docs/ARCHITECTURE.md edits remain.
+- Commit only the Pages workflow and coordination files for this task, then push to `main`.
+- Wait for the Pages deployment and verify the public URL from GitHub's deployment metadata.
 
 ## OWNER
 
-Free.
+Codex.
 
 ## BLOCKERS
 
-No implementation blocker. Website browser visual verification was unavailable
-because the browser tool rejected the local URL; this was not bypassed.
+Remote Pages enablement and the first deployment have not run yet.

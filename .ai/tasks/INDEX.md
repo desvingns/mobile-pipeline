@@ -5,7 +5,7 @@ remain in this directory for auditability and are loaded on demand, never as a b
 
 ## ACTIVE
 
-None.
+- `codex-007-pages-showcase.md` — publish the showcase through GitHub Pages.
 
 ## VALIDATION / FOLLOW-UP
 

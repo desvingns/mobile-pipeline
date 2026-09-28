@@ -1,17 +1,14 @@
 name: pages
 
-# Publish the node-view graph (graph/) to GitHub Pages so the current picture of both
-# pipelines is always one link away. The same files also open straight from disk
-# (graph/index.html over file://) — Pages is the shareable copy, not the only copy.
-#
-# One-time manual setup in the repository: Settings → Pages → Source: GitHub Actions.
-# Until that is done this workflow fails; nothing else in the repo depends on it.
+# Publish the node-view graph at the site root and the presentation at /showcase/.
+# Both remain usable straight from disk; Pages is the shareable copy.
 
 on:
   push:
     branches: [ main ]
     paths:
       - 'graph/**'
+      - 'showcase/**'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -37,10 +34,21 @@ jobs:
         run: bash tests/test-graph.sh
 
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Assemble static site
+        run: |
+          set -e
+          mkdir -p _site/showcase
+          cp -R graph/. _site/
+          cp showcase/index.html _site/showcase/
+          cp -R showcase/assets showcase/media _site/showcase/
+          touch _site/.nojekyll
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: graph
+          path: _site
 
       - id: deployment
         uses: actions/deploy-pages@v4
